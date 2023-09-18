@@ -1,0 +1,5 @@
+---
+title: fixed that users can complete submissions with requested values
+issue: GUIDE-717
+author: Timo Wiese
+type: bug

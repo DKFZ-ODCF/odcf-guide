@@ -1,0 +1,143 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Save Parser</title>
+</head>
+<head>
+    <script src="/js/parserChanges.js"></script>
+    <script src="/external/datatables/buttons-1.6.2/dataTables.buttons.min.js"></script>
+    <script src="/external/datatables/buttons-1.6.2/buttons.bootstrap4.min.js"></script>
+    <script src="/external/datatables/buttons-1.6.2/buttons.html5.min.js"></script>
+    <link href="/external/datatables/buttons-1.6.2/buttons.bootstrap4.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div th:replace="fragments/header :: header"></div>
+
+    <div class="container-fluid mb-5">
+
+        <div class="mt-2">
+            <h2 class="text-kapitaelchen text-blue" th:text="#{parser.save}"></h2>
+            <div th:replace="fragments/pageMessages :: error"></div>
+
+            <form action="/parser/save-parser" method="post" id="parserData">
+
+                <!-- project selection and full regex -->
+                <div class="form-group">
+                    <input th:name="|parser.id|" th:value="${parser?.id} ?: 0" type="hidden">
+
+                    <label for="parserProject" th:text="#{project}"></label>
+                    <div class="input-group">
+                        <select class="selectpicker project-dropdown w-100" data-live-search="true"
+                                data-size="8" data-container="body" data-width="auto"
+                                id="parserProject"
+                                th:name="|parser.project|" required>
+                            <option disabled="disabled" selected="selected" value="" th:text="#{select}"></option>
+                            <option th:each="project : ${projects}"
+                                    th:value="${project.replace(' (closed)', '')}"
+                                    th:text="${project}"
+                                    th:selected="${project.replace(' (closed)', '') == parser?.project}"
+                                    th:classappend="${project.contains('(closed)')} ? opacity-05">
+                            </option>
+                        </select>
+                    </div>
+
+                    <label for="parserRegex" th:text="#{parser.regex}"></label>
+                    <p class="opacity-05" th:text="#{parser.regexInfo}"></p>
+                    <input type="text" class="form-control" th:name="parser.parserRegex" id="parserRegex"
+                           th:readonly="!${parser?.parserRegex}"
+                           th:value="${parser?.parserRegex} ?: ${defaultRegex}"/>
+                    <p th:if="${parser}" class="small">
+                        <span th:text="#{parser.currentValue} "></span>
+                        <span th:text="${parser?.parserRegex}" id="currentRegex"></span>
+                    </p>
+                </div>
+
+                <!-- cards -->
+                <div th:each="field : ${fields}" class="card mb-2">
+                    <div class="card-header fs-header" th:text="#{${'parser.' + field.fieldName}}"></div>
+                    <div class="card-body">
+                        <input th:name="|field[${fieldStat.index}].id|" th:value="${field?.id} ?: 0" type="hidden">
+                        <input th:name="|field[${fieldStat.index}].columnMapping|" th:value="${field.columnMapping}" type="hidden">
+                        <input th:name="|field[${fieldStat.index}].fieldName|" th:value="${field.fieldName}" type="hidden">
+
+                        <label th:for="|${field.fieldName}Regex|" th:text="#{parser.field.regex}"></label>
+                        <p class="opacity-05" th:text="#{parser.field.regexInfo}"></p>
+                        <input type="text" class="form-control fieldRegex" th:name="|field[${fieldStat.index}].fieldRegex|" th:value="${field?.fieldRegex}"
+                               th:id="|${field.fieldName}Regex|" th:readonly="!${field?.fieldRegex}" onchange="updateWholeRegex()"/>
+                        <p th:if="${field.fieldRegex != ''}"class="small">
+                            <span th:text="#{parser.currentValue} "></span>
+                            <span th:text="${field?.fieldRegex}" th:id="|current${field.fieldName}FRegex|"></span>
+                        </p>
+
+                        <!-- Card Deck for Parser Components -->
+                        <div class="card-deck my-3 mx-n2">
+                            <div class="card mx-2" th:each="component : ${field?.parserComponents}"
+                                 th:include="fragments/parserComponentCard :: parserComponentCard">
+                            </div>
+                            <div class="card mx-2" th:if="${#lists.isEmpty(field?.parserComponents)}"
+                                 th:include="fragments/parserComponentCard :: parserComponentCard">
+                            </div>
+                        </div>
+
+                        <label th:for="|${field.fieldName}Order|" th:text="#{parser.field.order}"></label>
+                        <p class="opacity-05" th:text="#{parser.field.orderInfo}"></p>
+                        <input type="text" class="form-control"  th:name="|field[${fieldStat.index}].orderOfComponents|" th:id="|${field.fieldName}Order|"
+                               th:value="${field?.orderOfComponents}"/>
+                    </div>
+                </div>
+
+                <button th:type="${parser} ? 'button' : 'submit'" class="btn btn-primary" th:text="#{submit}" id="submitParser" th:data-toggle="${parser} ? 'modal' : ''" data-target="#parserCheckModal" onclick="updateParserCheck()"></button>
+                <a class="btn btn-outline-secondary" th:text="#{cancel}" th:href="@{/parser}"></a>
+            </form>
+
+
+            <div class="modal" tabindex="-1" role="dialog" id="parserCheckModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" th:text="#{parser.check}"></h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p th:text="#{parser.checkDes}"></p>
+                            <table id="checkTable" class="table  table-sm">
+                                <thead>
+                                    <tr class="thead-dark">
+                                        <th></th><th th:text="#{parser.oldValue}"></th><th th:text="#{parser.newValue}"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th th:text="#{parser.regex}"></th><td id="parserRegexOld"></td><td id="parserRegexNew"></td>
+                                    </tr>
+                                    <tr class="table-secondary">
+                                        <th scope="row" th:text="#{parser.patient_id}"></th><th></th><th></th>
+                                    </tr>
+                                    <tr>
+                                        <td th:text="#{parser.field.regex}"></td><td id="PidFRegexOld"></td><td id="PidFRegexNew"></td>
+                                    </tr>
+                                    <tr class="sampleRow table-secondary">
+                                        <th scope="row" th:text="#{parser.sample_type}"></th><th></th><th></th>
+                                    </tr>
+                                    <tr class="sampleRow">
+                                        <td th:text="#{parser.field.regex}"></td><td id="SampleFRegexOld"></td><td id="SampleFRegexNew"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary"  th:text="#{submit}" onclick="document.getElementById('parserData').submit()"></button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal" th:text="#{parser.back}"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

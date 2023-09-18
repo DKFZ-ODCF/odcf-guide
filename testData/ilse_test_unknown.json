@@ -1,0 +1,29 @@
+{
+  "0": [
+    {
+      "Submission_ID": "0",
+      "Submission_Type": "multiplex",
+      "Submitter": "submitter",
+      "Sequencing_Type": "NovaSeq 6000 Paired-End 100bp S1",
+      "Lanes": "4",
+      "IAG_ID": "",
+      "ASID": "386920",
+      "SampleName": "sample_name",
+      "Pseudonym": "pseudonym",
+      "BioMaterialId": "skin-T1_B2",
+      "LibraryId": "null",
+      "Sex": "f",
+      "Tissue": "N",
+      "ODCF_Project": "odcf_project",
+      "ODCF_Comment": "",
+      "ODCF_Custom_Name": "",
+      "Type": "EXON",
+      "Tagmentation": "false",
+      "Antibody_Target": "",
+      "Species": "mm10",
+      "Phenotype": "",
+      "Base_Material": "genomic DNA",
+      "unknown": "123"
+    }
+  ]
+}

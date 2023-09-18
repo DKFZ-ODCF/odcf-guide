@@ -1,0 +1,5 @@
+---
+title: removed unknown values from external data export
+issue: GUIDE-665
+author: Timo Wiese
+type: change

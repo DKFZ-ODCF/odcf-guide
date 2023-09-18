@@ -1,0 +1,5 @@
+---
+title: set GUID bit for folders to which tsv files are written out
+issue: GUIDE-694
+author: Gregor Warsow
+type: bug

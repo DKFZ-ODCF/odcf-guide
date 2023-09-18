@@ -1,0 +1,2 @@
+INSERT INTO runtime_options VALUES ('tsvInternalSubpath', 'internal/core/<ILSE_PREFIX>/<ILSE_ID>/<SUBMISSION_ID>.tsv');
+INSERT INTO runtime_options VALUES ('tsvExternalSubpath', 'external/<PROJECT>/<DATE>-<SUBMISSION_ID>.tsv');

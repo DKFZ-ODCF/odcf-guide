@@ -1,0 +1,5 @@
+---
+title: make metadata folder group-writable
+issue: GUIDE-511
+author: Gregor Warsow, Timo Wiese
+type: bug

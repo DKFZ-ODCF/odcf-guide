@@ -1,0 +1,449 @@
+package de.dkfz.odcf.guide.service.validator
+
+import de.dkfz.odcf.guide.*
+import de.dkfz.odcf.guide.helper.EntityFactory
+import de.dkfz.odcf.guide.service.implementation.validator.SampleServiceImpl
+import de.dkfz.odcf.guide.service.interfaces.FileService
+import de.dkfz.odcf.guide.service.interfaces.RequestedValueService
+import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
+import de.dkfz.odcf.guide.service.interfaces.security.LdapService
+import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
+import de.dkfz.odcf.guide.service.interfaces.validator.ModificationService
+import de.dkfz.odcf.guide.service.interfaces.validator.SubmissionService
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.DynamicTest
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
+import org.mockito.ArgumentMatchers
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.Mockito.*
+import org.springframework.boot.test.context.SpringBootTest
+
+@SpringBootTest
+class SampleServiceTests {
+
+    private val entityFactory = EntityFactory()
+
+    @InjectMocks
+    lateinit var sampleServiceMock: SampleServiceImpl
+
+    @Mock
+    lateinit var submissionRepository: SubmissionRepository
+
+    @Mock
+    lateinit var sampleRepository: SampleRepository
+
+    @Mock
+    lateinit var technicalSampleRepository: TechnicalSampleRepository
+
+    @Mock
+    lateinit var validationRepository: ValidationRepository
+
+    @Mock
+    lateinit var fileRepository: FileRepository
+
+    @Mock
+    lateinit var seqTypeRepository: SeqTypeRepository
+
+    @Mock
+    lateinit var seqTypeRequestedValuesRepository: SeqTypeRequestedValuesRepository
+
+    @Mock
+    lateinit var collectorService: CollectorService
+
+    @Mock
+    lateinit var modificationService: ModificationService
+
+    @Mock
+    lateinit var externalMetadataSourceService: ExternalMetadataSourceService
+
+    @Mock
+    lateinit var fileService: FileService
+
+    @Mock
+    lateinit var submissionService: SubmissionService
+
+    @Mock
+    lateinit var requestedValueService: RequestedValueService
+
+    @Mock
+    lateinit var ldapService: LdapService
+
+    @Test
+    fun `validate sample without errors`() {
+        val sample = entityFactory.getSampleGuiDto()
+        val validationLevel = entityFactory.getValidationLevel(
+            listOf(
+                "pid",
+                "sampleType",
+                "project",
+                "sex",
+                "seqType",
+                "tagmentationLibrary",
+                "singleCellPlate",
+                "singleCellWellPosition",
+                "readCount",
+                "barcode",
+                "externalSubmissionId",
+                "lane",
+                "comment",
+            )
+        )
+
+        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
+
+        val errors = sampleServiceMock.validateSample(sample, validationLevel)
+
+        assertThat(errors).isEmpty()
+    }
+
+    @Test
+    fun `validate sample with illegal chars`() {
+        val sample = entityFactory.getSampleGuiDto()
+        sample.pid += "$$$"
+        val validationLevel = entityFactory.getValidationLevel("pid")
+
+        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
+
+        val errors = sampleServiceMock.validateSample(sample, validationLevel)
+
+        assertThat(errors).isNotEmpty
+        assertThat(errors).isEqualTo(mapOf("pid" to true))
+    }
+
+    @Test
+    fun `validate sample with blank field`() {
+        val sample = entityFactory.getSampleGuiDto()
+        sample.pid = ""
+        val validationLevel = entityFactory.getValidationLevel("pid")
+
+        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
+
+        val errors = sampleServiceMock.validateSample(sample, validationLevel)
+
+        assertThat(errors).isNotEmpty
+        assertThat(errors).isEqualTo(mapOf("pid" to true))
+    }
+
+    @Test
+    fun `validate sample with sample type with no number at the end, but should have`() {
+        val sample = entityFactory.getSampleGuiDto()
+        sample.sampleType = "sampleType"
+        val validationLevel = entityFactory.getValidationLevel("sampleType")
+
+        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
+        `when`(validationRepository.findByField("sampleType")).thenReturn(entityFactory.getValidation(regex = "^[a-z0-9+-]*[0-9]+$"))
+        `when`(validationRepository.findByField("oldSampleType")).thenReturn(entityFactory.getValidation(regex = "^[a-z0-9+-]+$"))
+
+        val errors = sampleServiceMock.validateSample(sample, validationLevel)
+
+        assertThat(errors).isNotEmpty
+        assertThat(errors).isEqualTo(mapOf("sampleType" to true))
+    }
+
+    @Test
+    fun `validate sample with sample type with no number at the end and can have`() {
+        val sample = entityFactory.getSampleGuiDto()
+        sample.sampleType = "sample-type"
+        val validationLevel = entityFactory.getValidationLevel("sampleType")
+
+        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType", "sampleType"))
+        `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
+        `when`(validationRepository.findByField("sampleType")).thenReturn(entityFactory.getValidation(regex = "^[a-z0-9+-]*[0-9]+$"))
+
+        val errors = sampleServiceMock.validateSample(sample, validationLevel)
+
+        assertThat(errors).isEmpty()
+    }
+
+    @Test
+    fun `validate sample with empty seqType`() {
+        val sample = entityFactory.getSampleGuiDto()
+        sample.seqType = null
+        val validationLevel = entityFactory.getValidationLevel("seqType")
+
+        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
+
+        val errors = sampleServiceMock.validateSample(sample, validationLevel)
+
+        assertThat(errors).isNotEmpty
+        assertThat(errors).isEqualTo(mapOf("seqType" to true))
+    }
+
+    @Test
+    fun `validate sample with single cell seq type`() {
+        val sample = entityFactory.getSampleGuiDto()
+        sample.seqType = entityFactory.getSingleCellSeqType()
+        val validationLevel = entityFactory.getValidationLevel("seqType")
+
+        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
+
+        val errors = sampleServiceMock.validateSample(sample, validationLevel)
+
+        assertThat(errors).isEmpty()
+    }
+
+    @Test
+    fun `validate sample with tagmentation seq type`() {
+        val sample = entityFactory.getSampleGuiDto()
+        sample.seqType = entityFactory.getTagmentationCellSeqType()
+        val validationLevel = entityFactory.getValidationLevel("seqType")
+
+        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
+
+        val errors = sampleServiceMock.validateSample(sample, validationLevel)
+
+        assertThat(errors).isEmpty()
+    }
+
+    @Test
+    fun `validate samples without errors`() {
+        val sample = entityFactory.getSampleGuiDto()
+        val sample1 = entityFactory.getSampleGuiDto()
+        val validationLevel = entityFactory.getValidationLevel()
+
+        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
+
+        val errors = sampleServiceMock.validateSamples(listOf(sample, sample1), validationLevel)
+
+        assertThat(errors).isEmpty()
+    }
+
+    @Test
+    fun `validate samples with error`() {
+        val sample = entityFactory.getSampleGuiDto()
+        val sample1 = entityFactory.getSampleGuiDto()
+        sample.pid += "$$$"
+        val validationLevel = entityFactory.getValidationLevel("pid")
+
+        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
+
+        val errors = sampleServiceMock.validateSamples(listOf(sample, sample1), validationLevel)
+
+        assertThat(errors).isNotEmpty
+        assertThat(errors[sample.id]).isEqualTo(mapOf("pid" to true))
+    }
+
+    @Test
+    fun `validate invalid non-proceed sample without error`() {
+        val sample = entityFactory.getSampleGuiDto()
+        val sample1 = entityFactory.getSampleGuiDto()
+        sample.pid += "$$$"
+        sample.id = 0 // samples with proceed=false have id=0
+        val validationLevel = entityFactory.getValidationLevel("pid")
+
+        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
+
+        val errors = sampleServiceMock.validateSamples(listOf(sample, sample1), validationLevel)
+
+        assertThat(errors).isEmpty()
+    }
+
+    @Test
+    fun `validate technical sample without errors`() {
+        val sample = entityFactory.getSampleGuiDto()
+        sample.technicalSample = entityFactory.getTechnicalSample()
+        val validationLevel = entityFactory.getValidationLevel(listOf("readCount", "barcode", "externalSubmissionId", "lane"))
+
+        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
+
+        val errors = sampleServiceMock.validateSample(sample, validationLevel)
+
+        assertThat(errors).isEmpty()
+    }
+
+    @Test
+    fun `validate file without errors`() {
+        val file = entityFactory.getFileGuiDto()
+        val validationLevel = entityFactory.getValidationLevel(listOf("fileName", "md5", "baseCount", "cycleCount"))
+
+        `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation(regex = "[a-zA-Z0-9._-]*"))
+
+        val errors = sampleServiceMock.validateFile(file, validationLevel)
+
+        assertThat(errors).isEmpty()
+    }
+
+    @Test
+    fun `validate files without errors`() {
+        val file1 = entityFactory.getFileGuiDto()
+        val file2 = entityFactory.getFileGuiDto()
+        val validationLevel = entityFactory.getValidationLevel(listOf("fileName", "md5", "baseCount", "cycleCount"))
+
+        `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation(regex = "[a-zA-Z0-9._-]*"))
+
+        val errors = sampleServiceMock.validateFiles(listOf(file1, file2), validationLevel)
+
+        assertThat(errors).isEmpty()
+    }
+
+    @Test
+    fun `validate files with error`() {
+        val file1 = entityFactory.getFileGuiDto()
+        val file2 = entityFactory.getFileGuiDto()
+        file1.fileName += "$$$"
+        val validationLevel = entityFactory.getValidationLevel("fileName")
+
+        `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation(regex = "[a-zA-Z0-9._-]*"))
+
+        val errors = sampleServiceMock.validateFiles(listOf(file1, file2), validationLevel)
+
+        assertThat(errors).isNotEmpty
+        assertThat(errors[file1.id]).isEqualTo(mapOf("fileName" to true))
+    }
+
+    @Test
+    fun `convert sample gui dto to sample with existing sample`() {
+        val sampleGuiDto = entityFactory.getSampleGuiDto()
+        val sample = entityFactory.getSample()
+
+        `when`(sampleRepository.getOne(sampleGuiDto.id)).thenReturn(sample)
+
+        val resultSample = sampleServiceMock.convertToEntity(sampleGuiDto)
+
+        assertThat(resultSample.id).isEqualTo(sampleGuiDto.id)
+        assertThat(resultSample.name).isEqualTo(sampleGuiDto.name)
+        assertThat(resultSample.project).isEqualTo(sampleGuiDto.project)
+        assertThat(resultSample.pid).isEqualTo(sampleGuiDto.pid)
+        assertThat(resultSample.sampleType).isEqualTo(sampleGuiDto.sampleType.lowercase())
+        assertThat(resultSample.xenograft).isEqualTo(sampleGuiDto.xenograft)
+        assertThat(resultSample.sex.toString().lowercase()).isEqualTo(sampleGuiDto.sex.lowercase())
+        assertThat(resultSample.phenotype).isEqualTo(sampleGuiDto.phenotype)
+        assertThat(resultSample.libraryLayout.toString().lowercase()).isEqualTo(sampleGuiDto.libraryLayout.lowercase())
+        assertThat(resultSample.singleCell).isEqualTo(sampleGuiDto.singleCell)
+        assertThat(resultSample.seqType).isEqualTo(sampleGuiDto.seqType)
+        assertThat(resultSample.tagmentationLibrary).isEqualTo(sampleGuiDto.tagmentationLibrary)
+        assertThat(resultSample.antibody).isEqualTo(sampleGuiDto.antibody)
+        assertThat(resultSample.antibodyTarget).isEqualTo(sampleGuiDto.antibodyTarget)
+        assertThat(resultSample.libraryPreparationKit).isEqualTo(sampleGuiDto.libraryPreparationKit)
+        assertThat(resultSample.indexType).isEqualTo(sampleGuiDto.indexType)
+        assertThat(resultSample.singleCellPlate).isEqualTo(sampleGuiDto.singleCellPlate)
+        assertThat(resultSample.singleCellWellPosition).isEqualTo(sampleGuiDto.singleCellWellPosition)
+        assertThat(resultSample.comment).isEqualTo(sampleGuiDto.comment)
+
+        assertThat(resultSample.abstractSampleId).isEqualTo(sample.abstractSampleId)
+        assertThat(resultSample.indexType).isEqualTo(sample.indexType)
+        assertThat(resultSample.read1Length).isEqualTo(sample.read1Length)
+        assertThat(resultSample.read2Length).isEqualTo(sample.read2Length)
+        assertThat(resultSample.baseMaterial).isEqualTo(sample.baseMaterial)
+        assertThat(resultSample.requestedLanes).isEqualTo(sample.requestedLanes)
+        assertThat(resultSample.requestedSequencingInfo).isEqualTo(sample.requestedSequencingInfo)
+    }
+
+    @Test
+    fun `convert sample gui dto to sample with new Sample`() {
+        val sampleGuiDto = entityFactory.getSampleGuiDto()
+        sampleGuiDto.id = 0
+
+        val resultSample = sampleServiceMock.convertToEntity(sampleGuiDto)
+
+        assertThat(resultSample.id).isEqualTo(sampleGuiDto.id)
+        assertThat(resultSample.name).isEqualTo(sampleGuiDto.name)
+        assertThat(resultSample.project).isEqualTo(sampleGuiDto.project)
+        assertThat(resultSample.pid).isEqualTo(sampleGuiDto.pid)
+        assertThat(resultSample.sampleType).isEqualTo(sampleGuiDto.sampleType.lowercase())
+        assertThat(resultSample.xenograft).isEqualTo(sampleGuiDto.xenograft)
+        assertThat(resultSample.sex.toString().lowercase()).isEqualTo(sampleGuiDto.sex.lowercase())
+        assertThat(resultSample.phenotype).isEqualTo(sampleGuiDto.phenotype)
+        assertThat(resultSample.libraryLayout.toString().lowercase()).isEqualTo(sampleGuiDto.libraryLayout.lowercase())
+        assertThat(resultSample.singleCell).isEqualTo(sampleGuiDto.singleCell)
+        assertThat(resultSample.seqType).isEqualTo(sampleGuiDto.seqType)
+        assertThat(resultSample.tagmentationLibrary).isEqualTo(sampleGuiDto.tagmentationLibrary)
+        assertThat(resultSample.antibody).isEqualTo(sampleGuiDto.antibody)
+        assertThat(resultSample.antibodyTarget).isEqualTo(sampleGuiDto.antibodyTarget)
+        assertThat(resultSample.libraryPreparationKit).isEqualTo(sampleGuiDto.libraryPreparationKit)
+        assertThat(resultSample.singleCellPlate).isEqualTo(sampleGuiDto.singleCellPlate)
+        assertThat(resultSample.singleCellWellPosition).isEqualTo(sampleGuiDto.singleCellWellPosition)
+        assertThat(resultSample.comment).isEqualTo(sampleGuiDto.comment)
+    }
+
+    @Test
+    fun `Check handleRequestedValues functionality`() {
+        val submission = entityFactory.getUploadSubmission()
+        val sample = entityFactory.getSample(submission)
+        sample.antibodyTarget = "abt(ReqVal)"
+        sample.libraryPreparationKit = "libPrepKit(ReqVal)"
+        sample.speciesWithStrain = "Human (Homo sapiens)[No strain available]+NewSpecies(ReqVal)"
+        val technicalSample = entityFactory.getTechnicalSample(sample)
+        technicalSample.center = "center(ReqVal)"
+        technicalSample.instrumentModel = "instrumentModel"
+        val person = entityFactory.getPerson()
+        val properties = setOf(sample::antibodyTarget, sample::libraryPreparationKit, sample::speciesWithStrain, technicalSample::center, technicalSample::instrumentModelWithSequencingKit)
+
+        `when`(ldapService.getPerson()).thenReturn(person)
+        `when`(collectorService.getFormattedIdentifier(submission.identifier)).thenReturn(submission.identifier)
+
+        sampleServiceMock.handleRequestedValues(properties, submission)
+
+        verify(requestedValueService, times(1)).saveRequestedValue("antibodyTarget", "Sample", "abt", submission)
+        verify(requestedValueService, times(1)).saveRequestedValue("libraryPreparationKit", "Sample", "libPrepKit", submission)
+        verify(requestedValueService, times(1)).saveRequestedValue("speciesWithStrain", "Sample", "NewSpecies", submission)
+        verify(requestedValueService, times(0)).saveRequestedValue("speciesWithStrain", "Sample", "Human (Homo sapiens)[No strain available]", submission)
+        verify(requestedValueService, times(1)).saveRequestedValue("center", "TechnicalSample", "center", submission)
+        verify(requestedValueService, times(0)).saveRequestedValue("instrumentModelWithSequencingKit", "TechnicalSample", "instrumentModelWithSequencingKit", submission)
+    }
+
+    @TestFactory
+    fun `Check handleRequestedSeqTypes functionality`() = listOf(
+        true to 1,
+        false to 0
+    ).map { (isRequested, expected) ->
+        DynamicTest.dynamicTest("handleRequestedSeqTypes requested seqType $isRequested") {
+            val submission = entityFactory.getUploadSubmission()
+            val sample = entityFactory.getSample(submission)
+            val seqType = entityFactory.getSeqType()
+            seqType.isRequested = isRequested
+            sample.seqType = seqType
+            val person = entityFactory.getPerson()
+
+            `when`(ldapService.getPerson()).thenReturn(person)
+            `when`(collectorService.getFormattedIdentifier(submission.identifier)).thenReturn(submission.identifier)
+
+            sampleServiceMock.handleRequestedSeqTypes(sample.seqType, submission)
+
+            verify(requestedValueService, times(expected)).saveSeqTypeRequestedValue(seqType, submission)
+        }
+    }
+
+    @Test
+    fun `check handleRequestedSeqTypes when sample has no seqType`() {
+        val submission = entityFactory.getUploadSubmission()
+        val sample = entityFactory.getSample(submission)
+        sample.seqType = null
+        val person = entityFactory.getPerson()
+
+        `when`(ldapService.getPerson()).thenReturn(person)
+        `when`(collectorService.getFormattedIdentifier(submission.identifier)).thenReturn(submission.identifier)
+
+        sampleServiceMock.handleRequestedSeqTypes(sample.seqType, submission)
+
+        verifyNoInteractions(requestedValueService)
+    }
+
+    @Test
+    fun `check deleteNotNeededSeqTypeRequests functionality`() {
+        val seqType = entityFactory.getSeqType()
+        seqType.isRequested = true
+        val seqTypeRequestedValue = entityFactory.getRequestedSeqType()
+        val requestedSeqType = seqTypeRequestedValue.requestedSeqType
+
+        `when`(seqTypeRepository.findAllByIsRequestedIsTrue()).thenReturn(setOf(seqType, requestedSeqType!!))
+        `when`(seqTypeRequestedValuesRepository.findAllByRequestedSeqType_IsRequestedIsTrue()).thenReturn(setOf(seqTypeRequestedValue))
+
+        sampleServiceMock.deleteNotNeededSeqTypeRequests()
+
+        verify(seqTypeRepository, times(1)).deleteAll(setOf(seqType))
+    }
+}

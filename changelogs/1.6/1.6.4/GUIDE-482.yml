@@ -1,0 +1,5 @@
+---
+title: trigger table merging after setting data received via GUI
+issue: GUIDE-482
+author: Timo Wiese
+type: change

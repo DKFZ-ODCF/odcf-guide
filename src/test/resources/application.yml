@@ -1,0 +1,40 @@
+application:
+  mails:
+    reminders:
+      cronExpression: 00 00 09 * * mon
+      hoursSinceMetadataAvailable: 48
+      sendmail: true
+    senderAddress: no-reply@sender.com
+    sendmail: false
+    ticketSystemAddress: ticketSystem@recipient.com
+    ticketSystemPrefix: PRE#
+  projectOverview:
+    cron:
+      otp: 0 0 1 * * ?
+      filesystem: 0 0 3 * * sat
+      ldap: 0 0 2 * * ?
+ldap:
+  base:
+    dn: ou=ou,dc=ad,dc=domain,dc=de
+  password: PASSWD
+  urls: ldap://URL/
+  user:
+    search:
+      filter: (cn={0})
+  username: cn=ldap,cn=Users,dc=ad,dc=domain,dc=de
+spring:
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: update
+  mail:
+    host: smtp.dkfz.de
+    username: mocki@dkfz.de
+    password: supersicherespasswort
+    port: 465
+    properties.mail.smtp:
+      auth: true
+      starttls:
+        enable: true
+        required: true

@@ -1,0 +1,5 @@
+---
+title: authorization for page providing users to be notified for given project is now possible via token
+issue: GUIDE-625
+author: Gregor Warsow
+type: change

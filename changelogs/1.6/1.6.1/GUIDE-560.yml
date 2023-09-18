@@ -1,0 +1,5 @@
+---
+title: prevented injection of illegal projects via tsv upload
+issue: GUIDE-560
+author: Timo Wiese
+type: bug

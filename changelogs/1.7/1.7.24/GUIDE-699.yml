@@ -1,0 +1,5 @@
+---
+title: fetch OE information while initializing Person object; respect accountDisabled status from LDAP
+issue: GUIDE-699
+author: Gregor Warsow
+type: bug

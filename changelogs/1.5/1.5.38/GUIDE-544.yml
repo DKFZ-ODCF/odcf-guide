@@ -1,0 +1,5 @@
+---
+title: Handle empty sequencing type on the read only page correctly
+issue: GUIDE-544
+author: Oydin Iqbal
+type: bug

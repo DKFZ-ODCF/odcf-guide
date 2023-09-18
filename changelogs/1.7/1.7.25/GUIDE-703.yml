@@ -1,0 +1,5 @@
+---
+title: fix xlsx empty rows bug
+issue: GUIDE-703
+author: Gregor Warsow
+type: bug

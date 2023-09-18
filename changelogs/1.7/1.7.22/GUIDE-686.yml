@@ -1,0 +1,5 @@
+---
+title: Fixed the deletion of extended submissions
+issue: GUIDE-686
+author: Oydin Iqbal
+type: bug

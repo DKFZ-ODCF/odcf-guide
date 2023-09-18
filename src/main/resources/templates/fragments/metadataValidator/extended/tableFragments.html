@@ -1,0 +1,353 @@
+<th:block th:fragment="technicalSampleEdit">
+    <!--/*@thymesVar id="technicalSample" type="de.dkfz.odcf.guide.entity.submissionData.TechnicalSample"*/-->
+    <!--/*@thymesVar id="validation" type="de.dkfz.odcf.guide.entity.validation.Validation"*/-->
+
+    <!-- TECHNICAL SAMPLE BARCODE -->
+    <td class="align-middle h-tSample" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <div class="input-group">
+            <input type="text" class="pattern-governed barcode-textfield form-control miw-200 width-dynamic rounded-right"
+                   th:value="${technicalSample?.barcode}"
+                   th:name="|sampleList[${sampleCounter.index}].technicalSample.barcode|"
+                   th:pattern="${validation['barcode']?.regex}"
+                   th:required="${validation['barcode']?.required}"
+                   th:classappend="${validationErrors?.get(technicalSample.id)?.get('barcode')} ? is-invalid">
+            <div class="invalid-feedback">
+                <span th:utext="${validation['barcode'].description}"></span>
+            </div>
+        </div>
+    </td>
+
+    <!-- TECHNICAL SAMPLE ILSE -->
+    <td class="align-middle h-tSample" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <input type="text" class="externalSubmissionId-textfield form-control rounded-right"
+               th:value="${technicalSample?.externalSubmissionId}"
+               th:name="|sampleList[${sampleCounter.index}].technicalSample.externalSubmissionId|"
+               th:disabled="${technicalSample?.center.toUpperCase() != 'DKFZ'}"
+               th:pattern="${validation['externalSubmissionId']?.regex}"
+               th:required="${validation['externalSubmissionId']?.required}"
+               th:classappend="${validationErrors?.get(technicalSample.id)?.get('externalSubmissionId')} ? is-invalid">
+        <div class="invalid-feedback">
+            <span th:utext="${validation['externalSubmissionId'].description}"></span>
+        </div>
+    </td>
+
+    <!-- TECHNICAL SAMPLE CENTER -->
+    <td class="align-middle h-tSample" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <select class="selectize-request center-dropdown validation-color"
+                data-fieldName='center'
+                th:data-selected-value="${technicalSample.center ?: 'empty'}"
+                th:required="${validation['center']?.required}"
+                th:name="|sampleList[${sampleCounter.index}].technicalSample.center|">
+            <option value="" th:text="#{typeIn}"></option>
+            <option th:each="center : ${centers}"
+                    th:value="${center}" th:text="${center}"
+                    th:selected="${center.replace('(ReqVal)', '').toLowerCase() == technicalSample?.center.toLowerCase()}">
+            </option>
+        </select>
+    </td>
+
+    <!-- TECHNICAL SAMPLE RUN ID -->
+    <td class="align-middle h-tSample" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <div class="input-group">
+            <input type="text"
+                   class="runId-textfield form-control miw-200 width-dynamic"
+                   th:value="${technicalSample?.runId}"
+                   th:name="|sampleList[${sampleCounter.index}].technicalSample.runId|"
+                   th:pattern="${validation['runId']?.regex}"
+                   th:required="${validation['runId']?.required}"
+                   th:id="|runId${sampleCounter.index}|"
+                   onchange="checkLaneNo()"
+                   th:classappend="${validationErrors?.get(technicalSample.id)?.get('runId')} ? is-invalid">
+            <div class="invalid-feedback">
+                <span th:utext="${validation['runId']?.description}"></span>
+                <br>
+                <span class="duplicated-run-id-lane-no" hidden="hidden"></span>
+            </div>
+        </div>
+    </td>
+
+    <!-- TECHNICAL SAMPLE RUN DATE -->
+    <td class="align-middle h-tSample" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <input type="text" class="form-control runDate-textfield miw-200 width-dynamic"
+               th:value="${technicalSample?.runDate}"
+               th:pattern="${validation['runDate']?.regex}"
+               th:required="${validation['runDate']?.required}"
+               th:name="|sampleList[${sampleCounter.index}].technicalSample.runDate|">
+        <div class="invalid-feedback">
+            <span th:utext="${validation['runDate']?.description}"></span>
+        </div>
+    </td>
+
+    <!-- TECHNICAL SAMPLE LANE -->
+    <td class="align-middle h-tSample" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <input type="text" class="form-control lane-textfield"
+               th:value="${technicalSample?.lane}"
+               th:name="|sampleList[${sampleCounter.index}].technicalSample.lane|"
+               th:pattern="${validation['lane']?.regex}"
+               th:required="${validation['lane']?.required}"
+               th:id="|lane${sampleCounter.index}|"
+               onchange="checkLaneNo()"
+               th:classappend="${validationErrors?.get(technicalSample.id)?.get('lane')} ? is-invalid">
+        <div class="invalid-feedback">
+            <span th:utext="${validation['lane'].description}"></span>
+            <br>
+            <span class="duplicated-run-id-lane-no" hidden="hidden"></span>
+        </div>
+    </td>
+
+    <!-- TECHNICAL SAMPLE INSTRUMENT MODEL -->
+    <td class="align-middle h-tSample" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <select class="selectize-request instModel-dropdown validation-color"
+                data-fieldName='instrumentModelWithSequencingKit'
+                th:data-selected-value="${technicalSample.instrumentModelWithSequencingKit ?: 'empty'}"
+                th:required="${validation['instrumentModelWithSequencingKit']?.required}"
+                th:name="|sampleList[${sampleCounter.index}].technicalSample.instrumentModelWithSequencingKit|">
+            <option value="" th:text="#{typeIn}"></option>
+            <option th:each="instrumentModel : ${instrumentModels}"
+                    th:value="${instrumentModel}" th:text="${instrumentModel}"
+                    th:selected="${instrumentModel.replace('(ReqVal)', '').toLowerCase() == technicalSample?.instrumentModelWithSequencingKit.toLowerCase()}">
+            </option>
+        </select>
+    </td>
+
+    <!-- TECHNICAL SAMPLE PIPELINE (FASTQ GENERATOR) -->
+    <td class="align-middle h-tSample" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <select class="selectize-request pipeline-dropdown validation-color"
+                data-fieldName='pipelineVersion'
+                th:data-selected-value="${technicalSample.pipelineVersion ?: 'empty'}"
+                th:required="${validation['pipelineVersion']?.required}"
+                th:name="|sampleList[${sampleCounter.index}].technicalSample.pipelineVersion|">
+            <option value="" th:text="#{typeIn}"></option>
+            <option th:each="pipeline : ${pipelines}"
+                    th:value="${pipeline}" th:text="${pipeline}"
+                    th:selected="${pipeline.replace('(ReqVal)', '').toLowerCase() == technicalSample?.pipelineVersion?.toLowerCase()}">
+            </option>
+        </select>
+    </td>
+</th:block>
+
+<th:block th:fragment="technicalSampleBulkEdit">
+    <!-- TECHNICAL SAMPLE BARCODE -->
+    <td class="align-middle h-tSample"></td>
+    <!-- TECHNICAL SAMPLE ILSE -->
+    <td class="align-middle h-tSample text-center">
+        <input type="text" class="form-control"
+               onchange="bulk_edit_textfield('.externalSubmissionId-textfield', this.value)"
+               th:placeholder="#{edit}"/>
+    </td>
+    <!-- TECHNICAL SAMPLE CENTER -->
+    <td class="align-middle h-tSample">
+        <div class="flex-nowrap input-group">
+            <select class="selectize-request"
+                    data-fieldName='center' data-selected-value=""
+                    onchange="bulk_edit_dropdown_multi('center-dropdown', this)"
+                    th:placeholder="#{typeIn}">
+                <option value="" th:text="#{typeIn}"></option>
+                <option th:each="center : ${centers}" th:value="${center}" th:text="${center}"></option>
+            </select>
+            <div class="input-group-append" style="display: none;">
+                <button type="button" class="btn btn-sm btn-primary" disabled>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="sr-only">Loading...</span>
+                </button>
+            </div>
+        </div>
+    </td>
+    <!-- TECHNICAL SAMPLE RUN ID -->
+    <td class="align-middle h-tSample"></td>
+    <!-- TECHNICAL SAMPLE RUN DATE -->
+    <td class="align-middle h-tSample text-center">
+        <input type="text" class="form-control"
+               onchange="bulk_edit_textfield('.runDate-textfield', this.value)"
+               th:placeholder="#{edit}"/>
+    </td>
+    <!-- TECHNICAL SAMPLE LANE -->
+    <td class="align-middle h-tSample"></td>
+    <!-- TECHNICAL SAMPLE INSTRUMENT MODEL -->
+    <td class="align-middle h-tSample">
+        <div class="flex-nowrap input-group">
+            <select class="selectize-request instModel-bulk-edit" data-fieldName='instrumentModel' data-selected-value=""
+                    onchange="bulk_edit_dropdown_multi('instModel-dropdown', this)"
+                    th:placeholder="#{typeIn}">
+                <option value="" th:text="#{typeIn}"></option>
+                <option th:each="instrumentModel : ${instrumentModels}"
+                        th:value="${instrumentModel}"
+                        th:text="${instrumentModel}"></option>
+            </select>
+            <div class="input-group-append" style="display: none;">
+                <button type="button" class="btn btn-sm btn-primary" disabled>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="sr-only">Loading...</span>
+                </button>
+            </div>
+        </div>
+    </td>
+
+    <!-- TECHNICAL SAMPLE PIPELINE (FASTQ GENERATOR) -->
+    <td class="align-middle h-tSample">
+        <div class="flex-nowrap input-group">
+            <select class="selectize-request" data-fieldName='pipelineVersion' data-selected-value=""
+                    onchange="bulk_edit_dropdown_multi('pipeline-dropdown', this)"
+                    th:placeholder="#{typeIn}">
+                <option value="" th:text="#{typeIn}"></option>
+                <option th:each="pipeline : ${pipelines}"
+                        th:value="${pipeline}"
+                        th:text="${pipeline}"></option>
+            </select>
+            <div class="input-group-append" style="display: none;">
+                <button type="button" class="btn btn-sm btn-primary" disabled>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="sr-only">Loading...</span>
+                </button>
+            </div>
+        </div>
+    </td>
+</th:block>
+
+<th:block th:fragment="fileAndSampleEdit">
+    <input type="hidden" th:value="${sample.id}"
+           th:name="|sampleList[${sampleCounter.index}].id|"/>
+    <input type="hidden" th:value="${technicalSample?.id}"
+           th:name="|sampleList[${sampleCounter.index}].technicalSample|"/>
+    <!-- SAMPLE IDENTIFIER ODCF -->
+    <td class="align-middle fixed-col" th:rowspan="${fileCounter.size}"
+        th:if="${fileCounter.index == 0}">
+        <span class="changeable-sample-name" th:text="${sample.name}"></span>
+        <input type="hidden" th:value="${sample.name}"
+               th:name="|sampleList[${sampleCounter.index}].name|"/>
+    </td>
+    <!-- PLUS -->
+    <td class="align-middle row-edit-button" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <button type="button" class="btn btn-sm btn-success row-edit-button" onclick="newFileRow(this)"
+                data-toggle="tooltip" data-placement="bottom" data-html="true"
+                th:title="#{details.plusFileInfo}">
+            <i class="fas fa-plus"></i>
+        </button>
+    </td>
+    <div th:replace="fragments/metadataValidator/extended/tableFragments :: fileEdit"></div>
+
+    <!-- TECHNICAL SAMPLE READ COUNT -->
+    <td class="align-middle h-tSample" th:rowspan="${fileCounter.size}"
+        th:if="${fileCounter.index == 0}">
+        <div class="input-group">
+            <input type="number"
+                   class="form-control readCount-textfield pattern-governed rounded-right"
+                   th:value="${technicalSample?.readCount}"
+                   th:name="|sampleList[${sampleCounter.index}].technicalSample.readCount|"
+                   th:pattern="${validation['readCount']?.regex}"
+                   th:required="${validation['readCount']?.required}"
+                   th:classappend="${validationErrors?.get(technicalSample.id)?.get('readCount')} ? is-invalid">
+            <div class="invalid-feedback">
+                <span th:utext="${validation['readCount'].description}"></span>
+            </div>
+        </div>
+    </td>
+
+    <!-- ALL FROM SAMPLE -->
+    <div th:replace="fragments/metadataValidator/simple/tableFragments :: sampleEdit"></div>
+    <!-- ALL FROM TECHNICAL SAMPLE -->
+    <div th:replace="fragments/metadataValidator/extended/tableFragments :: technicalSampleEdit"></div>
+    <!-- COMMENT -->
+    <td class="align-middle" th:rowspan="${fileCounter.size}"
+        th:if="${fileCounter.index == 0}">
+        <div class="input-group">
+            <input type="text" class="form-control comment-textfield miw-200 width-dynamic"
+                   th:value="${sample.comment}"
+                   th:pattern="${validation['comment']?.regex}"
+                   th:name="|sampleList[${sampleCounter.index}].comment|"/>
+            <div class="invalid-feedback">
+                <span th:utext="${validation['comment']?.description}"></span>
+            </div>
+        </div>
+    </td>
+</th:block>
+
+<th:block th:fragment="fileEdit">
+    <input type="hidden" th:value="${file.id}"
+           th:name="|sampleList[${sampleCounter.index}].files[${fileCounter.index}].id|"/>
+    <!-- MINUS -->
+    <td class="align-middle row-edit-button">
+        <button type="button" class="btn btn-sm btn-danger row-edit-button" onclick="deleteRow(this)"
+                data-toggle="tooltip" data-placement="bottom" data-html="true"
+                th:title="#{details.minusInfo}">
+            <i class="fas fa-minus"></i>
+        </button>
+    </td>
+
+    <!-- FILE NAME -->
+    <td class="align-middle">
+        <div class="input-group">
+            <input type="text"
+                   class="fileName-textfield form-control pattern-governed miw-200 width-dynamic rounded-right"
+                   th:value="${file.fileName}"
+                   th:name="|sampleList[${sampleCounter.index}].files[${fileCounter.index}].fileName|"
+                   th:pattern="${validation['fileName']?.regex}"
+                   th:required="${validation['fileName']?.required}"
+                   th:classappend="${validationErrors?.get(file.id)?.get('fileName')} ? is-invalid">
+            <div class="invalid-feedback">
+                <span th:utext="${validation['fileName'].description}"></span>
+            </div>
+        </div>
+    </td>
+
+    <!-- FILE MD5 SUM -->
+    <td class="align-middle">
+        <div class="input-group">
+            <input type="text"
+                   class="fileName-textfield form-control pattern-governed miw-200 width-dynamic rounded-right"
+                   th:value="${file.md5}"
+                   th:name="|sampleList[${sampleCounter.index}].files[${fileCounter.index}].md5|"
+                   th:pattern="${validation['md5']?.regex}"
+                   th:required="${validation['md5']?.required}"
+                   th:classappend="${validationErrors?.get(file.id)?.get('md5')} ? is-invalid">
+            <div class="invalid-feedback">
+                <span th:utext="${validation['md5'].description}"></span>
+            </div>
+        </div>
+    </td>
+    <!-- FILE READNUMBER -->
+    <td class="align-middle">
+        <div class="input-group">
+            <select class="dropdown-mw browser-default custom-select readNumber-dropdown width-dynamic"
+                    th:name="|sampleList[${sampleCounter.index}].files[${fileCounter.index}].readNumber|"
+                    required="required">
+                <option disabled="disabled" selected="selected"
+                        th:text="#{select}"></option>
+                <option th:each="readNr : ${readNumbers}"
+                        th:value="${readNr}" th:text="${readNr}"
+                        th:selected="${readNr == file.readNumber.toString()}">
+                </option>
+            </select>
+        </div>
+    </td>
+    <!-- FILE BASE COUNT -->
+    <td class="align-middle h-tSample">
+        <div class="input-group">
+            <input type="number"
+                   class="form-control baseCount-textfield pattern-governed rounded-right"
+                   th:value="${file.baseCount}"
+                   th:name="|sampleList[${sampleCounter.index}].files[${fileCounter.index}].baseCount|"
+                   th:pattern="${validation['baseCount']?.regex}"
+                   th:required="${validation['baseCount']?.required}"
+                   th:classappend="${validationErrors?.get(file.id)?.get('baseCount')} ? is-invalid">
+            <div class="invalid-feedback">
+                <span th:utext="${validation['baseCount'].description}"></span>
+            </div>
+        </div>
+    </td>
+    <!-- FILE CYCLE COUNT -->
+    <td class="align-middle h-tSample">
+        <div class="input-group">
+            <input type="number"
+                   class="form-control cycleCount-textfield pattern-governed rounded-right"
+                   th:value="${file.cycleCount}"
+                   th:name="|sampleList[${sampleCounter.index}].files[${fileCounter.index}].cycleCount|"
+                   th:pattern="${validation['cycleCount']?.regex}"
+                   th:required="${validation['cycleCount']?.required}"
+                   th:classappend="${validationErrors?.get(file.id)?.get('cycleCount')} ? is-invalid">
+            <div class="invalid-feedback">
+                <span th:utext="${validation['cycleCount'].description}"></span>
+            </div>
+        </div>
+    </td>
+</th:block>

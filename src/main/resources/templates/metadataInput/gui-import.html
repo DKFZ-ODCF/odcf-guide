@@ -1,0 +1,43 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Ilse Import</title>
+</head>
+
+<body>
+    <div th:replace="fragments/header :: header"></div>
+
+    <div class="fs-body">
+        <div class="card">
+            <div class="card-header fs-header" th:text="#{import.ilseApi}"></div>
+
+            <div xmlns="http://www.w3.org/1999/xhtml">
+                <div class="card-body" style="text-align: left">
+                    <div th:replace="fragments/pageMessages :: error"></div>
+
+                    <form action="/importer/gui-api" method="post">
+                        <div class="form-group">
+                            <label for="ticketNumber" th:text="#{import.ticketNumber}"></label>
+                            <input type="text" class="form-control" name="ticketNumber" id="ticketNumber" th:value="${ticketNumber}" placeholder="XXXXXXXXXXXXXXXX"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="ilse" th:text="#{import.ilseNumber}"></label>
+                            <input type="number" min="1" class="form-control" name="ilse" id="ilse" th:value="${ilseId}" placeholder="XXXXX" required/>
+                        </div>
+                        <div class="form-group">
+                            <input type="checkbox" name="notify" id="notify"/>
+                            <label for="notify" th:text="#{import.notify}"></label>
+                        </div>
+                        <div class="form-group">
+                            <input type="checkbox" name="dataAvailable" id="dataAvailable"/>
+                            <label for="dataAvailable" th:text="#{import.dataAvailable}"></label>
+                        </div>
+                        <button type="submit" class="btn btn-primary" th:text="#{submit}"></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

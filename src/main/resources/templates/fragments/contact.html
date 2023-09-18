@@ -1,0 +1,54 @@
+<div th:fragment="contact" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <div class="modal fade" id="contactModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel" th:text="#{contact.title}"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <span id="error" class="text-danger" th:text="#{contact.failed}"></span>
+                    <span id="success" class="text-success" th:text="#{contact.thanks}"></span>
+                    <p></p>
+                    <p id="text" th:utext="#{contact.introduce}"></p>
+                    <div id="form">
+                        <form id="contact-form">
+                            <input id="submission" hidden th:if="${submission}" name="submission" th:value="${submission.identifier}">
+                            <div th:if="${#httpServletRequest.remoteUser}">
+                                <div class="form-group">
+                                    <label for="contactFormName" class="col-form-label" th:utext="#{contact.name}"></label>
+                                    <input type="text" class="form-control" id="contactFormName" th:value="${@thymeleafService.getCurrentUser().getFullName()}" required readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label for="contactFormMail" class="col-form-label" th:utext="#{contact.email}"></label>
+                                    <input type="email" class="form-control" id="contactFormMail" th:value="${@thymeleafService.getCurrentUser().getMail()}" required readonly>
+                                </div>
+                            </div>
+                            <div th:unless="${#httpServletRequest.remoteUser}">
+                                <div class="form-group">
+                                    <label for="contactFormName" class="col-form-label" th:utext="#{contact.name}"></label>
+                                    <input type="text" class="form-control" id="contactFormName" required="required">
+                                </div>
+                                <div class="form-group">
+                                    <label for="contactFormMail" class="col-form-label" th:utext="#{contact.email}"></label>
+                                    <input type="email" class="form-control" id="contactFormMail" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="contactFormMessage" class="col-form-label" th:utext="#{contact.message}"></label>
+                                <textarea class="form-control" id="contactFormMessage" rows="8" required></textarea>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" th:text="#{contact.close}"></button>
+                    <button type="button" id="send-button" class="btn btn-primary" onclick="contactFormSendMail()" th:text="#{contact.sendMessage}"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

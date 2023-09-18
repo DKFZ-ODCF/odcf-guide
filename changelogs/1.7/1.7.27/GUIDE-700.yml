@@ -1,0 +1,5 @@
+---
+title: added trigger endpoint to termination mail subject
+issue: GUIDE-700
+author: Timo Wiese
+type: change

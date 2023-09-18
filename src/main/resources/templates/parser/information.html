@@ -1,0 +1,75 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Parser Details</title>
+</head>
+<head>
+    <script src="/external/datatables/buttons-1.6.2/dataTables.buttons.min.js"></script>
+    <script src="/external/datatables/buttons-1.6.2/buttons.bootstrap4.min.js"></script>
+    <script src="/external/datatables/buttons-1.6.2/buttons.html5.min.js"></script>
+    <link href="/external/datatables/buttons-1.6.2/buttons.bootstrap4.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div th:replace="fragments/header :: header"></div>
+
+    <div class="container-fluid mb-5">
+        <h2 th:inline="text">Parser for Project: [[${project}]]</h2>
+
+        <div class="row justify-content-end mr-0">
+            <a role="button" class="btn btn-outline-primary" th:href="@{/parser/edit-parser(project=${project})}">
+                <i class="fa fa-edit"></i> [[#{parser.edit}]]
+            </a>
+        </div>
+
+        <div>
+            <h4 th:text="#{parser.regex}" class="text-blue"></h4>
+            <p th:text="${parser.formattedRegex}"></p>
+        </div>
+
+        <h4 th:text="#{parser.details}" class="text-blue"></h4>
+        <div class="card-deck my-3 mx-n1">
+            <div class="card mx-1" th:each="parserField : ${parserFields}">
+                <div class="card-header fs-header" th:text="#{${'parser.' + parserField.fieldName}}"></div>
+
+                <div xmlns="http://www.w3.org/1999/xhtml">
+                    <div class="card-body" style="text-align: left">
+                        <h5 th:text="#{parser.field.regex}"></h5>
+                        <p th:text="${parserField.formattedRegex}"></p>
+
+                        <h5 th:text="#{parser.field.components}"></h5>
+                        <table id="parserComponentsTable" style="width: 100%">
+                            <thead class="thead-blue">
+                                <tr>
+                                    <th th:text="#{parser.component.name}"></th>
+                                    <th th:text="#{parser.component.regex}"></th>
+                                    <th th:text="#{parser.component.digits}"></th>
+                                    <th th:text="#{parser.component.mapping}"></th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr th:each="component : ${parserField.parserComponents}">
+                                    <td th:text="${component.componentName}"></td>
+                                    <td th:text="${component.componentRegex}"></td>
+                                    <td th:text="${component.numberOfDigits}"></td>
+                                    <td th:text="${component.parserMappingString}"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <br>
+
+                        <h5 th:text="#{parser.field.order}"></h5>
+                        <p th:text="${parserField.orderOfComponents}"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

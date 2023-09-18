@@ -1,0 +1,5 @@
+---
+title: updated expected path to new path logic and fixed antibody target issue
+issue: GUIDE-529
+author: Timo Wiese
+type: change

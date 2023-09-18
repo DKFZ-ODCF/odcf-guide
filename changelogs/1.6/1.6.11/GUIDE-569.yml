@@ -1,0 +1,5 @@
+---
+title: send mail if there are similar PIDs in different projects
+issue: GUIDE-569
+author: Timo Wiese
+type: feature

@@ -1,0 +1,5 @@
+---
+title: fixed error on details page if server side validation failed
+issue: GUIDE-596
+author: Timo Wiese
+type: bug

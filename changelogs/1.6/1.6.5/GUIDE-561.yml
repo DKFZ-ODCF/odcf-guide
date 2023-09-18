@@ -1,0 +1,5 @@
+---
+title: fixed reset of empty submissions
+issue: GUIDE-561
+author: Gregor Warsow
+type: bug

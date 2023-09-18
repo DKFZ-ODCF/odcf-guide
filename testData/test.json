@@ -1,0 +1,35 @@
+{
+  "otrsTicketNumber": "2010080210123456",
+  "sequencingType": "WGS",
+  "samples": [
+    {
+      "pid": "PID1",
+      "sampleIdentifier": "00TestProject-PID1-WGS",
+      "project": "00TestProject",
+      "seqType": "WGS",
+      "sex": "",
+      "sampleType": ""
+    },
+    {
+      "pid": "PID2",
+      "sampleIdentifier": "00TestProject-PID2-WGS",
+      "project": "00TestProject",
+      "seqType": "WGS",
+      "sex": "",
+      "sampleType": ""
+    },
+    {
+      "pid": "PID3",
+      "sampleIdentifier": "00TestProject-PID3-RNA",
+      "project": "00TestProject",
+      "seqType": "RNA",
+      "sex": "",
+      "sampleType": ""
+    }
+  ],
+  "libraryLayout": "PAIRED",
+  "ilseId": "424242",
+  "userMail": "a.b@c.de",
+  "userName": "Test User",
+  "otrsTicketID": "1"
+}

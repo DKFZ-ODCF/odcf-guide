@@ -1,0 +1,71 @@
+<div th:fragment="submissionOverview" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <div th:if="${#httpServletRequest.remoteUser}"
+         th:with="urls=${@thymeleafService.getUrlsForCurrentUser()}">
+        <div th:if="${urls != null && !urls.isEmpty()}">
+            <p>We found these submissions associated with you:<br>
+                <span th:each="entry, stat : ${urls}">
+                <a th:href="${entry.getValue()}" th:inline="text">Submission [[${entry.getKey()}]]</a><br>
+            </span>
+            </p>
+        </div>
+        <div th:unless="${urls != null && !urls.isEmpty()}">
+            <p>We currently have no sequencing submissions or projects associated with you.</p>
+        </div>
+    </div>
+</div>
+
+<div th:fragment="switches" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <div class="alert alert-secondary alert-trim mt-3">
+        <h4 th:text="#{overview.filterHeader}"></h4>
+        <table>
+            <tr>
+                <td>
+                    <div class="custom-control custom-switch col-auto">
+                        <input type="checkbox" class="custom-control-input subTableCheckbox" id="active" checked="checked"
+                               onclick="toggleSubmissionVisualization($(this));">
+                        <label class="custom-control-label" for="active" th:text="#{overview.active}"></label>
+                    </div>
+                </td>
+                <td>
+                    <div class="custom-control custom-switch col-auto" th:if="${admin}">
+                        <input type="checkbox" class="custom-control-input subTableCheckbox" id="terminated"
+                               onclick="toggleSubmissionVisualization($(this));">
+                        <label class="custom-control-label" for="terminated" th:text="#{overview.terminated}"></label>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="custom-control custom-switch col-auto">
+                        <input type="checkbox" class="custom-control-input subTableCheckbox" id="closed" checked="checked"
+                               onclick="toggleSubmissionVisualization($(this));">
+                        <label class="custom-control-label" for="closed" th:text="#{overview.closed}"></label>
+                    </div>
+                </td>
+                <td>
+                    <div class="custom-control custom-switch col-auto" th:if="${admin}">
+                        <input type="checkbox" class="custom-control-input subTableCheckbox" id="auto-closed"
+                               onclick="toggleSubmissionVisualization($(this));">
+                        <label class="custom-control-label" for="auto-closed" th:text="#{overview.autoClosed}"></label>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="custom-control custom-switch col-auto">
+                        <input type="checkbox" class="custom-control-input subTableCheckbox" id="exported"
+                               onclick="toggleSubmissionVisualization($(this));">
+                        <label class="custom-control-label" for="exported" th:text="#{overview.exported}"></label>
+                    </div>
+                </td>
+                <td>
+                    <div class="custom-control custom-switch col-auto" th:if="${admin}">
+                        <input type="checkbox" class="custom-control-input subTableCheckbox" id="finished-externally"
+                                                                        onclick="toggleSubmissionVisualization($(this));">
+                        <label class="custom-control-label" for="finished-externally" th:text="#{overview.finishedExternally}"></label>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

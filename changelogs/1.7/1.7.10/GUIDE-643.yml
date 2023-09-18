@@ -1,0 +1,5 @@
+---
+title: implemented validation level to gui and server-side validation
+issue: GUIDE-643
+author: Timo Wiese
+type: feature

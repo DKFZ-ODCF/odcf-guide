@@ -1,0 +1,5 @@
+---
+title: empty SeqType is regarded as a valid value in client-side validation
+issue: GUIDE-595
+author: Gregor Warsow
+type: bug

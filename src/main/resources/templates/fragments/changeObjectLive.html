@@ -1,0 +1,250 @@
+<div th:fragment="changeSubmissionTicketNumber" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <div class="modal fade" id="changeSubmissionTicketNumber" tabindex="-1" role="dialog"
+         aria-labelledby="changeSubmissionTicketNumberLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changeSubmissionTicketNumberLabel"
+                        th:text="#{overview.changeSubmissionTicketNumber}"></h5>
+                    &nbsp;&nbsp;
+                    <h5 id="changeSubmissionTicketNumberHeader" class="modal-title text-muted"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="changeSubmissionTicketForm"
+                          action="#" th:action="@{/metadata-validator/overview/change-submission-ticket}" method="post">
+
+                        <span class="mb-3" id="submissionInfoText" th:text="#{overview.changeInfo}"></span>
+                        <input id="submission" hidden name="submission">
+
+                        <div class="input-group pid-input-group">
+                            <div class="input-group-prepend">
+                                <div class="input-group-text" th:text="${ticketSystemBase}"></div>
+                            </div>
+                            <input type="text" id="submissionTicketNumber"
+                                   class="form-control"
+                                   name="ticket"
+                                   autocomplete="off"/>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            th:text="#{contact.close}"></button>
+                    <button type="button" id="change-button" class="btn btn-primary"
+                            onclick="document.getElementById('changeSubmissionTicketForm').submit()"
+                            th:text="#{overview.change}"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:fragment="changeSubmissionNameAndComment" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <div class="modal fade" id="changeSubmissionNameAndComment" tabindex="-1" role="dialog"
+         aria-labelledby="changeSubmissionNameAndCommentLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changeSubmissionNameAndCommentLabel"
+                        th:text="#{overview.changeSubmissionNameAndComment}"></h5>
+                    &nbsp;&nbsp;
+                    <h5 id="changeSubmissionNameAndCommentHeader" class="modal-title text-muted"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="submissionCustomisationInfoText" th:text="#{overview.changeSubmissionNameAndCommentInfo}"></p>
+
+                    <form id="changeSubmissionNameAndCommentForm" action="#" th:action="@{/metadata-validator/overview/change-submission-custom-name-and-comment}"
+                          method="post">
+
+                        <input id="submissionIdentifierForCustomisation" hidden name="submission">
+
+                        <div class="form-group">
+                            <label for="submissionCustomName" th:text="#{overview.changeSubmissionName}"></label>
+                            <input type="text" class="form-control" name="submissionCustomName" id="submissionCustomName" value="" autocomplete="off"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="submissionCustomComment" th:text="#{overview.changeSubmissionComment}"></label>
+                            <input type="text" class="form-control" name="submissionCustomComment" id="submissionCustomComment" value="" autocomplete="off"/>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            th:text="#{contact.close}"></button>
+                    <button type="button" class="btn btn-primary" th:text="#{save}"
+                            onclick="document.getElementById('changeSubmissionNameAndCommentForm').submit()"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:fragment="changeFeedbackTicketNumber" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <div class="modal fade" id="changeFeedbackTicketNumber" tabindex="-1" role="dialog"
+         aria-labelledby="changeFeedbackTicketNumberLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changeFeedbackTicketNumberLabel"
+                        th:text="#{overview.changeFeedbackTicketNumber}"></h5>
+                    &nbsp;&nbsp;
+                    <h5 id="changeFeedbackTicketNumberHeader" class="modal-title text-muted"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="changeFeedbackTicketForm"
+                          action="#" th:action="@{feedback/change-feedback-ticket}" method="post">
+
+                        <span class="mb-3" id="feedbackInfoText" th:text="#{overview.changeInfo}"></span>
+                        <input id="feedback" hidden name="feedback">
+
+                        <div class="input-group pid-input-group">
+                            <div class="input-group-prepend">
+                                <div class="input-group-text" th:text="${ticketSystemBase}"></div>
+                            </div>
+                            <input type="text" id="feedbackTicketNumber"
+                                   class="form-control"
+                                   name="ticket"
+                                   autocomplete="off"/>
+                        </div>
+                    </form>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            th:text="#{contact.close}"></button>
+                    <button type="button" class="btn btn-primary"
+                            onclick="document.getElementById('changeFeedbackTicketForm').submit()"
+                            th:text="#{overview.change}"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:fragment="changeSequencingDataReceived" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <div class="modal fade" id="changeSequencingDataReceived" tabindex="-1" role="dialog"
+         aria-labelledby="changeSequencingDataReceivedLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changeSequencingDataReceivedLabel" th:text="#{overview.changeSequencingDataReceived}"></h5>
+                    &nbsp;&nbsp;
+                    <h5 id="changeSequencingDataReceivedHeader" class="modal-title text-muted"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="changeSequencingDataReceivedForm" action="#" th:action="@{/change-sequencing-data-received}" method="post">
+                        <input type="hidden" id="sequencingDataReceivedSubmission" name="submission">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="sequencingDataReceived" name="received">
+                            <label for="sequencingDataReceived" th:text="#{overview.sequencingDataReceivedLabel}"></label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            th:text="#{contact.close}"></button>
+                    <button type="button" class="btn btn-primary"
+                            onclick="document.getElementById('changeSequencingDataReceivedForm').submit()"
+                            th:text="#{overview.change}"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:fragment="changeOnHoldState" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <div class="modal fade" id="changeOnHoldState" tabindex="-1" role="dialog"
+         aria-labelledby="changeSubmissionHoldStateLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changeSubmissionHoldStateLabel"
+                        th:text="#{overview.changeToHoldState}"></h5>
+                    &nbsp;&nbsp;
+                    <h5 id="changeSubmissionHoldStateHeader" class="modal-title text-muted"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="changeOnHoldStateForm"
+                          action="#" th:action="@{/metadata-validator/submission-actions/toggle-on-hold}" method="post">
+
+                        <span class="mb-3" th:text="#{overview.onHoldInfo}"></span>
+                        <input id="submissionToToggleOnHold" name="identifier" th:value="${submission?.identifier}" hidden/>
+                        <input type="checkbox" id="redirectToOverview" name="redirectToOverview" hidden/>
+
+                        <div class="input-group pid-input-group">
+                            <input type="text" id="stateComment"
+                                   class="form-control"
+                                   name="stateComment"
+                                   onkeydown="submitByKeyboard('stateOnHoldFormOkButton')"
+                                   onfocus="this.setSelectionRange(0, this.value.length)"
+                                   th:value="${submission?.onHoldComment}"
+                                   autocomplete="off"/>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            th:text="#{contact.close}"></button>
+                    <button type="button" class="btn btn-primary" id="stateOnHoldFormOkButton"
+                            onclick="document.getElementById('changeOnHoldStateForm').submit()"
+                            th:text="#{overview.change}"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:fragment="requestedValuesModal" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <div class="modal fade" id="requestedValuesModal" tabindex="-1" role="dialog"
+         aria-labelledby="requestedValuesModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="requestedValuesModalLabel" th:text="#{requestedValue.header}"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="requestedValuesModalForm" action="#" th:action="@{/admin/requested-values/accept-value}" method="post">
+                        <input type="hidden" id="requestedValueId" name="id">
+                        <div class="form-group">
+                            <label for="createdValueAs" th:text="#{requestedValue.newValue}"></label>
+                            <input type="text" class="form-control" id="createdValueAs" name="newValue">
+                        </div>
+                        <input type="submit" id="rejectRequestedValue" th:formaction="@{/admin/requested-values/reject-value}" hidden>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger"
+                            onclick="document.getElementById('rejectRequestedValue').click()"
+                            th:text="#{requestedValue.reject}"></button>
+                    <button type="button" class="btn btn-outline-primary"
+                            onclick="document.getElementById('requestedValuesModalForm').submit()"
+                            th:text="#{requestedValue.accept}"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>

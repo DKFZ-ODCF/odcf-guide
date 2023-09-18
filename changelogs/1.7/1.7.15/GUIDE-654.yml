@@ -1,0 +1,5 @@
+---
+title: added possibility to run cluster jobs
+issue: GUIDE-654
+author: Timo Wiese
+type: feature

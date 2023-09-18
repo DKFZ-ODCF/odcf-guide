@@ -1,0 +1,5 @@
+---
+title: added ability to register a ticket number via API
+issue: GUIDE-671
+author: Timo Wiese
+type: change

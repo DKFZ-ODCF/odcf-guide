@@ -1,0 +1,5 @@
+---
+title: fix final submit mail for auto closed submissions
+issue: GUIDE-575
+author: Timo Wiese
+type: bug

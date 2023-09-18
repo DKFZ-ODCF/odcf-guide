@@ -1,0 +1,86 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">ODCF</title>
+</head>
+<head>
+    <script src="/js/faq.js"></script>
+</head>
+
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="image-container text-center">
+    <img src="images/logo-guide.png" alt="logo" height="110px"/>
+    <h3 class="text-kapitaelchen">Omics IT and Data Management<br>
+        Core Facility</h3>
+</div>
+
+<div class="text-container">
+    <h2 class="text-kapitaelchen text-blue">Welcome to the ODCF Guide</h2>
+    <p>Please feel free to contact us with any questions, suggestions or feedback.</p>
+</div>
+
+<div class="text-container">
+    <h3 class="text-kapitaelchen text-blue">Provide And Revise Metadata</h3>
+    <p>
+        To enable structured and lasting data storage for your sequencing projects at the ODCF you need to provide some
+        additional metadata.
+        Besides the technical sequencing information this is mainly the species pseudonym (PID) and the sample type
+        (tumor, control, liver,…).
+        Our tool will guide you through the process of finalizing your metadata to be consistent with already registered
+        data and other projects of your division.
+    </p>
+    <p>
+        Please note that we recommend using Firefox in order to fill out your submission. If you experience any technical
+        difficulties filling out your submission please switch over to Firefox for a better user experience.
+        If you still encounter the same issue(s) please contact us directly and we will try to assist you as soon as possible.
+    </p>
+    <h5 class="text-blue">Data submitted via the GPCF</h5>
+    <p>
+        After you completed your submission in ILSe at the GPCF and if you have decided that you want your data to be
+        managed by ODCF you will get a link to revise your submitted metadata. This link will automatically be provided
+        to the submitter by e-mail. Your submission is open for revision to all project members of the respective
+        OTP-project (submitter and bioinformaticians). Please make sure to talk to the responsible bioinformatician
+        before completing your submission (you can forward the aforementioned link).
+        Once you finished your submission and sequencing by the GPCF is finished, the information will automatically be
+        merged with the technical metadata provided by the GPCF and your data will be registered in OTP (our database).
+        Therefore, we highly recommend checking the submission data for correctness carefully prior to finally
+        submitting it. You are free to edit the metadata anytime. Nevertheless, we recommend doing this as early as
+        possible, as your data will not be registered in our database unless your submission with the ODCF Guide is
+        finalized.
+    </p>
+    <h3 class="text-kapitaelchen text-blue">Submission Overview</h3>
+    <p>
+        The submission overview shows all open submissions that are currently on their way from submitting (to the GPCF)
+        to storing (at the ODCF). You also have read-only access to already finished submissions that were handled by
+        our Guide tool.
+    </p>
+    <div class="image-container text-center">
+        <img src="/files/metadata-flow.png" alt="metadata flow" height="200px">
+    </div>
+    <h3 class="text-kapitaelchen text-blue">Project Overview</h3>
+    <p>
+        The project overview shows all ODCF projects, you are a member of. You will also find the projects of your
+        department and all publicly available projects managed by the ODCF. Please check this list prior to setting up a
+        project, as there might be no need to create a new one. To decide whether to set up a new project or not you
+        should consider the following constraints for setting up new projects:
+    </p>
+    <ul>
+        <li>Data access permissions are handled on a per project level</li>
+        <li>Each project has exactly one species associated (human or mouse or …) with it. If your data is for more than one
+            species we need to set up different projects (e.g. project_name and project_name_mouse). If you want to
+            apply for a project with multiple species please make sure to indicate this on the project application form
+        </li>
+        <li>One project can contain multiple sequencing types (WGS, EXOME, RNA, scRNA, …)</li>
+        <li>Several patients or cell lines concerning the same research issue can be stored in the same project</li>
+        <li>Variant calling can only be performed within one project and between samples of one PID (patient pseudonym)
+            and only for human data
+        </li>
+    </ul>
+    <p>&nbsp;</p>
+</div>
+
+
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

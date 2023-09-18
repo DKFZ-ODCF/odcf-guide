@@ -1,0 +1,5 @@
+---
+title: fixed bug which showed an error page after resetting a submission although reset ran through correctly
+issue: GUIDE-532
+author: Gregor Warsow
+type: bug

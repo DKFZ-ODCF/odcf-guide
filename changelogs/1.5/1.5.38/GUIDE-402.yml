@@ -1,0 +1,5 @@
+---
+title: implemented check if sample data from guide and gpcf has inconsistency
+issue: GUIDE-402
+author: Timo Wiese
+type: feature

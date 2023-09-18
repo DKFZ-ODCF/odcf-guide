@@ -1,0 +1,5 @@
+---
+title: fixed that new samples could not have more than one species
+issue: GUIDE-662
+author: Timo Wiese
+type: bug

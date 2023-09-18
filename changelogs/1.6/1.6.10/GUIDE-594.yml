@@ -1,0 +1,5 @@
+---
+title: Fixed read-only-page if no sequencing type is given
+issue: GUIDE-594
+author: Oydin Iqbal
+type: bug

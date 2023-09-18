@@ -1,0 +1,5 @@
+---
+title: improved submission overview loading time and made it asynchronous
+issue: GUIDE-486
+author: Timo Wiese
+type: change

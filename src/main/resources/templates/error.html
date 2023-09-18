@@ -1,0 +1,19 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">ODCF</title>
+</head>
+
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="text-container text-center">
+    <i class="fas fa-exclamation-triangle fa-10x text-warning"></i>
+    <h1>Error - <span th:text="${code}"></span></h1>
+    <h4 class="mt-5" th:utext="${errorMessage}"></h4>
+</div>
+
+
+<div th:replace="fragments/footer :: footer"></div>
+<div th:replace="fragments/contact :: contact"></div>
+</body>
+</html>

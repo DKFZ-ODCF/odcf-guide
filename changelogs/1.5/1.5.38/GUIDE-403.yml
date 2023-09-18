@@ -1,0 +1,5 @@
+---
+title: expanded fastq file name to absolute path
+issue: GUIDE-403
+author: Timo Wiese
+type: feature

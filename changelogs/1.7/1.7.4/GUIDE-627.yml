@@ -1,0 +1,5 @@
+---
+title: provide content of submission received mail for autoclosed submissions as appendix in FinallySubmittedMail
+issue: GUIDE-627
+author: Gregor Warsow
+type: change

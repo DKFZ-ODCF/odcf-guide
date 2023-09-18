@@ -1,0 +1,638 @@
+<th:block th:fragment="sampleEdit">
+    <!--/*@thymesVar id="sample" type="de.dkfz.odcf.guide.entity.submissionData.Sample"*/-->
+    <!--/*@thymesVar id="validation" type="de.dkfz.odcf.guide.entity.validation.Validation"*/-->
+
+    <!-- PARSE IDENTIFIER -->
+    <td class="align-middle" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <div class="input-group">
+            <input type="text"
+                   class="parseIdentifier-textfield form-control miw-200 width-dynamic"
+                   th:value="${sample.parseIdentifier != ''} ? ${sample.parseIdentifier} : ${sample.name}"
+                   th:name="|sampleList[${sampleCounter.index}].parseIdentifier|"/>
+        </div>
+    </td>
+
+    <!-- PROJECT -->
+    <td class="align-middle h-sample" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <select class="selectize-project project-dropdown validation-color"
+                th:name="|sampleList[${sampleCounter.index}].project|"
+                onchange="projectChanger($(this))"
+                th:placeholder="#{typeIn}"
+                th:required="${validation['project']?.required}">
+            <option value="" th:text="#{typeIn}"></option>
+            <option th:each="project : ${projects}"
+                    th:value="${project.replace(' (closed)', '')}"
+                    th:text="${project}"
+                    th:classappend="${project.contains('(closed)')} ? opacity-05"
+                    th:selected="${project.replace(' (closed)', '') == sample.project}">
+            </option>
+        </select>
+    </td>
+
+    <!-- PID -->
+    <td class="align-middle h-sample" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <div class="input-group multiple-input-group" th:classappend="${validationErrors?.get(sample.id)?.get('pid')} ? '' : flex-nowrap">
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <span class="projectPrefix-span" th:text="${projectPrefixes[sample.project] ?: ''}"></span>
+                </div>
+            </div>
+            <input type="text"
+                   class="form-control pid-textfield miw-200 width-dynamic rounded-right"
+                   th:value="|${sample.pid}|"
+                   th:name="|sampleList[${sampleCounter.index}].pid|"
+                   autocomplete="off"
+                   th:pattern="${validation['pid']?.regex}"
+                   oninput="validateMetadataTableForm(false)"
+                   onchange="changeSampleName($(this));triggerOnchangeSpeciesByOtherField(this)"
+                   th:required="${validation['pid']?.required}"
+                   th:classappend="${validationErrors?.get(sample.id)?.get('pid')} ? is-invalid"/>
+            <div class="invalid-feedback">
+                <span th:utext="${validation['pid']?.description}"></span>
+            </div>
+        </div>
+    </td>
+
+    <!-- SAMPLE TYPE -->
+    <td class="align-middle h-sample sampleType" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <div class="input-group multiple-input-group" th:classappend="${validationErrors?.get(sample.id)?.get('sampleType')} ? '' : flex-nowrap">
+            <input type="text"
+                   class="form-control sampleType-textfield miw-200 width-dynamic rounded-right text-lowercase"
+                   th:value="${sample.sampleType}" th:list="|sampleTypeList[${sampleCounter.index}]|"
+                   th:name="|sampleList[${sampleCounter.index}].sampleType|"
+                   autocomplete="off"
+                   onchange="sampleTypeOnChangeEvents($(this));"
+                   th:pattern="${validation['sampleType']?.regex}"
+                   th:required="${validation['sampleType']?.required}"
+                   th:placeholder="#{select}"
+                   th:classappend="${validationErrors?.get(sample.id)?.get('sampleType')} ? is-invalid"/>
+            <datalist th:id="|sampleTypeList[${sampleCounter.index}]|" class="sampleType-dropdown">
+                <option th:each="sampleType : ${sampleTypes}"
+                        th:value="${sampleType}" th:text="${sampleType}"
+                        th:selected="${sampleType == sample.sampleType}">
+                </option>
+            </datalist>
+            <div class="invalid-feedback">
+                <span th:utext="${validation['sampleType']?.description}"></span>
+            </div>
+        </div>
+        <div id="detailsValidationErrorSampleType" th:utext="${validation['sampleType']?.description}" hidden></div>
+        <div id="detailsValidationErrorOldSampleType" th:utext="${validation['oldSampleType']?.description}" hidden></div>
+        <div id="regexSampleType" th:text="${validation['sampleType']?.regex}" hidden></div>
+        <div id="regexOldSampleType" th:text="${validation['oldSampleType']?.regex}" hidden></div>
+    </td>
+
+    <!-- SAMPLE TYPE ON FILESYSTEM -->
+    <td class="align-middle h-sample sampleTypeOnFilesystem" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <span class="sampleTypeOnFilesystem-span">
+            <span class="sampleTypeOnFilesystemPrefix-span text-lowercase" th:text="${sample.sampleType}"></span>-<span class="sampleTypeOnFilesystemSuffix-span" th:text="${sample.antibodyTarget}"></span>
+        </span>
+    </td>
+
+    <!-- XENOGRAFT -->
+    <td class="align-middle h-sample text-center" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <input type="checkbox" th:name="|sampleList[${sampleCounter.index}].xenograft|"
+               class="xenograftCheckbox" th:checked="${sample.xenograft}"
+               onchange="triggerOnchangeSpeciesByOtherField(this)"/>
+        <input type="hidden" th:name="|sampleList[${sampleCounter.index}].xenograft|" value="0"/>
+    </td>
+
+    <!-- SAMPLE TYPE CATEGORY -->
+    <td class="align-middle h-sample sampleTypeCategory" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <select class="browser-default selectize-general sampleTypeCategory-dropdown validation-custom validation-color-not-required"
+                th:name="|sampleList[${sampleCounter.index}].sampleTypeCategory|"
+                th:disabled="${!(sample.seqType?.needSampleTypeCategory ?: false)}">
+            <option disabled="disabled" selected="selected" value="" th:text="#{select}"></option>
+            <option th:each="category : ${sampleTypeCategories}"
+                    th:value="${category}" th:text="${category}"
+                    th:selected="${category == sample.sampleTypeCategory}">
+            </option>
+        </select>
+    </td>
+
+    <!-- SPECIES -->
+    <td class="align-middle h-sample species-col" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <select class="browser-default selectize-species species-dropdown validation-custom miw-200"
+                th:classappend="${validation['species']?.required} ? 'validation-needed' : 'validation-disabled'"
+                th:name="|sampleList[${sampleCounter.index}].speciesWithStrainList|"
+                th:required="${validation['species']?.required}"
+                th:attr="data-items=${sample.speciesWithStrain ?: 'empty'}"
+                onchange="(async ()=>{onchangeSpecies(this)})()"
+                th:placeholder="#{details.speciesPlaceholder}" multiple>
+            <optgroup th:each="species : ${speciesMap}" th:label="${species.key}">
+                <option th:each="speciesWithStrain : ${species.value}" th:value="${speciesWithStrain}" th:text="${speciesWithStrain}" />
+            </optgroup>
+        </select>
+        <div class="invalid-feedback">
+            <span th:utext="${validation['species']?.description}"></span>
+        </div>
+    </td>
+
+    <!-- SEX -->
+    <td class="align-middle h-sample" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <div class="input-group">
+            <select class="dropdown-mw browser-default custom-select sex-dropdown width-dynamic"
+                    th:name="|sampleList[${sampleCounter.index}].sex|"
+                    th:required="${validation['sex']?.required}">
+                <option disabled="disabled" selected="selected" value="" th:text="#{select}"></option>
+                <option th:each="sexType : ${sexTypes}"
+                        th:value="${sexType}" th:text="${sexType}"
+                        th:selected="${sexType == sample.sex}">
+                </option>
+            </select>
+        </div>
+    </td>
+
+    <!-- PHENOTYPE -->
+    <td class="align-middle h-sample phenotype" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <div class="input-group">
+            <input type="text" class="form-control phenotype-textfield miw-200 width-dynamic"
+                   th:value="${sample.phenotype}"
+                   th:name="|sampleList[${sampleCounter.index}].phenotype|"/>
+        </div>
+    </td>
+
+    <!-- LIBRARY LAYOUT / SEQUENCING READ TYPE -->
+    <td class="align-middle h-sample" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <div th:unless="${extended}">
+            <span class="libraryLayout-span" th:text="${sample.libraryLayout}"></span>
+            <input type="hidden" th:value="${sample.libraryLayout}"
+                   th:name="|sampleList[${sampleCounter.index}].libraryLayout|"/>
+        </div>
+        <select class="selectize-general libraryLayout-dropdown validation-color"
+                th:name="|sampleList[${sampleCounter.index}].libraryLayout|"
+                required="required"
+                th:if="${extended}">
+            <option value="" th:text="#{select}"></option>
+            <option th:each="libLayout : ${libLayouts}"
+                    th:value="${libLayout}" th:text="${libLayout}"
+                    th:selected="${libLayout == file.sample.libraryLayout?.toString()}">
+            </option>
+        </select>
+        <!-- TODO separate issue
+        <div th:if="${!extended || fileCounter.size > 1}">
+            <span class="libraryLayout-span" th:text="${sample.libraryLayout}"></span>
+            <input type="hidden" th:value="${sample.libraryLayout}"
+                   th:name="|sampleList[${sampleCounter.index}].libraryLayout|"/>
+        </div>
+        <div th:if="${extended && fileCounter.size <= 1}">
+            <select class="selectpicker libraryLayout-dropdown"
+                    data-size="8"
+                    data-container="body"
+                    th:name="|sampleList[${sampleCounter.index}].libraryLayout|"
+                    required="required">
+                <option disabled="disabled" selected="selected" th:text="#{select}"></option>
+                <option th:each="libLayout : ${libLayouts}"
+                        th:value="${libLayout}" th:text="${libLayout}"
+                        th:selected="${libLayout == file.sample.libraryLayout?.toString()}">
+                </option>
+            </select>
+        </div>-->
+    </td>
+
+    <!-- SEQ TYPE -->
+    <td class="align-middle h-sample" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <select class="browser-default selectize-seqType seqType-dropdown miw-200 validation-needed validation-color"
+                th:required="${validation['seqType']?.required}"
+                th:name="|sampleList[${sampleCounter.index}].seqType|"
+                th:placeholder="#{typeIn}">
+            <option value="" th:text="#{typeIn}"></option>
+            <optgroup th:each="seqTypeGroup : ${groupedSeqTypes}" th:label="${seqTypeGroup.key}">
+                <option th:each="seqType : ${seqTypeGroup.value}"
+                        th:value="${seqType.id}"
+                        th:data-data="${seqType.json}"
+                        th:text="${seqType.name}"
+                        th:selected="${seqType.id == sample.seqType?.id}">
+                </option>
+            </optgroup>
+        </select>
+    </td>
+
+    <!-- LOW COVERAGE REQUESTED -->
+    <td class="align-middle h-sample text-center lowCoverageRequested" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <input type="checkbox" th:name="|sampleList[${sampleCounter.index}].lowCoverageRequested|"
+               class="lowCoverageRequested-checkbox" th:checked="${sample.lowCoverageRequested}"
+               th:disabled="${!(sample.seqType?.lowCoverageRequestable ?: false)}"
+        />
+    </td>
+
+    <!-- TAGMENTATION LIBRARY -->
+    <td class="align-middle h-sample text-center tagmentationLibrary" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <div class="input-group">
+            <input type="text" class="form-control tagmentationLibrary-textfield width-dynamic rounded-right"
+                   th:value="|${sample.tagmentationLibrary}|"
+                   th:name="|sampleList[${sampleCounter.index}].tagmentationLibrary|"
+                   autocomplete="off"
+                   th:pattern="${validation['tagmentationLibrary']?.regex}"
+                   th:required="${validation['tagmentationLibrary']?.required}"
+                   th:placeholder="#{tagmentationLibrary}"
+                   th:disabled="${!(sample.seqType?.tagmentation ?: false)}"
+                   maxlength="3" size="3"/>
+            <div class="invalid-feedback">
+                <span th:utext="${validation['tagmentationLibrary']?.description}"></span>
+            </div>
+        </div>
+    </td>
+
+    <!-- ANTIBODY TARGET -->
+    <td class="align-middle h-sample antibodyTarget" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <select class="selectize-request antibodyTarget-dropdown validation-color"
+                data-fieldName='antibodyTarget'
+                th:data-selected-value="${sample.antibodyTarget ?: 'empty'}"
+                th:name="|sampleList[${sampleCounter.index}].antibodyTarget|"
+                th:required="${sample.seqType?.needAntibodyTarget ?: false}"
+                th:disabled="${!(sample.seqType?.needAntibodyTarget ?: false)}"
+                th:placeholder="#{typeIn}">
+            <option value="" th:text="#{typeIn}"></option>
+            <option th:each="antibodyTarget : ${antibodyTargets}"
+                    th:value="${antibodyTarget}"
+                    th:text="${antibodyTarget}"
+                    th:selected="${antibodyTarget.replace('(ReqVal)', '') == sample.antibodyTarget}">
+            </option>
+        </select>
+    </td>
+
+    <!-- ANTIBODY -->
+    <td class="align-middle h-sample antibody" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <div class="input-group">
+            <input type="text" class="form-control antibody-textfield miw-200 width-dynamic"
+                   th:disabled="${!seqTypesWithAntibodyTarget.contains(sample.seqType)}"
+                   th:value="${sample.antibody}"
+                   th:name="|sampleList[${sampleCounter.index}].antibody|"/>
+        </div>
+    </td>
+
+    <!-- LIBRARY PREPARATION KIT -->
+    <td class="align-middle h-sample libraryPreparationKit" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <div class="input-group">
+            <select class="selectize-request libraryPreparationKit-dropdown striped-dropdown"
+                    th:classappend="${sample.seqType?.needLibPrepKit ?: false} ? 'validation-color' : 'validation-color-not-required'"
+                    data-fieldName='libraryPreparationKit'
+                    th:data-selected-value="${sample.libraryPreparationKit ?: 'empty'}"
+                    th:name="|sampleList[${sampleCounter.index}].libraryPreparationKit|"
+                    th:required="${sample.seqType?.needLibPrepKit ?: false}"
+                    th:disabled="${hasSubmissionTypeSamples}"
+                    th:placeholder="#{typeIn}">
+                <option value="" th:text="#{typeIn}"></option>
+                <option th:each="libraryPreparationKit : ${libraryPreparationKits}"
+                        th:value="${libraryPreparationKit}"
+                        th:text="${libraryPreparationKit}"
+                        th:selected="${libraryPreparationKit.replace('(ReqVal)', '') == sample.libraryPreparationKit}">
+                </option>
+            </select>
+            <div class="invalid-feedback">
+                <span th:utext="${validation['libraryPreparationKit']?.description}"></span>
+            </div>
+        </div>
+    </td>
+
+    <!-- INDEX KIT / INDEX TYPE -->
+    <td class="align-middle h-sample indexType" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <div class="input-group">
+            <input type="text" class="form-control indexType-textfield miw-200 width-dynamic"
+                   th:disabled="${hasSubmissionTypeSamples}"
+                   th:value="${sample.indexType}"
+                   th:name="|sampleList[${sampleCounter.index}].indexType|"/>
+        </div>
+    </td>
+
+    <!-- PLATE -->
+    <td class="align-middle h-sample plate" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <div class="input-group">
+            <input type="text"
+                   class="form-control plate-textfield miw-200 width-dynamic rounded-right"
+                   th:value="${sample.singleCellPlate}"
+                   th:id="|singleCellPlate${sampleCounter.index}|"
+                   th:name="|sampleList[${sampleCounter.index}].singleCellPlate|"
+                   th:disabled="${!sample.singleCell || #bools.isTrue(sample.seqType?.name?.startsWith('10x'))}"
+                   autocomplete="off"
+                   th:pattern="${validation['singleCellPlate']?.regex}"
+                   th:required="${validation['singleCellPlate']?.required}"
+                   th:placeholder="#{plate}">
+            <div class="invalid-feedback">
+                <span th:utext="${validation['singleCellPlate']?.description}"></span>
+            </div>
+        </div>
+    </td>
+
+    <!-- WELL_POSITION -->
+    <td class="align-middle h-sample wellPosition" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
+        <div class="input-group">
+            <input type="text"
+                   class="form-control wellPosition-textfield miw-200 width-dynamic rounded-right"
+                   th:value="${sample.singleCellWellPosition}"
+                   th:id="|singleCellWellPosition${sampleCounter.index}|"
+                   th:name="|sampleList[${sampleCounter.index}].singleCellWellPosition|"
+                   th:disabled="${!sample.singleCell || #bools.isTrue(sample.seqType?.name?.startsWith('10x'))}"
+                   autocomplete="off"
+                   th:pattern="${validation['singleCellWellPosition']?.regex}"
+                   th:required="${validation['singleCellWellPosition']?.required}"
+                   th:placeholder="#{wellPosition}">
+            <div class="invalid-feedback">
+                <span th:utext="${validation['singleCellWellPosition']?.description}"></span>
+            </div>
+        </div>
+    </td>
+</th:block>
+
+<th:block th:fragment="sampleBulkEdit">
+    <!-- PARSE IDENTIFIER -->
+    <td class="h-sample">
+        <input type="text" class="form-control"
+               onchange="bulk_edit_textfield('.parseIdentifier-textfield', this.value)"
+               th:placeholder="#{edit}"/>
+    </td>
+
+    <!-- PROJECT -->
+    <td class="h-sample">
+        <div class="flex-nowrap input-group">
+            <select class="selectize-project"
+                    onchange="bulk_edit_dropdown_multi('project-dropdown', this)"
+                    th:placeholder="#{typeIn}">
+                <option value="" th:text="#{typeIn}"></option>
+                <option th:each="project : ${projects}"
+                        th:value="${project.replace(' (closed)', '')}"
+                        th:text="${project}"
+                        th:classappend="${project.contains('(closed)')} ? opacity-05">
+                </option>
+            </select>
+            <div class="input-group-append" style="display: none;">
+                <button type="button" class="btn btn-sm btn-primary" disabled>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="sr-only">Loading...</span>
+                </button>
+            </div>
+        </div>
+    </td>
+
+    <!-- PID -->
+    <td class="h-sample"></td>
+
+    <!-- SAMPLE TYPE -->
+    <td class="h-sample"></td>
+
+    <!-- SAMPLE TYPE ON FILESYSTEM -->
+    <td class="h-sample sampleTypeOnFilesystem"></td>
+
+    <!-- XENOGRAFT -->
+    <td class="align-middle h-sample text-center">
+        <input type="checkbox" onchange="bulk_edit_checkbox('.xenograftCheckbox', this.checked)"/>
+    </td>
+
+    <!-- SAMPLE TYPE CATEGORY -->
+    <td class="h-sample sampleTypeCategory"></td>
+
+    <!-- SPECIES -->
+    <td class="h-sample">
+        <div class="flex-nowrap input-group">
+            <select class="selectize-species species-bulk-edit browser-default miw-200 rounded"
+                    data-items="" th:placeholder="#{typeIn}"
+                    onchange="bulk_edit_dropdown_multi('species-dropdown', this)" multiple>
+                <optgroup th:each="species : ${speciesMap}" th:label="${species.key}">
+                    <option th:each="speciesWithStrain : ${species.value}" th:value="${speciesWithStrain}" th:text="${speciesWithStrain}" />
+                </optgroup>
+            </select>
+            <div class="input-group-append" style="display: none;">
+                <button type="button" class="btn btn-sm btn-primary" disabled>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="sr-only">Loading...</span>
+                </button>
+            </div>
+        </div>
+    </td>
+
+    <!-- SEX -->
+    <td class="h-sample">
+        <select class="dropdown-mw browser-default custom-select"
+                onchange="bulk_edit_dropdown('.sex-dropdown', this.value)">
+            <option disabled="disabled" selected="selected" th:text="#{select}"></option>
+            <option th:each="sexType : ${sexTypes}" th:value="${sexType}"
+                    th:text="${sexType}"></option>
+        </select>
+    </td>
+    <!-- PHENOTYPE -->
+    <td class="align-middle h-sample text-center">
+        <input type="text" class="form-control"
+               onchange="bulk_edit_textfield('.phenotype-textfield', this.value)"
+               th:placeholder="#{edit}"/>
+    </td>
+    <!-- LIBRARY LAYOUT / SEQUENCING READ TYPE -->
+    <td class="h-sample"></td>
+
+    <!-- SEQ TYPE -->
+    <td class="h-sample">
+        <div class="flex-nowrap input-group">
+            <select class="browser-default selectize-seqType seqType-bulk-edit miw-200"
+                    onchange="bulk_edit_dropdown_multi('seqType-dropdown', this)"
+                    th:placeholder="#{typeIn}">
+                <option value="" th:text="#{typeIn}"></option>
+                <optgroup th:each="seqTypeGroup : ${groupedSeqTypes}" th:label="${seqTypeGroup.key}">
+                    <option th:each="seqType : ${seqTypeGroup.value}"
+                            th:value="${seqType.id}"
+                            th:data-data="${seqType.json}"
+                            th:text="${seqType.name}">
+                    </option>
+                </optgroup>
+            </select>
+            <div class="input-group-append" style="display: none;">
+                <button type="button" class="btn btn-sm btn-primary" disabled>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="sr-only">Loading...</span>
+                </button>
+            </div>
+        </div>
+    </td>
+
+    <!-- LOW COVERAGE REQUESTED -->
+    <td class="align-middle h-sample text-center lowCoverageRequested">
+        <input type="checkbox" onchange="bulk_edit_checkbox('.lowCoverageRequested-checkbox', this.checked)"/>
+    </td>
+
+    <!-- TAGMENTATION LIBRARY -->
+    <td class="h-sample tagmentationLibrary"></td>
+
+    <!-- ANTIBODY TARGET -->
+    <td class="align-middle h-sample antibodyTarget">
+        <div class="flex-nowrap input-group">
+            <select class="selectize-request" data-fieldName='antibodyTarget' data-selected-value=""
+                    onchange="bulk_edit_dropdown_multi('antibodyTarget-dropdown', this)"
+                    th:placeholder="#{typeIn}">
+                <option value="" th:text="#{typeIn}"></option>
+                <option th:each="antibodyTarget : ${antibodyTargets}"
+                        th:value="${antibodyTarget}"
+                        th:text="${antibodyTarget}">
+                </option>
+            </select>
+            <div class="input-group-append" style="display: none;">
+                <button type="button" class="btn btn-sm btn-primary" disabled>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="sr-only">Loading...</span>
+                </button>
+            </div>
+        </div>
+    </td>
+
+    <!-- ANTIBODY -->
+    <td class="align-middle h-sample text-center antibody">
+        <input type="text" class="form-control"
+               onchange="bulk_edit_textfield('.antibody-textfield', this.value)"
+               th:placeholder="#{edit}"/>
+    </td>
+
+    <!-- LIBRARY PREPARATION KIT -->
+    <td class="align-middle h-sample libraryPreparationKit">
+        <div class="flex-nowrap input-group">
+            <select class="selectize-request" data-fieldName='libraryPreparationKit' data-selected-value=""
+                    onchange="bulk_edit_dropdown_multi('libraryPreparationKit-dropdown', this)"
+                    th:placeholder="#{typeIn}">
+                <option value="" th:text="#{typeIn}"></option>
+                <option th:each="libraryPreparationKit : ${libraryPreparationKits}"
+                        th:value="${libraryPreparationKit}"
+                        th:text="${libraryPreparationKit}">
+                </option>
+            </select>
+            <div class="input-group-append" style="display: none;">
+                <button type="button" class="btn btn-sm btn-primary" disabled>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="sr-only">Loading...</span>
+                </button>
+            </div>
+        </div>
+    </td>
+
+    <!-- INDEX KIT / INDEX TYPE -->
+    <td class="align-middle h-sample text-center indexType">
+        <input type="text" class="form-control"
+               onchange="bulk_edit_textfield('.indexType-textfield', this.value)"
+               th:placeholder="#{edit}"/>
+    </td>
+
+    <!-- PLATE -->
+    <td class="align-middle h-sample text-center plate">
+        <input type="text" class="form-control"
+               onchange="bulk_edit_textfield('.plate-textfield', this.value)"
+               th:placeholder="#{edit}"/>
+    </td>
+
+    <!-- WELL POSITION -->
+    <td class="h-sample wellPosition"></td>
+</th:block>
+
+<th:block th:fragment="formButtons">
+    <div>
+        <button type="submit"
+                id="leaveSessionWithoutSaving"
+                name="button"
+                value="Leave session without saving"
+                onclick="turnOffFieldConstraints();"
+                class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-power-off"></i> <span
+                th:text="#{details.leaveSessionWithoutSaving}"></span>
+        </button>
+        <button th:if="${!samples.empty}"
+                type="submit"
+                id="leaveSubmissionAfterSaving"
+                name="button"
+                value="Save and leave edit mode"
+                onclick="turnOffFieldConstraints();"
+                class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-door-open"></i> <span th:text="#{details.leaveSessionAfterSaving}"></span>
+        </button>
+        <button th:if="${!samples.empty}"
+                type="submit"
+                name="button"
+                value="Save and stay in edit mode"
+                onclick="turnOffFieldConstraints()"
+                class="btn btn-sm btn-outline-dark">
+            <i class="far fa-save"></i> <span th:text="#{details.save}"></span>
+        </button>
+        <button th:if="${!samples.empty}"
+                type="button"
+                name="toggleRows"
+                value="toggle"
+                onclick="toggleNonProceedRows()"
+                th:hidden="${!hasStoppedSamples ?: false}"
+                data-toggle="tooltip" data-placement="bottom" data-html="true"
+                th:title="#{details.explanationStoppedSamples}"
+                class="btn btn-sm btn-outline-dark">
+            <i class="far fa-eye"></i>
+            <span id="showRowsText" th:text="#{details.showRows}"></span>
+            <span id="hideRowsText" th:text="#{details.hideRows}" style="display: none;"></span>
+        </button>
+        <button id="resetSubmission"
+                class="btn btn-sm btn-outline-danger"
+                type="button"
+                name="button"
+                th:disabled="!${submission.resettable}"
+                data-toggle="tooltip" data-placement="bottom" data-html="true"
+                th:title="${submission.resettable} ? '' : #{details.resetNotPossible.explanation(${identifier})}"
+                th:attr="onclick='reset_submission(\'' + ${submission.identifier} + '\',\'' + ${submission.uuid} + '\');'">
+            <i class="fas fa-eraser"></i>
+            <span th:text="${submission.resettable} ? (${submission.class.name == 'de.dkfz.odcf.guide.entity.submissionData.ApiSubmission'} ? #{details.resetApi} : #{details.reset}) : #{details.resetNotPossible}"></span>
+        </button>
+        <button id="applyParser"
+                class="btn btn-sm btn-outline-primary"
+                type="button"
+                name="button"
+                th:hidden="${!hasParser ?: false}"
+                th:title="#{details.applyParserInfo}"
+                data-toggle="tooltip" data-placement="bottom" data-html="true"
+                onclick="save_without_validation('Apply Parser');">
+            <i class="fas fa-play"></i> <span th:text="#{parser.applyParser}"></span>
+        </button>
+        <button th:if="${!samples.empty}"
+                type="submit"
+                name="button"
+                class="btn btn-sm btn-outline-success nextButton"
+                data-toggle="tooltip" data-placement="bottom"
+                title=""
+                value="Next">
+            <i class="fas fa-angle-double-right"></i> <span th:text="#{details.next}"></span>
+        </button>
+    </div>
+</th:block>
+
+<th:block th:fragment="adminButtons">
+    <div class="col-auto mb-2">
+        <a class="btn btn-sm btn-outline-info" id="switchToNormalUser"
+           th:href="@{/metadata-validator/submission/switch-to-user-view(identifier=${submission.identifier})}">
+            <i class="far fa-user"></i>&nbsp;&nbsp;<span th:text="#{details.editAsUser}"></span>
+        </a>
+        <button type="button" id="turnOffRegexCheck" name="button"
+                onclick="turnOffFieldConstraints(false);" class="btn btn-sm btn-outline-danger regex-button">
+            <span th:text="#{details.turnOffRegEx}"></span>
+        </button>
+        <div class="btn-group dropright admin-actions">
+            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Admin Actions
+            </button>
+            <div class="important-dropdown dropdown-menu">
+                <a class="dropdown-item" id="terminateSubmission" th:if="!${submission.terminated}"
+                   th:href="@{/metadata-validator/submission-actions/terminate-submission(identifier=${submission.identifier})}">
+                    <i class="fas fa-ban"></i>&nbsp;&nbsp;<span th:text="#{details.terminate}"></span>
+                </a>
+                <a class="dropdown-item" id="resetSubmissionTermination"
+                   th:href="@{/metadata-validator/submission-actions/reset-termination-timer(identifier=${submission.identifier})}">
+                    <i class="fas fa-history"></i>&nbsp;&nbsp;<span th:text="#{details.resetTerminationButton}"></span>
+                </a>
+                <a class="dropdown-item" id="finishSubmissionExternally" th:if="!${submission.finishedExternally}"
+                   th:href="@{/metadata-validator/submission-actions/finish-submission-externally(identifier=${submission.identifier})}">
+                    <i class="fas fa-person-through-window"></i>&nbsp;&nbsp;<span th:text="#{details.finishedExternally}"></span>
+                </a>
+                <a class="dropdown-item" th:if="!${submission.onHold}"
+                   data-toggle="modal" data-target="#changeOnHoldState">
+                    <i class="fas fa-pause"></i>&nbsp;&nbsp;<span th:text="#{details.putOnHold}"></span>
+                </a>
+                <a class="dropdown-item" th:if="${submission.onHold}"
+                   onclick="document.getElementById('changeOnHoldStateForm').submit();">
+                    <i class="fas fa-play"></i>&nbsp;&nbsp;<span th:text="#{details.resume}"></span>
+                </a>
+                <a class="dropdown-item" id="deleteSubmission"
+                   th:href="@{/metadata-validator/submission-actions/deleteSubmission(identifier=${submission.identifier})}"
+                   th:attr="onclick='return confirm_submission_deletion(\'' + ${submission.identifier} + '\');'">
+                    <i class="far fa-trash-can text-danger"></i>&nbsp;&nbsp;<span th:text="#{delete}"></span>
+                </a>
+            </div>
+        </div>
+    </div>
+</th:block>

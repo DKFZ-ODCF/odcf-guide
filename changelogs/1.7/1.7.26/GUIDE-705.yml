@@ -1,0 +1,5 @@
+---
+title: changed cost center to organizational unit for queries to external metadata source
+issue: GUIDE-705
+author: Timo Wiese
+type: change

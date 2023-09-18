@@ -1,0 +1,3 @@
+INSERT INTO submission
+(identifier, external_data_available_for_merging, origin_projects, ticket_number, status, uuid, submitter_username, import_date, resettable, type, submission_type, on_hold_comment, date_created, last_update, validation_level_id, termination_state, imported_external, custom_name, comment)
+VALUES ('o0000000', false, '', '', 'REMOVED_BY_ADMIN', '0b94e7e0-6db4-441f-bddc-0753cb46da69', 'guide', '2023-01-01 00:00:00.000000', false, 'UNKNOWN', 'UploadSubmission', '', '2023-01-01 00:00:00.000000', '2023-01-01 00:00:00.000000', (SELECT id FROM validation_level WHERE name = 'minimal'), 'NONE', false, '', '');

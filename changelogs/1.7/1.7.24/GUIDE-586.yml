@@ -1,0 +1,5 @@
+---
+title: added new low_coverage_requested column in metadata
+issue: GUIDE-586
+author: Oydin Iqbal
+type: change

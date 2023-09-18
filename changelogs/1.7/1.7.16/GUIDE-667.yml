@@ -1,0 +1,5 @@
+---
+title: added ability to configure and run multiple dependent cluster jobs
+issue: GUIDE-667
+author: Timo Wiese
+type: feature

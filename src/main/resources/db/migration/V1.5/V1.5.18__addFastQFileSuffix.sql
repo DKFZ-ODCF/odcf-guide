@@ -1,0 +1,1 @@
+INSERT INTO runtime_options VALUES ('fastqFileSuffix', '_[R|I][1|2]\.fastq\.gz');

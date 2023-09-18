@@ -1,0 +1,5 @@
+---
+title: Add 'proceed' from ILSe Api to known fields
+issue: GUIDE-536
+author: Timo Wiese
+type: change

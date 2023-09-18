@@ -1,0 +1,5 @@
+---
+title: use Spring 5 WebClient instead of BufferedReader to read from ilse api
+issue: GUIDE-540
+author: Timo Wiese
+type: other

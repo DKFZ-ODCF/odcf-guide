@@ -1,0 +1,5 @@
+---
+title: prevented that admins and users can write data at the same time
+issue: GUIDE-509
+author: Timo Wiese
+type: change

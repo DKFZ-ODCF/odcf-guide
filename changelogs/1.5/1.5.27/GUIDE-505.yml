@@ -1,0 +1,5 @@
+---
+title: handled invalide mail adresses and send the mail to all other recipients
+issue: GUIDE-505
+author: Timo Wiese
+type: bug

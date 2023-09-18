@@ -1,0 +1,221 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Metadata Validator</title>
+</head>
+<head>
+    <script src="/js/keyNavigation.js"></script>
+    <script th:inline="javascript" src="/js/utils.js"></script>
+    <script src="/js/dropdownManipulation/general.js"></script>
+    <script src="/js/dropdownManipulation/columnsDecider.js"></script>
+    <script src="/js/dropdownManipulation/asyncServerLoad.js"></script>
+    <script src="/js/dropdownManipulation/requestNewValues.js"></script>
+    <script src="/js/dropdownManipulation/antibodyTarget.js"></script>
+    <script src="/js/dropdownManipulation/prefix.js"></script>
+    <script src="/js/dropdownManipulation/sampleType.js"></script>
+    <script src="/js/dropdownManipulation/seqType.js"></script>
+    <script src="/js/dropdownManipulation/singleCell.js"></script>
+    <script src="/js/dropdownManipulation/tagementation.js"></script>
+    <script src="/js/dropdownManipulation/lowCoverageRequested.js"></script>
+    <script src="/js/dropdownManipulation/libPrepKit.js"></script>
+    <script src="/js/dropdownManipulation/species.js"></script>
+    <script src="/js/dynamicInputs.js"></script>
+</head>
+
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="container-fluid content pt-2">
+    <div th:replace="fragments/pageMessages :: error"></div>
+    <div th:replace="fragments/pageMessages :: warning"></div>
+    <div th:replace="fragments/pageMessages :: success"></div>
+    <div th:replace="fragments/pageMessages :: info"></div>
+
+    <!-- client val popup -->
+    <div th:replace="fragments/pageMessages :: client-val-popup"></div>
+
+    <h2 class="my-2" th:inline="text">[[#{details.header}]] [[${identifier}]]</h2>
+    <div th:if="${admin}" class="alert alert-danger my-2" role="alert">
+        <h4 th:inline="text" class="mb-0">
+            Submission is [[${submission.status.toString()}]] by [[${submission.lockUser}]], be aware while editing.
+        </h4>
+    </div>
+    <div th:if="${admin && submission.notifiedForTermination }" class="alert alert-warning my-2" role="alert">
+        <form method="post" action="/metadata-validator/submission-actions/prevent-termination" class="mb-0">
+            <input type="hidden" name="identifier" th:value="${submission.identifier}">
+            <label th:text="#{details.terminationWarning}"></label>
+            <button type="submit" class="btn btn-outline-dark btn-sm ml-2" th:text="#{details.terminationWarningButton}"></button>
+        </form>
+    </div>
+    <div th:if="${admin && submission.sequencingTechnology.defaultObject}" class="alert alert-warning my-2" role="alert">
+        <form method="post" action="/metadata-validator/submission-actions/retrigger-sequencing-technology" class="mb-0">
+            <input type="hidden" name="identifier" th:value="${submission.identifier}">
+            <label th:inline="text">Submission has sequencing technology '[[${submission.sequencingTechnology.name}]]'.</label>
+            <button type="submit" class="btn btn-outline-dark btn-sm ml-2">Update</button>
+        </form>
+    </div>
+
+    <div id="table-loader" class="align-middle">
+        <div class="align-items-center">
+            <div class="spinner-border text-blue" role="status" aria-hidden="true"></div>
+            &nbsp;
+            <span th:text="#{details.loading}"></span>
+        </div>
+    </div>
+
+    <div id="loaded-content" style="display: none;">
+        <p>
+            <span th:text="#{details.sessionTimer}"></span> <span id="timer" class="text-danger">00:00</span>
+            <button type="button" id="resetTimer" name="button" onclick="reset_timer(timerInstance, timeout, UUID)"
+                    class="btn btn-outline-success btn-sm"><i class="fas fa-undo"></i> <span
+                    th:text="#{details.timerButton}"></span></button>
+            <br>
+            <!--<span th:text="#{details.sessionInvalid}"></span>-->
+        </p>
+        <p id="project-link-container-empty" th:if="${selectedProjects.isEmpty()}">
+            <span th:text="#{details.newProject}"></span>
+            <a href="https://otp.dkfz.de/otp/projectRequest/index" target="_blank" th:text="#{details.otpProjectForm}"></a>
+        </p>
+        <p class="link-container project mb-0" th:hidden="${selectedProjects.isEmpty()}">
+            <span th:text="#{details.project}"></span>
+            <a id="otp-links-hidden" th:href="${otpProjectPath}" target="_blank" hidden>PROJECT</a>
+            <a class="otp-links" target="_blank"
+               th:each="selectedProject : ${selectedProjects}"
+               th:href="${otpProjectPath + selectedProject}"
+               th:text="${selectedProject}"></a>
+        </p>
+        <p class="link-container project-config" th:hidden="${selectedProjects.isEmpty()}">
+            <span th:text="#{details.projectConfig}"></span>
+            <a id="otp-project-config-hidden" th:href="${otpProjectConfig}" target="_blank" hidden>PROJECT</a>
+            <a class="otp-project-config" target="_blank"
+               th:each="selectedProject : ${selectedProjects}"
+               th:href="${otpProjectConfig + selectedProject}"
+               th:text="${selectedProject}"></a>
+        </p>
+
+        <div id="submissionButtons" class="row justify-content-between" th:if="${!samples.empty} and ${admin}">
+            <th:block th:include="fragments/metadataValidator/simple/tableFragments :: adminButtons"/>
+        </div>
+        <form id="metadataTableForm"
+              class="needs-validation"
+              novalidate action="#"
+              autocomplete="off"
+              th:action="@{/metadata-validator/submission/simple/next}"
+              th:classappend="${wasValidated} ? was-validated : ''"
+              onkeydown="return event.key != 'Enter';"
+              method="post" >
+            <input id="submissionIdentifier" type="hidden" th:value="${submission.identifier}" name="submissionIdentifier"/>
+            <div class="d-flex mb-3">
+                <div th:replace="fragments/metadataValidator/simple/tableFragments :: formButtons"></div>
+                <div class="ml-2 my-auto custom-control custom-switch" title="With submissions over 200 samples, this can slow down the page considerably.">
+                    <input class="custom-control-input" type="checkbox" id="liveValidation" onclick="toggleLiveValidation()">
+                    <label class="custom-control-label" for="liveValidation">Live validation</label>
+                </div>
+                <div class="ml-auto">
+                    <button type="submit" name="button" class="btn btn-sm btn-outline-dark" value="save+export"
+                            data-toggle="tooltip" data-placement="top" data-html="true"
+                            th:title="#{details.exportInfo}"
+                            onclick="turnOffFieldConstraints();">
+                        <i class="fas fa-download"></i> <span th:text="#{details.export}"></span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-dark"
+                            data-toggle="modal" data-target="#uploadFile">
+                        <i class="fas fa-upload"></i> <span th:text="#{details.import}"></span>
+                    </button>
+                </div>
+            </div>
+            <div class="wrapper-top">
+                <div id="scroll-container-top">
+                </div>
+            </div>
+            <div class="wrapper-bottom">
+                <div id="scroll-container-bottom">
+                <table id="details-table" class="table table-striped table-sm tblnavigate">
+                    <thead class="thead-blue text-nowrap text-center position-sticky sticky-top">
+                        <tr>
+                            <th th:each="column, stat: ${columns}" class="align-middle"
+                                th:classappend="|${stat.index == 0 ? 'fixed-col' : ''} ${column.displayName}|">
+                                <span th:text="#{${column.displayName}}"></span>
+                                <a th:if="${column.hasExplanation}" tabindex="0" class="text-light"
+                                   data-toggle="popover" data-html="true"
+                                   data-trigger="focus" data-placement="top" th:title="#{${column.displayName}}"
+                                   th:data-content="#{'validator.table.title.' + ${column.displayName}}">
+                                    <i class="far fa-sm fa-question-circle"></i>
+                                </a>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${samples.empty}">
+                        <td colspan="2" th:text="#{noSamples}"></td>
+                    </tr>
+                    <tr id="bulkEditRow" th:if="${!samples.empty}" class="table-primary">
+                        <td class="fixed-col align-middle text-center"><b th:text="#{bulkEdit}"></b></td>
+                        <div th:replace="fragments/metadataValidator/simple/tableFragments :: sampleBulkEdit"></div>
+                        <td class="align-middle text-center">
+                            <input type="text" class="form-control"
+                                   onchange="bulk_edit_textfield('.comment-textfield', this.value)"
+                                   th:placeholder="#{edit}"/>
+                        </td>
+                    </tr>
+
+                    <tr class="samplesTable sampleRow" th:each="sample, sampleCounter : ${samples}" th:classappend="${sample.proceed.toString() == 'NO'} ? 'd-none stopped-sample' : ''">
+                        <input type="hidden" th:value="${sample.id}" th:name="|sampleList[${sampleCounter.index}].id|"/>
+                        <input type="hidden" th:value="${submission.identifier}"
+                               th:name="|sampleList[${sampleCounter.index}].submission|"/>
+                        <!-- SAMPLE IDENTIFIER -->
+                        <td class="align-middle fixed-col">
+                            <i class="far fa-ban" th:if="${sample.proceed.toString() == 'NO'}" data-toggle="tooltip" th:title="#{details.explanationStoppedSamples}"></i>
+                            <span th:text="${sample.name}">SampleIdentifier</span>
+                            <input type="hidden" th:value="${sample.name}"
+                                   th:name="|sampleList[${sampleCounter.index}].name|"/>
+                        </td>
+
+                        <!-- ALL OTHER -->
+                        <div th:each="fakeFile, fileCounter : ${fakeFiles}">
+                            <div th:replace="fragments/metadataValidator/simple/tableFragments :: sampleEdit"></div>
+                        </div>
+
+                        <!-- COMMENT -->
+                        <td class="align-middle">
+                            <div class="input-group">
+                                <input type="text" class="form-control comment-textfield miw-200 width-dynamic"
+                                       th:value="${sample.comment}"
+                                       th:pattern="${validation['comment']?.regex}"
+                                       th:name="|sampleList[${sampleCounter.index}].comment|"/>
+                                <div class="invalid-feedback">
+                                    <span th:utext="${validation['comment']?.description}"></span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            </div>
+            <p></p>
+            <div class="row">
+                <div class="col-auto">
+                    <div th:replace="fragments/metadataValidator/simple/tableFragments :: formButtons"></div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:include="fragments/uploadFile :: upload"></div>
+<div th:include="fragments/registerNewValues :: similarExists"></div>
+<div th:include="fragments/registerNewValues :: importWithNewValues"></div>
+<div th:include="fragments/registerNewValues :: requestNewSeqType"></div>
+<div th:replace="fragments/changeObjectLive :: changeOnHoldState"></div>
+
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var timeout = /*[[${timeout}]]*/ ''; // in minutes
+    var timerInstance = timer(timeout);
+    var UUID = /*[[${submission.uuid}]]*/ '';
+    /*]]>*/
+</script>
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

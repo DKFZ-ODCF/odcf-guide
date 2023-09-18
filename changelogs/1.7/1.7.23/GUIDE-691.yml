@@ -1,0 +1,5 @@
+---
+title: rows containing data but no fastq filename are no longer skipped, instead an exception is thrown
+issue: GUIDE-691
+author: Timo Wiese
+type: bug

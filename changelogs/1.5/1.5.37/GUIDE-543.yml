@@ -1,0 +1,5 @@
+---
+title: Bug fix - Finally Submitted page was shown even when the submission was not finished yet
+issue: GUIDE-543
+author: Oydin Iqbal
+type: bug

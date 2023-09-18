@@ -1,0 +1,5 @@
+---
+title: removed unessesary empty row at the end of tsv file
+issue: GUIDE-582
+author: Tim Lorbacher
+type: bug

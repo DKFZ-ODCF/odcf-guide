@@ -1,0 +1,5 @@
+---
+title: do not set submission on hold if species is 'OTHER'
+issue: GUIDE-629
+author: Gregor Warsow
+type: change

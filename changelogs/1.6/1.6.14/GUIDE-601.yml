@@ -1,0 +1,5 @@
+---
+title: created limited pool connections to external databases
+issue: GUIDE-601
+author: Timo Wiese
+type: change

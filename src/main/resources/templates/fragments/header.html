@@ -1,0 +1,115 @@
+<header th:fragment="header" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <link rel="stylesheet" href="/webfonts/fontawesome-free-6.4.2/css/all.css">
+    <nav class="navbar navbar-expand-lg navbar-light site-header">
+        <a class="navbar-brand" href="/" th:with="date=${#dates.format(#dates.createNow(), 'MMdd')}">
+            <div th:with="showPointyHat=${date} > 1205 and ${date} < 1231">
+                <img th:unless="${showPointyHat}" src="/images/logo-guide-light.png" alt="guide logo" height="30px">
+                <img th:if="${showPointyHat}" src="/images/logo-guide-light-christmas.png" alt="guide logo" height="30px">
+            </div>
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#theNavbar" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="text-light" role="button">
+                <i class="fas fa-bars"></i>
+            </span>
+        </button>
+        <span th:if="${#httpServletRequest.serverPort != 8080 && #httpServletRequest.serverPort != 443}" class="environmentName">
+            test instance
+        </span>
+        <div id="theNavbar" class="collapse navbar-collapse">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown" >
+                    <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button"
+                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Submissions
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="submissionsDropdown">
+                        <a class="dropdown-item" href="/metadata-validator/">ILSe Submission</a>
+                        <a class="dropdown-item" href="/metadata-validator/overview/uploaded/">Uploaded Submission</a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/project/overview/">Project Overview</a>
+                </li>
+                <li class="nav-item dropdown" th:if="${@thymeleafService.getCurrentUserIsAdmin()}">
+                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button"
+                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Admin
+                    </a>
+                    <div class="important-dropdown dropdown-menu" aria-labelledby="adminDropdown">
+                        <a class="dropdown-item" href="/metadata-input/ilse-import">
+                            <i class="fas fa-download fab-child-content"></i> Import from Ilse
+                        </a>
+                        <a class="dropdown-item" href="/metadata-input/sequencing-type">
+                            <i class="fas fa-table fab-child-content"></i> Add Sequencing Type
+                        </a>
+                        <a class="dropdown-item" href="/metadata-input/sequencing-technology">
+                            <i class="fas fa-table fab-child-content"></i> Add Sequencing Technology
+                        </a>
+                        <a class="dropdown-item" href="/metadata-input/validation">
+                            <i class="fas fa-check-double fab-child-content"></i> [[#{validation.title}]]
+                        </a>
+                        <a class="dropdown-item" href="/feedback">
+                            <i class="far fa-comment-dots fab-child-content"></i> [[#{feedback.overview}]]
+                        </a>
+                        <a class="dropdown-item" href="/parser">
+                            <i class="fas fa-list fab-child-content"></i> [[#{parser.overview}]]
+                        </a>
+                        <a class="dropdown-item" href="/admin/requested-values/overview">
+                            <i class="fas fa-list fab-child-content"></i> [[#{requestedValue.overview}]]
+                        </a>
+                        <a class="dropdown-item" href="/admin/statistics">
+                            <i class="far fa-chart-bar fab-child-content"></i> [[#{statistics.title}]]
+                        </a>
+                        <a class="dropdown-item" href="/admin/new-news">
+                            <i class="fas fa-rss fab-child-content"></i> [[#{news.title}]]
+                        </a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="https://www.odcf.dkfz.de/faq/index" target="_blank">FAQ <i class="fas fa-external-link-alt small"></i></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="https://www.odcf.dkfz.de" target="_blank">Homepage <i class="fas fa-external-link-alt small"></i></a>
+                </li>
+                <li class="nav-item text-nowrap" onclick="hideNewNewsIndicator()">
+                    <a class="nav-link" href="https://www.odcf.dkfz.de/news" target="_blank">
+                        News
+                        <div th:if="${#httpServletRequest.remoteUser}" class="d-inline-block">
+                            <i th:if="${@thymeleafService.getCurrentUser().unreadNews}" id="newsDot" class="fas fa-circle small mr-1 text-danger"></i>
+                        </div>
+                        <i class="fas fa-external-link-alt small"></i>
+                    </a>
+                </li>
+            </ul>
+
+            <ul class="nav navbar-nav ml-auto align-middle flex-nowrap">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userLogIn" role="button"
+                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-user-circle fa-lg"></i>
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="userLogIn">
+                        <a th:if="${#httpServletRequest.remoteUser}" th:text="${@thymeleafService.getCurrentUser().fullName}"
+                           class="dropdown-item text-light disabled"></a>
+                        <a th:if="${#httpServletRequest.remoteUser}" href="/logout" class="dropdown-item">Logout</a>
+                        <a th:unless="${#httpServletRequest.remoteUser}" href="/login" class="dropdown-item">Login</a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-toggle="modal" data-target="#contactModal" onclick="loadContactForm()"><div style="font-size: 30px;"><i class="far fa-envelope"></i></div></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="https://www.dkfz.de/" target="_blank">
+                        <img alt="dkfz logo" src="/images/dkfz_logo.png" height="30px">
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <noscript>
+        <div class="alert alert-warning">
+            Warning! JavaScript is disabled. This site may not work without it.
+        </div>
+    </noscript>
+    <div th:replace="fragments/contact :: contact"></div>
+</header>

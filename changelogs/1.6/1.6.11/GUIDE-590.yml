@@ -1,0 +1,5 @@
+---
+title: use single cell from sequencing type instead of sample
+issue: GUIDE-590
+author: Timo Wiese
+type: bug

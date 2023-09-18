@@ -1,0 +1,5 @@
+---
+title: changed sample type input to convert all letters to lowercase
+issue: GUIDE-708
+author: Timo Wiese
+type: change

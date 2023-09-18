@@ -1,0 +1,5 @@
+---
+title: projects not registered in otp will no longer be imported
+issue: GUIDE-557
+author: Timo Wiese
+type: change

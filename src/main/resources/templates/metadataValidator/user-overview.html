@@ -1,0 +1,61 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Overview</title>
+</head>
+
+<head>
+    <script src="/js/tableToggle.js"></script>
+    <script src="/js/loadOverviewTables.js"></script>
+</head>
+
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="container-fluid content">
+    <div th:replace="fragments/pageMessages :: error"></div>
+
+    <div class="row pl-3">
+        <div th:with="admin=${false}" th:include="fragments/submissionOverview :: switches"></div>
+    </div>
+
+    <h2 th:text="#{overview.header}"></h2>
+    <div class="row" th:each="type : ${types}">
+        <div th:id="'table' + ${type} + 'Submissions'" class="col">
+            <h4 th:text="#{overview.headerParam(${type.toLowerCase()})}"></h4>
+            <table th:id="'meta-table-' + ${type.toLowerCase()}" class="table table-striped table-sm tblnavigate">
+                <thead class="thead-blue">
+                <tr>
+                    <th th:text="#{overview.submission}"></th>
+                    <th th:text="#{overview.projects}"></th>
+                    <th th:text="#{overview.submissionDate}"></th>
+                    <th th:text="#{overview.dataAvailabilityDate}"></th>
+                    <th th:text="#{overview.status}"></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="spinner-border" role="status"><td></td></tr>
+                <tr class="blank_row" hidden>
+                        <td>
+                            <a href="SUBMISSION_LINK" target="_blank">SUBMISSION_TEXT</a>
+                        </td>
+                        <td>PROJECT</td>
+                        <td>IMPORT_DATE</td>
+                        <td>RECEIVED</td>
+                        <td>STATE</td>
+                        <td>
+                            <a th:href="@{/metadata-validator/submission-actions/deleteSubmission(identifier=SUBMISSION_ID)}"
+                               target="_blank" onclick="return confirm_submission_deletion('SUBMISSION_ID');">
+                                <i class="far fa-trash-can text-danger"></i>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

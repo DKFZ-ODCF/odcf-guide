@@ -1,0 +1,102 @@
+.fs-body {
+    padding: 15px;
+    text-align: center;
+}
+
+.fs-container a:hover {
+    text-decoration: underline;
+}
+
+.fs-container {
+    background-color: #fff;
+    box-shadow: 10px 10px 10px silver;
+    width: 80%;
+    margin: 20px auto;
+    padding-bottom: 10px;
+    border-radius: 5px;
+}
+
+.fs-header {
+    background-color: #eee;
+    color: #212529;
+    font-weight: bold;
+}
+
+.textContainer {
+    width: 60%;
+    background-color: #fff;
+    padding: 10px;
+    text-align: justify;
+    border-radius: 3px;
+    margin: auto;
+}
+
+.fs-container li a:hover {
+    background-color: #003386;
+    color: #fff;
+    text-decoration: none;
+}
+
+
+/********** arrows on top **********/
+.wrapper {
+    display: table-cell;
+    vertical-align: middle;
+    padding: 15px;
+}
+
+.arrow-steps .step {
+    font-size: 15px;
+    text-align: center;
+    color: #fff;
+    cursor: default;
+    margin: 0 3px;
+    padding: 10px 10px 10px 30px;
+    float: left;
+    position: relative;
+    background-color: #5296da;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.arrow-steps .current {
+    background-color: #003386;
+
+}
+
+.arrow-steps .step:hover,
+.current:hover {
+    background-color: #003386;
+    color: #fff;
+}
+
+.arrow-steps .step:after,
+.arrow-steps .step:before {
+    content: " ";
+    position: absolute;
+    top: 0;
+    right: -17px;
+    width: 0;
+    height: 0;
+    border-top: 23px solid transparent;
+    border-bottom: 19px solid transparent;
+    border-left: 17px solid #5296da;
+    z-index: 2;
+    transition: border-color 0.2s ease;
+}
+
+.arrow-steps .current:after {
+    border-left: 17px solid #003386;
+}
+
+.arrow-steps .step:hover:after,
+.current:hover:after {
+    border-left: 17px solid #003386;
+}
+
+.arrow-steps .step:before {
+    right: auto;
+    left: 0;
+    border-left: 17px solid #fff;
+    z-index: 0;
+}

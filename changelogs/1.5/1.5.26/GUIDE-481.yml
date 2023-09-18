@@ -1,0 +1,5 @@
+---
+title: disabled regex check for reset, terminate and finished externally buttons
+issue: GUIDE-481
+author: Timo Wiese
+type: change

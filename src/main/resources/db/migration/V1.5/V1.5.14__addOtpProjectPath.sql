@@ -1,0 +1,1 @@
+INSERT INTO runtime_options VALUES ('otpProjectPath', 'https://otp.dkfz.de/otp/sampleOverview/index?project=');

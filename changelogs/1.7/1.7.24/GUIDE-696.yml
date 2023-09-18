@@ -1,0 +1,5 @@
+---
+title: fixed wrong ONT paths in mails
+issue: GUIDE-696
+author: Timo Wiese
+type: bug

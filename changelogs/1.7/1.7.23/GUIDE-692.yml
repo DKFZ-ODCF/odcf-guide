@@ -1,0 +1,5 @@
+---
+title: fixed error message if uploaded files have the wrong format or are not valid
+issue: GUIDE-692
+author: Timo Wiese
+type: bug

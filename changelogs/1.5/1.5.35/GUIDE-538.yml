@@ -1,0 +1,5 @@
+---
+title: Fixed that some ilse api data was lost when saving via the gui
+issue: GUIDE-538
+author: Timo Wiese
+type: bug

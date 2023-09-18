@@ -1,0 +1,5 @@
+---
+title: changed fastq file name to fastq file path
+issue: GUIDE-456
+author: Timo Wiese
+type: change

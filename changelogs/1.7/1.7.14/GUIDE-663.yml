@@ -1,0 +1,5 @@
+---
+title: Change toString method of sequencing type
+issue: GUIDE-663
+author: Oydin Iqbal
+type: bug

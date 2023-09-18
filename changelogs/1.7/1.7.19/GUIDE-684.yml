@@ -1,0 +1,5 @@
+---
+title: Do not export stopped samples
+issue: GUIDE-684
+author: Timo Wiese
+type: bug

@@ -1,0 +1,5 @@
+---
+title: fixed merging warning with stopped samples
+issue: GUIDE-635
+author: Timo Wiese
+type: bug

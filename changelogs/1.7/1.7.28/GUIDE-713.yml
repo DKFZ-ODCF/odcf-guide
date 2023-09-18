@@ -1,0 +1,5 @@
+---
+title: implemented a new API to be able to import submissions
+issue: GUIDE-713
+author: Timo Wiese
+type: feature

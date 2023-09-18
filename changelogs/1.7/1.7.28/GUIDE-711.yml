@@ -1,0 +1,5 @@
+---
+title: added missing catch to handle not mappable column headers
+issue: GUIDE-711
+author: Timo Wiese
+type: bug

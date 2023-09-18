@@ -1,0 +1,5 @@
+---
+title: Do not write out the UUID column in the exported TSV
+issue: GUIDE-683
+author: Timo Wiese
+type: bug

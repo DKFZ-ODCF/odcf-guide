@@ -1,0 +1,5 @@
+---
+title: added project import aliases to unknown project detection
+issue: GUIDE-551
+author: Timo Wiese
+type: change

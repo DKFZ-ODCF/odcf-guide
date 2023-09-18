@@ -1,0 +1,5 @@
+---
+title: fixed response if mails cannot send while importing
+issue: GUIDE-568
+author: Timo Wiese
+type: bug

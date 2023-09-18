@@ -1,0 +1,5 @@
+---
+title: do not use empty PID for detection of similar PIDs; also show PID and sampleType in found-similar-pid email
+issue: GUIDE-600
+author: Gregor Warsow
+type: bug

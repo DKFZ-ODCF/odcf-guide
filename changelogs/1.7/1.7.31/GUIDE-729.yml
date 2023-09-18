@@ -1,0 +1,5 @@
+---
+title: added ability to make parser components optional
+issue: GUIDE-729
+author: Timo Wiese
+type: change

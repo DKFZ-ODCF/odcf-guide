@@ -1,0 +1,5 @@
+ALTER TABLE sample ADD COLUMN proceed VARCHAR(255);
+
+UPDATE sample SET proceed = 'UNKNOWN' WHERE proceed IS NULL;
+
+ALTER TABLE sample ALTER COLUMN proceed SET NOT NULL;

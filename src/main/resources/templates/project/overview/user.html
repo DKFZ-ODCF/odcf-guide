@@ -1,0 +1,119 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Project Overview</title>
+</head>
+<head>
+    <script src="/js/loadProjectOverview.js"></script>
+</head>
+
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="container-fluid mb-5">
+    <h2 th:text="#{project.overview.header}"></h2>
+
+    <h4 th:text="#{project.overview.header.own}"></h4>
+
+    <table class="table table-sm table-striped" style="width:100%">
+        <thead class="thead-blue">
+        <tr>
+            <th th:text="#{project}"></th>
+            <th th:text="#{project.overview.unix}"></th>
+            <th th:text="#{project.overview.role}"></th>
+            <th th:text="#{project.overview.fileAccess}"></th>
+            <th th:text="#{project.overview.pi}"></th>
+            <th th:text="#{project.overview.kindOfData}"></th>
+            <th th:text="#{project.overview.lastDataRecd}"></th>
+            <th th:text="#{project.overview.sizeProject}"></th>
+            <th th:text="#{project.overview.sizeAnalysis}"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="infoByPerson : ${infosByPerson}" th:class="${infoByPerson['closed'] == 't'} ? 'opacity-05': ''"
+            th:title="${infoByPerson['closed'] == 't'} ? #{project.overview.closedProject}: ''">
+            <td>
+                <a th:href="${otpProjectPath + infoByPerson['project']}"
+                   th:text="${infoByPerson['project']}" target="_blank"></a>
+            </td>
+            <td>
+                <a th:href="${'https://otp.dkfz.de/otp/projectUser/index?project=' + infoByPerson['project']}"
+                   th:text="${infoByPerson['unix']}" target="_blank"></a>
+            </td>
+            <td th:utext="${infoByPerson['role'].replace(', ', '<br>')}"></td>
+            <td th:if="${infoByPerson['fileAccess'] == 't'}"><i class="fas fa-check text-success"></i></td>
+            <td th:unless="${infoByPerson['fileAccess'] == 't'}"><i class="fas fa-times text-danger"></i></td>
+            <td th:text="${infoByPerson['pis']}"></td>
+            <td th:text="${infoByPerson['kindOfData']}"></td>
+            <td th:text="${infoByPerson['lastDataReceived']}"></td>
+            <td class="text-right pr-3" th:text="${infoByPerson['projectSize']}"></td>
+            <td class="text-right pr-3" th:text="${infoByPerson['analysisSize']}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h4 th:text="#{project.overview.header.group}"></h4>
+    <span th:utext="#{project.overview.sizeStorage(${analysisSize}, ${organizationalUnit})}" class="mb-2 d-block"></span>
+
+    <table class="table table-sm table-striped" style="width:100%">
+        <thead class="thead-blue">
+        <tr>
+            <th th:text="#{project}"></th>
+            <th th:text="#{project.overview.unix}"></th>
+            <th th:text="#{project.overview.pi}"></th>
+            <th th:text="#{project.overview.kindOfData}"></th>
+            <th th:text="#{project.overview.lastDataRecd}"></th>
+            <th th:text="#{project.overview.sizeProject}"></th>
+            <th th:text="#{project.overview.sizeAnalysis}"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="infoByGroup : ${infosByGroup}" th:class="${infoByGroup.closed} ? 'opacity-05': ''"
+            th:title="${infoByGroup.closed} ? #{project.overview.closedProject}: ''">
+            <td>
+                <a th:href="${otpUrlOverview + '?project=' + infoByGroup.name}"
+                   th:text="${infoByGroup.name}" target="_blank"></a>
+            </td>
+            <td>
+                <a th:href="${otpUrlUserManagement + '?project=' + infoByGroup.name}"
+                   th:text="${infoByGroup.unixGroup}" target="_blank"></a>
+            </td>
+            <td th:text="${infoByGroup.pis}"></td>
+            <td th:text="${infoByGroup.seqTypes}"></td>
+            <td th:text="${infoByGroup.lastDataReceived}"></td>
+            <td class="text-right pr-3" th:text="${infoByGroup.projectSize}"></td>
+            <td class="text-right pr-3" th:text="${infoByGroup.analysisSize}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h4 th:text="#{project.overview.header.public}"></h4>
+    <table class="table table-sm table-striped" style="width:100%">
+        <thead class="thead-blue">
+        <tr>
+            <th th:text="#{project}"></th>
+            <th th:text="#{project.overview.pi}"></th>
+            <th th:text="#{project.overview.kindOfData}"></th>
+            <th th:text="#{project.overview.lastDataRecd}"></th>
+            <th th:text="#{project.overview.sizeProject}"></th>
+            <th th:text="#{project.overview.sizeAnalysis}"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="infoByPublic : ${infosByPublic}" th:class="${infoByPublic.closed} ? 'opacity-05': ''"
+            th:title="${infoByPublic.closed} ? #{project.overview.closedProject}: ''">
+            <td>
+                <a th:href="${otpUrlOverview + '?project=' + infoByPublic.name}"
+                   th:text="${infoByPublic.name}" target="_blank"></a>
+            </td>
+            <td th:text="${infoByPublic.pis}"></td>
+            <td th:text="${infoByPublic.seqTypes}"></td>
+            <td th:text="${infoByPublic.lastDataReceived}"></td>
+            <td class="text-right pr-3" th:text="${infoByPublic.projectSize}"></td>
+            <td class="text-right pr-3" th:text="${infoByPublic.analysisSize}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

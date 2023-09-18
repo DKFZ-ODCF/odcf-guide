@@ -1,0 +1,17 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">New News</title>
+</head>
+
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="container-fluid p-4 h-75">
+    <form action="/admin/rest-news-flag" method="post">
+        <button th:text="#{news.title}" th:attr="title=#{news.tooltip}" type="submit" class="btn btn-success btn-lg btn-block h-100"></button>
+    </form>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

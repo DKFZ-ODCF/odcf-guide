@@ -1,0 +1,5 @@
+---
+title: merging warning did not work for xenograft samples
+issue: GUIDE-523
+author: Gregor Warsow
+type: bug

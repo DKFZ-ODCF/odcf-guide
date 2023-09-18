@@ -1,0 +1,241 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Extended Metadata Validator</title>
+</head>
+<head>
+    <script src="/js/keyNavigation.js"></script>
+    <script th:inline="javascript" src="/js/utils.js"></script>
+    <script src="/js/dropdownManipulation/general.js"></script>
+    <script src="/js/dropdownManipulation/columnsDecider.js"></script>
+    <script src="/js/dropdownManipulation/asyncServerLoad.js"></script>
+    <script src="/js/dropdownManipulation/requestNewValues.js"></script>
+    <script src="/js/dropdownManipulation/antibodyTarget.js"></script>
+    <script src="/js/dropdownManipulation/seqCenter.js"></script>
+    <script src="/js/dropdownManipulation/prefix.js"></script>
+    <script src="/js/dropdownManipulation/sampleType.js"></script>
+    <script src="/js/dropdownManipulation/seqType.js"></script>
+    <script src="/js/dropdownManipulation/singleCell.js"></script>
+    <script src="/js/dropdownManipulation/tagementation.js"></script>
+    <script src="/js/dropdownManipulation/lowCoverageRequested.js"></script>
+    <script src="/js/dropdownManipulation/libPrepKit.js"></script>
+    <script src="/js/dropdownManipulation/species.js"></script>
+    <script src="/js/dynamicInputs.js"></script>
+    <script src="/js/extended_page_row_edit.js"></script>
+</head>
+
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="container-fluid content pt-2">
+    <div th:replace="fragments/pageMessages :: error"></div>
+    <div th:replace="fragments/pageMessages :: warning"></div>
+    <div th:replace="fragments/pageMessages :: success"></div>
+    <div th:replace="fragments/pageMessages :: info"></div>
+
+    <!-- client val popup -->
+    <div th:replace="fragments/pageMessages :: client-val-popup"></div>
+
+    <h2>
+        <span th:inline="text">[[#{details.header}]] [[${identifier}]]</span>
+        <span th:if="${!#strings.isEmpty(submission.customName)}" th:inline="text"> - [[${submission.customName}]]</span>
+    </h2>
+
+    <h3 class="text-danger"
+        th:inline="text">
+        Submission is [[${submission.status.toString()}]] by [[${submission.lockUser}]], be aware while editing.
+    </h3>
+
+    <div id="table-loader" class="align-middle">
+        <div class="align-items-center">
+            <div class="spinner-border text-blue" role="status" aria-hidden="true"></div>
+            &nbsp;
+            <span th:text="#{details.loading}"></span>
+        </div>
+    </div>
+
+    <div id="loaded-content" style="display: none;">
+        <p>
+            <span th:text="#{details.sessionTimer}"></span> <span id="timer" class="text-danger">00:00</span>
+            <button type="button" id="resetTimer" name="button" onclick="reset_timer(timerInstance, timeout, UUID)"
+                    class="btn btn-outline-success btn-sm"><i class="fas fa-undo"></i>
+                <span th:text="#{details.timerButton}"></span></button>
+            <br>
+            <span th:text="#{details.sessionInvalid}"></span>
+        </p>
+        <p id="project-link-container-empty" th:if="${selectedProjects.isEmpty()}">
+            <span th:text="#{details.newProject}"></span>
+            <a href="https://otp.dkfz.de/otp/projectRequest/index" target="_blank" th:text="#{details.otpProjectForm}"></a>
+        </p>
+        <p class="link-container project" th:hidden="${selectedProjects.isEmpty()}">
+            <span th:text="#{details.project}"></span>
+            <a id="otp-links-hidden"
+               href="https://otp.dkfz.de/otp/projectOverview/laneOverview?project="
+               target="_blank" hidden>PROJECT</a>
+            <a class="otp-links" target="_blank"
+               th:each="selectedProject : ${selectedProjects}"
+               th:href="${otpProjectPath + selectedProject}"
+               th:text="${selectedProject}"></a>
+        </p>
+
+        <div id="submissionButtons" class="row justify-content-between" th:if="${!samples.empty} and ${admin}">
+            <div th:include="fragments/metadataValidator/simple/tableFragments :: adminButtons"/>
+        </div>
+
+        <form id="metadataTableForm"
+              class="needs-validation"
+              novalidate action="#"
+              autocomplete="off"
+              th:action="@{/metadata-validator/submission/extended/next}"
+              th:classappend="${wasValidated} ? was-validated : ''"
+              onkeydown="return event.key != 'Enter';"
+              method="post">
+            <input id="submissionIdentifier" type="hidden" th:value="${submission.identifier}" name="submissionIdentifier"/>
+            <div class="d-flex mb-3">
+                <div th:replace="fragments/metadataValidator/simple/tableFragments :: formButtons"></div>
+                <div class="ml-2 my-auto custom-control custom-switch" title="With submissions over 100 samples, this can slow down the page considerably.">
+                    <input class="custom-control-input" type="checkbox" id="liveValidation" onclick="toggleLiveValidation()">
+                    <label class="custom-control-label" for="liveValidation">Live validation</label>
+                </div>
+                <div class="ml-auto">
+                    <button type="button" id="edit-rows" class="btn btn-sm btn-outline-dark"
+                            data-toggle="tooltip" data-placement="bottom" data-html="true"
+                            th:title="#{details.editRowsInfo}"
+                            onclick="toggleRowButtons()">
+                        <i id="edit-rows-icon" class="fas fa-eye"></i>
+                        <span th:text="#{csvImport.editRows}"></span>
+                    </button>
+                    <button type="button" id="hideSample" class="btn btn-sm btn-outline-dark"
+                            onclick="hideSampleColumn('.h-sample', '#hideSample')">
+                        <i class="fas fa-eye-slash button-icon"></i>
+                        <span th:text="#{csvImport.hideSample}"></span>
+                    </button>
+                    <button type="button" id="hideTSample" class="btn btn-sm btn-outline-dark"
+                            onclick="hideSampleColumn('.h-tSample', '#hideTSample')">
+                        <i class="fas fa-eye-slash button-icon"></i>
+                        <span th:text="#{csvImport.hideTSample}"></span>
+                    </button>
+                    <button type="submit" name="button" class="btn btn-sm btn-outline-dark" value="save+export"
+                            data-toggle="tooltip" data-placement="bottom" data-html="true"
+                            th:title="#{details.exportInfo}"
+                            onclick="turnOffFieldConstraints();">
+                        <i class="fas fa-download"></i> <span th:text="#{details.export}"></span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" data-toggle="modal"
+                            data-target="#uploadFile">
+                        <i class="fas fa-upload"></i> <span th:text="#{details.import}"></span>
+                    </button>
+                </div>
+            </div>
+            <div class="wrapper-top">
+                <div id="scroll-container-top">
+                </div>
+            </div>
+            <div class="wrapper-bottom">
+                <div id="scroll-container-bottom">
+                    <table id="csv-details-table" class="table table-sm tblnavigate table-multiline" style="width:100%">
+                        <thead class="thead-blue text-nowrap text-center position-sticky sticky-top">
+                            <tr>
+                                <th th:each="column, stat: ${columns}"
+                                    th:class="|align-middle ${column.hideClass}|"
+                                    th:classappend="|${stat.index == 0 ? 'fixed-col' : ''} ${column.displayName}|">
+                                    <span th:text="#{${column.displayName}}"></span>
+                                    <a th:if="${column.hasExplanation}" tabindex="0" class="text-light" data-toggle="popover"
+                                       data-trigger="focus" data-placement="top" th:title="#{${column.displayName}}"
+                                       th:data-content="#{'validator.table.title.' + ${column.displayName}}"><i
+                                            class="far fa-sm fa-question-circle"></i></a>
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:if="${files.empty}">
+                            <td colspan="2" th:text="#{noSamples}"></td>
+                        </tr>
+                        <tr id="bulkEditRow" th:if="${!files.empty}" class="table-primary">
+                            <!-- SAMPLE IDENTIFIER ODCF -->
+                            <td class="fixed-col align-middle text-center"><b th:text="#{bulkEdit}"></b></td>
+                            <!-- PLUS -->
+                            <td class="align-middle row-edit-button">
+                                <button type="button" class="btn btn-sm btn-success row-edit-button" onclick="newRow()"
+                                        data-toggle="tooltip" data-placement="bottom" data-html="true"
+                                        th:title="#{details.plusSampleInfo}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </td>
+                            <!-- MINUS -->
+                            <td class="row-edit-button"></td>
+                            <!-- FILE NAME -->
+                            <td></td>
+                            <!-- FILE MD5 -->
+                            <td></td>
+                            <!-- FILE READNUMBER -->
+                            <td></td>
+                            <!-- TECHNICAL SAMPLE BASE COUNT -->
+                            <td class="align-middle h-tSample"></td>
+                            <!-- TECHNICAL SAMPLE CYCLE COUNT -->
+                            <td class="align-middle h-tSample"></td>
+                            <!-- TECHNICAL SAMPLE READ COUNT -->
+                            <td class="align-middle h-tSample"></td>
+                            <!-- ALL FROM SAMPLE -->
+                            <div th:replace="fragments/metadataValidator/simple/tableFragments :: sampleBulkEdit"></div>
+                            <!-- ALL FROM TECHNICAL SAMPLE -->
+                            <div th:replace="fragments/metadataValidator/extended/tableFragments :: technicalSampleBulkEdit"></div>
+                            <!-- COMMENT -->
+                            <td class="align-middle text-center">
+                                <input type="text" class="form-control"
+                                       onchange="bulk_edit_textfield('.comment-textfield', this.value)"
+                                       th:placeholder="#{bulkEdit}"/>
+                            </td>
+                        </tr>
+                        </tbody>
+
+                        <tbody th:each="fileMapElement, sampleCounter : ${files}">
+                        <tr class="samplesTable" th:each="file, fileCounter: ${fileMapElement.value}"
+                            th:with="sample=${file.sample},technicalSample=${sample.technicalSample}"
+                            th:classappend="${fileCounter.index == 0 ? 'sampleRow' : ''}">
+                            <div th:replace="fragments/metadataValidator/extended/tableFragments :: fileAndSampleEdit"></div>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <p></p>
+            <div class="d-flex">
+                <div th:replace="fragments/metadataValidator/simple/tableFragments :: formButtons"></div>
+            </div>
+        </form>
+
+        <table hidden>
+            <tbody id="clone-row" th:each="fileMapElement, sampleCounter : ${fakeFiles}">
+                <tr class="samplesTable sampleRow" th:each="file, fileCounter: ${fileMapElement.value}"
+                    th:with="sample=${file.sample},technicalSample=${sample.technicalSample}">
+                    <div th:replace="fragments/metadataValidator/extended/tableFragments :: fileAndSampleEdit"></div>
+                </tr>
+            </tbody>
+            <tbody th:each="fileMapElement, sampleCounter : ${fakeFiles}">
+                <tr id="clone-file-row" class="samplesTable" th:each="file, fileCounter: ${fileMapElement.value}"
+                    th:with="sample=${file.sample},technicalSample=${sample.technicalSample}">
+                    <div th:replace="fragments/metadataValidator/extended/tableFragments :: fileEdit"></div>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div th:include="fragments/uploadFile :: uploadExtended"></div>
+<div th:include="fragments/registerNewValues :: similarExists"></div>
+<div th:include="fragments/registerNewValues :: importWithNewValues"></div>
+<div th:include="fragments/registerNewValues :: requestNewSeqType"></div>
+<div th:replace="fragments/changeObjectLive :: changeOnHoldState"></div>
+
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var timeout = /*[[${timeout}]]*/ ''; // in minutes
+    var timerInstance = timer(timeout);
+    var UUID = /*[[${submission.uuid}]]*/ '';
+    /*]]>*/
+</script>
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

@@ -1,0 +1,2 @@
+sample_name	project	pid	sample_type	xenograft	sex	phenotype	sequencing_read_type	sequencing_type	tagmentation_library	antibody_target	antibody	plate	well_position	comment
+sampleIdentifier	3	4	5	false	male	8	PAIRED	RNA	12	13	14	15	16	17

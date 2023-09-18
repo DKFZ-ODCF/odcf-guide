@@ -1,0 +1,5 @@
+---
+title: do not show xenograft value for sample data from OTP
+issue: GUIDE-525
+author: Timo Wiese
+type: bug

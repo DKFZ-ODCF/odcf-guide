@@ -1,0 +1,70 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Feedback Overview</title>
+</head>
+<head>
+    <script src="/js/dataTables/feedbackTable.js"></script>
+    <script src="/external/datatables/buttons-1.6.2/dataTables.buttons.min.js"></script>
+    <script src="/external/datatables/buttons-1.6.2/buttons.bootstrap4.min.js"></script>
+    <script src="/external/datatables/buttons-1.6.2/buttons.html5.min.js"></script>
+    <link href="/external/datatables/buttons-1.6.2/buttons.bootstrap4.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div th:replace="fragments/header :: header"></div>
+
+    <div class="container-fluid mb-5">
+        <h2 class="mt-3" th:text="#{feedback.overview}"></h2>
+        <span th:text="#{feedback.average}" th:title="#{feedback.averageToolTip}" class="mr-1"></span>
+        <span th:class="${ratingStyle}" th:text="#{'feedback.'+${averageRating}}"></span>
+        <table class="table table-sm table-striped" style="width:100%" id="feedbackTable">
+            <thead class="thead-blue">
+                <tr>
+                    <th></th>
+                    <th th:text="#{feedback.name}"></th>
+                    <th th:text="#{feedback.date}"></th>
+                    <th th:text="#{overview.submission}"></th>
+                    <th th:text="#{overview.projects}"></th>
+                    <th th:text="#{otpSeqType}"></th>
+                    <th th:text="#{feedback.rating}"></th>
+                    <th th:text="#{feedback.sampleCount}"></th>
+                    <th th:text="#{comment}"></th>
+                    <th th:text="#{overview.ticket}"></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr th:each="feedback : ${feedbacks}">
+                    <td></td>
+                    <td th:text="${feedback.user.fullName}"></td>
+                    <td th:text="${feedback.formattedDate}"></td>
+                    <td>
+                        <a th:href="@{/metadata-validator/submission/simple/admin(identifier=${feedback.submission.identifier})}"
+                           target="_blank">[[${feedback.submission.identifier}]]</a>
+                    </td>
+                    <td th:text="${projectMap.get(feedback)}"></td>
+                    <td th:text="${seqTypesMap.get(feedback)}"></td>
+                    <td th:text="${feedback.rating}"></td>
+                    <td th:text="${feedback.submission.samples.size()}"></td>
+                    <td th:text="${feedback.message}"></td>
+                    <td>
+                        <span th:if="${feedback.ticket != ''}">
+                            <a th:href="${ticketSystemBase} + ${feedback.ticket}" th:inline="text"
+                               target="_blank">#[[${feedback.ticket}]]</a>
+                        </span>
+                        <i class="far fa-edit cursor-pointer" data-toggle="modal" data-target="#changeFeedbackTicketNumber"
+                           th:attr="onclick='changeFeedbackTicketNumber(\'' + ${feedback.id}
+                                                                        +'\',\''+ ${feedback.submission.identifier}
+                                                                        +'\',\''+ ${feedback.ticket} + '\');'">
+                        </i>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div th:replace="fragments/changeObjectLive :: changeFeedbackTicketNumber"></div>
+    </div>
+
+    <div th:replace="fragments/footer :: footer"></div>
+</body>
+
+</html>

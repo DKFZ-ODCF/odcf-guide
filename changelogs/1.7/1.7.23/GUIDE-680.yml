@@ -1,0 +1,5 @@
+---
+title: added server side speed improvements and some refactoring
+issue: GUIDE-680
+author: Timo Wiese
+type: change

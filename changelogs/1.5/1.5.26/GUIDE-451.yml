@@ -1,0 +1,5 @@
+---
+title: md5 sum is now the anchor for files and no longer the name
+issue: GUIDE-451
+author: Timo Wiese
+type: change

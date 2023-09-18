@@ -1,0 +1,5 @@
+---
+title: added regex to fastq filename
+issue: GUIDE-465
+author: Timo Wiese
+type: change

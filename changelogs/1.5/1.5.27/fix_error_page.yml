@@ -1,0 +1,5 @@
+---
+title: fixed error page to display code and message
+#issue: GUIDE-0
+author: Timo Wiese
+type: bug

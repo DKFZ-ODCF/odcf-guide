@@ -1,0 +1,5 @@
+---
+title: Fixed bug when requesting new species with mixed-in species
+issue: GUIDE-681
+author: Oydin Iqbal
+type: bug

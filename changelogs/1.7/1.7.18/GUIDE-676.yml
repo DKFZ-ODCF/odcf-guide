@@ -1,0 +1,5 @@
+---
+title: fixed UnsupportedOperationException while saving submission
+issue: GUIDE-676
+author: Timo Wiese
+type: bug

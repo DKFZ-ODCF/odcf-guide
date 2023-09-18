@@ -1,0 +1,72 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Parser Overview</title>
+</head>
+<head>
+    <script src="/js/parserChanges.js"></script>
+    <script src="/js/dataTables/parserTable.js"></script>
+    <script src="/external/datatables/buttons-1.6.2/dataTables.buttons.min.js"></script>
+    <script src="/external/datatables/buttons-1.6.2/buttons.bootstrap4.min.js"></script>
+    <script src="/external/datatables/buttons-1.6.2/buttons.html5.min.js"></script>
+    <link href="/external/datatables/buttons-1.6.2/buttons.bootstrap4.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div th:replace="fragments/header :: header"></div>
+
+    <div class="container-fluid mb-5">
+        <div th:replace="fragments/pageMessages :: error"></div>
+        <div th:replace="fragments/pageMessages :: success"></div>
+        <h2 th:text="#{parser.overview}" class="mt-2 text-kapitaelchen"></h2>
+
+        <a role="button" class="btn btn-outline-primary" href="/parser/add-new-parser">
+            <i class="fa fa-plus"></i> [[#{parser.save}]]
+        </a>
+
+        <table class="table table-sm table-striped" style="width:100%" id="parserOverviewTable">
+            <thead class="thead-blue">
+                <tr>
+                    <th></th>
+                    <th th:text="#{project}"></th>
+                    <th th:text="#{parser.regex}"></th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr th:each="parser : ${parsers}">
+                    <td></td>
+                    <td>
+                        <a th:href="@{/parser/information(project=${parser.project})}" th:inline="text" target="_blank">
+                            [[${parser.project}]]
+                        </a>
+                    </td>
+                    <td th:text="${parser.formattedRegex}"></td>
+                    <td>
+                        <a href="#" data-toggle="modal" data-target="#deleteParserModal" th:data-whatever="${parser.project}">
+                            <i class="far fa-trash-can text-danger"></i>
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal fade" id="deleteParserModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <p id="deleteParserOfProject"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" th:text="#{parser.cancel}"></button>
+                    <a id="deleteParserUrl" role="button" class="btn btn-primary" th:text="#{parser.confirm}" href="#"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

@@ -1,0 +1,3 @@
+ALTER TABLE meta_data_column RENAME COLUMN reflection_property_name TO reflection_property_name_import;
+ALTER TABLE meta_data_column ADD reflection_property_name_export VARCHAR(255);
+UPDATE meta_data_column SET reflection_property_name_export = reflection_property_name_import WHERE reflection_property_name_export IS NULL;

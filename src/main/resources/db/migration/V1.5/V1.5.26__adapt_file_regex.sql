@@ -1,0 +1,1 @@
+UPDATE validation SET regex = '.+_[R|I][1|2]\.fastq\.gz$' WHERE field = 'fileName';

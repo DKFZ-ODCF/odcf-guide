@@ -1,0 +1,5 @@
+---
+title: fixed wrong sample grouping on read only page
+issue: GUIDE-695
+author: Timo Wiese
+type: bug

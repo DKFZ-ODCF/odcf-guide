@@ -1,0 +1,5 @@
+---
+title: it is now ensured that all ssh errors are reported correctly
+issue: GUIDE-330
+author: Timo Wiese
+type: bug

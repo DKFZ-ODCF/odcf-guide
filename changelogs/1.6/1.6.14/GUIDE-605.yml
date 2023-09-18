@@ -1,0 +1,5 @@
+---
+title: fixed the ON_HOLD state setting the lock user
+issue: GUIDE-605
+author: Timo Wiese
+type: bug

@@ -1,0 +1,5 @@
+---
+title: Preventing the final submit of a submission in another state than VALIDATED
+issue: GUIDE-539
+author: Timo Wiese
+type: bug

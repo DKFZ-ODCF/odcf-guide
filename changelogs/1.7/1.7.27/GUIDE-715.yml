@@ -1,0 +1,5 @@
+---
+title: added the ability to build the guide into a docker container
+issue: GUIDE-715
+author: Timo Wiese
+type: feature

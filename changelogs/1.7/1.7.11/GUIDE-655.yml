@@ -1,0 +1,5 @@
+---
+title: do not send empty feedback mails
+issue: GUIDE-655
+author: Timo Wiese
+type: change

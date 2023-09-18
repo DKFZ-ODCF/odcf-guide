@@ -1,0 +1,5 @@
+---
+title: Added field status to ilse import object
+issue: GUIDE-685
+author: Timo Wiese
+type: change

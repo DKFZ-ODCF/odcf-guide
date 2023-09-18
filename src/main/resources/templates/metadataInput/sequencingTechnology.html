@@ -1,0 +1,105 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Add sequencing technology</title>
+</head>
+<head>
+    <script src="/js/seqTechChanges.js"></script>
+    <script src="/js/importAliasesInputs.js"></script>
+</head>
+
+<body>
+    <div th:replace="fragments/header :: header"></div>
+
+    <div class="fs-body">
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header fs-header" th:text="#{seqTech.cardHeader}"></div>
+                    <div th:replace="fragments/pageMessages :: error"></div>
+
+                    <div xmlns="http://www.w3.org/1999/xhtml">
+                        <div class="card-body" style="text-align: left">
+                            <form action="/metadata-input/save-sequencing-technology" method="post" id="seqTechData">
+                                <input type="hidden" id="id" class="form-control" name="id" value="0"/>
+
+                                <div class="form-group">
+                                    <label for="name" th:text="#{name}"></label>
+                                    <input type="text" class="form-control" name="name" id="name" required/>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="importAlias" th:text="#{importAliases}"></label>
+                                    <div class="dynamic-wrap">
+                                        <div class="form-group">
+                                            <div class="entry input-group">
+                                                <input type="text" id="importAlias" class="form-control importAlias" name="importAliases"/>
+                                                <span class="input-group-append">
+                                                    <button class="btn btn-success btn-add" type="button" onclick="addImportAliases($(this))">
+                                                        <i class="fas fa-plus"></i>
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="validationLevel" th:text="#{seqTech.validationLevel}"></label>
+                                    <select class="custom-select" name="validationLevel" id="validationLevel" required>
+                                        <option disabled="disabled" selected="selected" value="" th:text="#{select}"></option>
+                                        <option th:each="validationLevel : ${validationLevels}"
+                                                th:value="${validationLevel.id}"
+                                                th:text="${validationLevel.name}">
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary" th:text="#{submit}" id="submitSeqType"></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col">
+        <table class="w-100 mb-3 table table-sm table-striped">
+            <thead class="thead-blue text-nowrap">
+            <tr>
+                <th th:text="#{name}"></th>
+                <th th:text="#{importAliases}"></th>
+                <th th:text="#{seqTech.validationLevel}"></th>
+                <th th:text="#{seqTech.clusterJobTemplate}"></th>
+                <th></th>
+            </tr>
+            </thead>
+
+            <tbody>
+                <tr th:each="sequencingTechnology : ${sequencingTechnologies}">
+                    <td th:text="${sequencingTechnology.name}"></td>
+                    <td>
+                        <span class="badge badge-dark mr-1 mt-1" th:each="importAlias : ${sequencingTechnology.importAliases}" th:text="${importAlias}"></span>
+                    </td>
+                    <td>
+                        <span th:text="${sequencingTechnology.validationLevel?.name ?: 'not selected'}"></span>
+                    </td>
+                    <td>
+                        <span th:text="${sequencingTechnology.clusterJobTemplate?.name ?: 'no job'}"></span>
+                    </td>
+                    <td>
+                        <i class="far fa-edit cursor-pointer"
+                           th:attr="onclick='changeSeqTechData(\''
+                           + ${sequencingTechnology.id} + '\',\''
+                           + ${sequencingTechnology.name} + '\',\''
+                           + ${sequencingTechnology.importAliases} + '\',\''
+                           + ${sequencingTechnology.validationLevel?.id}
+                           + '\');'">
+                        </i>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,5 @@
+---
+title: added ability to add sequencing types without displaying them
+issue: GUIDE-628
+author: Timo Wiese
+type: change

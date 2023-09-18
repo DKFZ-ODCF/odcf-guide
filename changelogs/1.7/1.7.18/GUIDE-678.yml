@@ -1,0 +1,5 @@
+---
+title: Fixed bug OTP expects a space between species scientific name and strain
+issue: GUIDE-678
+author: Oydin Iqbal
+type: bug

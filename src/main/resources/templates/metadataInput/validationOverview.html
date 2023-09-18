@@ -1,0 +1,79 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Validation Overview</title>
+</head>
+<head>
+    <script src="/js/validationChanges.js"></script>
+</head>
+
+<body>
+    <div th:replace="fragments/header :: header"></div>
+    <div th:replace="fragments/pageMessages :: error"></div>
+
+    <div class="fs-body mb-4">
+        <div class="col">
+            <h2 class="text-left" th:text="#{validation.title}"></h2>
+            <table class="table table-sm table-striped" id="allValidation-table">
+                <thead class="thead-blue">
+                    <tr>
+                        <th th:text="#{validation.fieldName}"></th>
+                        <th th:text="#{validation.regex}"></th>
+                        <th th:text="#{validation.required}"></th>
+                        <th th:text="#{validation.description}"></th>
+                        <th></th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modifyValidationModal" tabindex="-1" role="dialog" aria-labelledby="changeValidation" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modifyValidation" th:text="#{validation.title}"></h5>
+                    &nbsp;&nbsp;
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <form action="/metadata-input/save-validation" method="post" id="validationData">
+
+                        <div class="form-group">
+                            <label for="validationName" th:text="#{validation.fieldName}"></label>
+                            <input type="text" class="form-control" name="validationName" id="validationName" readonly required/>
+                            <input type="hidden" class="form-control" name="id" id="validationId" value="0"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="validationRegex" th:text="#{validation.regex}"></label>
+                            <input type="text" class="form-control" name="regex" id="validationRegex" required/>
+                        </div>
+
+                        <div class="form-group">
+                            <input type="checkbox" name="required" id="validationRequired"/>
+                            <label for="validationRequired" th:text="#{validation.required}"></label>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="validationDescription" th:text="#{validation.description}"></label>
+                            <textarea class="form-control" name="description" id="validationDescription" rows="4" required></textarea>
+                        </div>
+
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" th:text="#{close}"></button>
+                    <button type="button" class="btn btn-primary" th:text="#{save}"
+                            onclick="document.getElementById('validationData').submit()"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

@@ -1,0 +1,5 @@
+---
+title: get storage sizes from isilon database
+issue: GUIDE-478
+author: Timo Wiese
+type: change

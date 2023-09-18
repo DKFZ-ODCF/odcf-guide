@@ -1,0 +1,5 @@
+---
+title: added read lengths from ilse api and use them to decide if paired or single
+issue: GUIDE-479
+author: Timo Wiese
+type: change

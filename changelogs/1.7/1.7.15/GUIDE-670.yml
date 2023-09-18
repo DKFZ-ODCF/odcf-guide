@@ -1,0 +1,5 @@
+---
+title: fixed project prefixes from closed projects not being found
+issue: GUIDE-670
+author: Timo Wiese
+type: bug

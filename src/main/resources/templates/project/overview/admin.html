@@ -1,0 +1,48 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Project Overview</title>
+</head>
+<head>
+    <script src="/js/loadProjectOverview.js"></script>
+</head>
+
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="container-fluid mb-5">
+    <h2 th:text="#{admin} + ' ' + #{project.overview.header}"></h2>
+    <table class="table table-sm table-striped" style="width:100%">
+        <thead class="thead-blue">
+        <tr>
+            <th th:text="#{project}"></th>
+            <th th:text="#{project.overview.unix}"></th>
+            <th th:text="#{project.overview.pi}"></th>
+            <th th:text="#{project.overview.kindOfData}"></th>
+            <th th:text="#{project.overview.lastDataRecd}"></th>
+            <th th:text="#{project.overview.sizeProject}"></th>
+            <th th:text="#{project.overview.sizeAnalysis}"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="otpCachedProject : ${otpCachedProjects}" th:class="${otpCachedProject.closed} ? 'opacity-05': ''">
+            <td>
+                <a th:href="${otpUrlOverview + '?project=' + otpCachedProject.name}"
+                   th:text="${otpCachedProject.name}" target="_blank"></a>
+            </td>
+            <td>
+                <a th:href="${otpUrlUserManagement + '?project=' + otpCachedProject.name}"
+                   th:text="${otpCachedProject.unixGroup}" target="_blank"></a>
+            </td>
+            <td th:text="${otpCachedProject.pis}"></td>
+            <td th:text="${otpCachedProject.seqTypes}"></td>
+            <td th:text="${otpCachedProject.lastDataReceived}"></td>
+            <td class="text-right pr-3" th:text="${otpCachedProject.projectSize}"></td>
+            <td class="text-right pr-3" th:text="${otpCachedProject.analysisSize}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div th:replace="fragments/footer :: footer"></div>
+<div th:replace="fragments/contact :: contact"></div>
+</body>
+</html>

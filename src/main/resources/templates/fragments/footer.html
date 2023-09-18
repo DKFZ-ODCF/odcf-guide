@@ -1,0 +1,11 @@
+<footer th:fragment="footer" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <div class="container-fluid text-left">
+        <small>&copy; 2019 - [[${#dates.year(#dates.createNow())}]]</small>
+        <small> &middot; </small>
+        <small th:text="${@environment.getProperty('application.version', 'no version found')}"></small>
+        <small> &middot; </small>
+        <small><a href="/privacy-policy" class="text-light">Privacy Policy</a></small>
+        <small> &middot; </small>
+        <small><a href="/imprint" class="text-light">Imprint</a></small>
+    </div>
+</footer>

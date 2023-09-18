@@ -1,0 +1,88 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Overview</title>
+</head>
+
+<head>
+    <script src="/js/dataTables/loadStatisticsTables.js"></script>
+    <script src="/js/dataTables/tableUtils.js"></script>
+    <script src="/external/datatables/buttons-1.6.2/dataTables.buttons.min.js"></script>
+    <script src="/external/datatables/buttons-1.6.2/buttons.bootstrap4.min.js"></script>
+    <script src="/external/datatables/buttons-1.6.2/buttons.html5.min.js"></script>
+    <link href="/external/datatables/buttons-1.6.2/buttons.bootstrap4.min.css" rel="stylesheet">
+</head>
+
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="container-fluid content">
+    <h2 class="pt-1" th:text="#{statistics.title}"></h2>
+    <div class="row">
+        <div class="col">
+            <h4 class="mt-2" th:text="#{statistics.t1}"></h4>
+            <table th:id="submission-size-by-state" class="table table-striped table-sm tblnavigate">
+                <thead class="thead-blue">
+                <tr>
+                    <th th:text="#{statistics.state}"></th>
+                    <th th:text="#{statistics.submissions}"></th>
+                    <th th:text="#{statistics.samples}"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="spinner-border" role="status"><td colspan="3"></td></tr>
+                <tr class="blank_row" hidden>
+                    <td>STATE</td>
+                    <td>SUBMISSIONS</td>
+                    <td>SAMPLES</td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th th:text="#{statistics.total}"></th>
+                    <th class="sum"></th>
+                    <th class="sum"></th>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <h4 class="mt-2" th:text="#{statistics.t2}"></h4>
+            <table th:id="submission-size-by-months" class="table table-striped table-sm tblnavigate">
+                <thead class="thead-blue">
+                <tr>
+                    <th th:text="#{statistics.month}"></th>
+                    <th th:text="#{statistics.submissions}"></th>
+                    <th th:text="#{statistics.submissionsWithoutAutoClose}"></th>
+                    <th th:text="#{statistics.samples}"></th>
+                    <th th:text="#{statistics.samplesWithoutAutoClose}"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="spinner-border" role="status"><td colspan="2"></td></tr>
+                <tr class="blank_row" hidden>
+                    <td>MONTH</td>
+                    <td>SUBMISSIONS</td>
+                    <td>SUBMISSION_WAC</td>
+                    <td>SAMPLES</td>
+                    <td>SAMPLE_WAC</td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th th:text="#{statistics.total}"></th>
+                    <th class="sum"></th>
+                    <th class="sum"></th>
+                    <th class="sum"></th>
+                    <th class="sum"></th>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

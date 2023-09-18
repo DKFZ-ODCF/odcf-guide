@@ -1,0 +1,5 @@
+---
+title: Prevented loss of mails that encounter exceptions
+issue: GUIDE-697
+author: Oydin Iqbal
+type: bug

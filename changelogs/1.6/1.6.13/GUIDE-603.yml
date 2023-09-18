@@ -1,0 +1,5 @@
+---
+title: make tomcat's maxParameterCount adaptable and add properties check on startup
+issue: GUIDE-603
+author: Timo Wiese
+type: change

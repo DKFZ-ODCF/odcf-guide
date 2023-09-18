@@ -1,0 +1,5 @@
+---
+title: Do not send empty on-hold reminder mail
+issue: GUIDE-651
+author: Oydin Iqbal
+type: bug

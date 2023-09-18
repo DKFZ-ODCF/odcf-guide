@@ -1,0 +1,35 @@
+<div th:fragment="feedback" xmlns:th="http://www.thymeleaf.org">
+	<div class="modal fade" id="feedbackModal" tabindex="-1" role="dialog" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="feedbackModalLabel">Feedback Form</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div id="feedbackForm">
+						<p th:text="${'Dear ' + @thymeleafService.getCurrentUser().getFullName() + ','}"></p>
+						<p th:utext="#{feedback.message}"></p>
+						<p th:utext="#{feedback.messageThanks}"></p>
+						<div id="feedbackSmileys">
+							<input type="radio" name="smiley" value="sad" class="sad far fa-frown fa-4x" onclick="makeMessageRequiredForCheckedFeedbackSmiley($(this))">
+							<input type="radio" name="smiley" value="neutral" class="neutral far fa-meh fa-4x" onclick="makeMessageRequiredForCheckedFeedbackSmiley($(this))">
+							<input type="radio" name="smiley" value="happy" class="happy far fa-smile fa-4x" onclick="makeMessageRequiredForCheckedFeedbackSmiley($(this))" required>
+						</div>
+						<br>
+						<label for="feedbackFormMessage" class="col-form-label">Message:</label>
+						<textarea class="form-control" id="feedbackFormMessage" required="required"></textarea>
+						<br>
+						<input id="feedbackFormName" th:value="${@thymeleafService.getCurrentUser().getFullName()}" hidden>
+						<input id="feedbackFormMail" th:value="${@thymeleafService.getCurrentUser().getMail()}" hidden>
+						<input id="submission" hidden th:if="${submission}" name="submission" th:value="${submission.identifier}">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+						<button onclick="feedbackFormSendMail()" class="btn btn-primary">Send Feedback</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

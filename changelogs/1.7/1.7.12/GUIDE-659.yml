@@ -1,0 +1,5 @@
+---
+title: fixed csv import bug
+issue: GUIDE-659
+author: Timo Wiese
+type: bug

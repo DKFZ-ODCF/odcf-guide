@@ -1,0 +1,5 @@
+---
+title: fixed api responses against otp can be empty
+issue: GUIDE-690
+author: Timo Wiese
+type: bug

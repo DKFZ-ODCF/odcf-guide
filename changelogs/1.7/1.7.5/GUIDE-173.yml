@@ -1,0 +1,5 @@
+---
+title: excluded internal columns from export
+issue: GUIDE-173
+author: Timo Wiese
+type: other
