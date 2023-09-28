@@ -4,10 +4,12 @@ import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
+import de.dkfz.odcf.guide.SampleRepository
 import de.dkfz.odcf.guide.entity.submissionData.Submission
 import de.dkfz.odcf.guide.exceptions.GuideRuntimeException
 import de.dkfz.odcf.guide.helper.AnyObject
 import de.dkfz.odcf.guide.helper.EntityFactory
+import de.dkfz.odcf.guide.helperObjects.mapDistinctAndNotNullOrBlank
 import de.dkfz.odcf.guide.service.implementation.mail.MailContentGeneratorServiceImpl
 import de.dkfz.odcf.guide.service.implementation.mail.MailSenderServiceImpl
 import de.dkfz.odcf.guide.service.interfaces.UrlGeneratorService
@@ -66,6 +68,9 @@ class MailSenderServiceTests @Autowired constructor(private val mailSenderServic
 
     @Mock
     lateinit var externalMetadataSourceService: ExternalMetadataSourceService
+
+    @Mock
+    lateinit var sampleRepository: SampleRepository
 
     @Mock
     lateinit var env: Environment
@@ -654,8 +659,7 @@ class MailSenderServiceTests @Autowired constructor(private val mailSenderServic
             val sample1 = entityFactory.getSample(submission)
             val sample2 = entityFactory.getSample(submission)
             sample2.project = "otherProject"
-            submission.samples = listOf(sample1, sample2)
-            val projects = listOf(sample2, sample1).map { it.project }.distinct().sorted().joinToString()
+            val projects = listOf(sample2, sample1).mapDistinctAndNotNullOrBlank { it.project }.sorted().joinToString()
             val identifier = submission.identifier.replace("i", "S#")
             val mimeMessage = MimeMessage(null as Session?)
             val subject = "[prefix] Transferred metadata table to ODCF validation service - $projects"
@@ -670,6 +674,7 @@ class MailSenderServiceTests @Autowired constructor(private val mailSenderServic
             `when`(mailContentGeneratorService.getTicketSubjectPrefix(submission)).thenReturn("[prefix]")
             `when`(collectorService.getFormattedIdentifier(submission.identifier)).thenReturn(identifier)
             `when`(mailContentGeneratorService.mailBodyReceivedSubmission(submission)).thenReturn(body)
+            `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample1, sample2))
 
             mailSenderServiceMock.sendReceivedSubmissionMail(submission)
 
@@ -707,6 +712,7 @@ class MailSenderServiceTests @Autowired constructor(private val mailSenderServic
             `when`(mailContentGeneratorService.getTicketSubjectPrefix(submission)).thenReturn("[prefix]")
             `when`(collectorService.getFormattedIdentifier(submission.identifier)).thenReturn(identifier)
             `when`(mailContentGeneratorService.mailBodyReceivedSubmission(submission)).thenReturn(body)
+            `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
             mailSenderServiceMock.sendReceivedSubmissionMail(submission, false)
 
@@ -767,6 +773,7 @@ class MailSenderServiceTests @Autowired constructor(private val mailSenderServic
             `when`(env.getRequiredProperty("application.mails.ticketSystemAddress")).thenReturn("ticketsystem@h.hh")
             `when`(mailContentGeneratorService.getTicketSubjectPrefix(submission)).thenReturn("[prefix]")
             `when`(mailContentGeneratorService.mailBodyReceivedSubmission(submission)).thenReturn(body)
+            `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
             mailSenderServiceMock.sendReceivedSubmissionMail(submission, false)
 
@@ -798,6 +805,7 @@ class MailSenderServiceTests @Autowired constructor(private val mailSenderServic
             `when`(env.getRequiredProperty("application.mails.ticketSystemAddress")).thenReturn("ticketsystem@h.hh")
             `when`(mailContentGeneratorService.getTicketSubjectPrefix(submission)).thenReturn("[prefix]")
             `when`(mailContentGeneratorService.mailBodyReceivedSubmission(submission)).thenReturn(body)
+            `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
             mailSenderServiceMock.sendReceivedSubmissionMail(submission, true)
 

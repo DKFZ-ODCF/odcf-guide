@@ -10,7 +10,10 @@ import de.dkfz.odcf.guide.helper.AnyObject
 import de.dkfz.odcf.guide.helper.EntityFactory
 import de.dkfz.odcf.guide.helperObjects.importObjects.ExternalIlseSubmissionImportObject
 import de.dkfz.odcf.guide.service.implementation.importer.IlseImportServiceImpl
-import de.dkfz.odcf.guide.service.interfaces.*
+import de.dkfz.odcf.guide.service.interfaces.PseudonymService
+import de.dkfz.odcf.guide.service.interfaces.SeqTypeMappingService
+import de.dkfz.odcf.guide.service.interfaces.SequencingTechnologyService
+import de.dkfz.odcf.guide.service.interfaces.SpeciesService
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.external.IlseApiService
 import de.dkfz.odcf.guide.service.interfaces.importer.IlseImportService
@@ -29,7 +32,6 @@ import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.mockito.ArgumentMatchers.*
-import org.mockito.ArgumentMatchers.matches
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
@@ -181,7 +183,7 @@ class IlseImportServiceTests @Autowired constructor(val ilseImportService: IlseI
         `when`(seqTypeMappingService.getSeqType(importObject.samples!!.first().type)).thenReturn(seqType)
         `when`(importService.extractTagmentationLibraryFromSampleIdentifierIfNecessary(importObject.samples!!.first().sampleName)).thenReturn("tagmentationLibrary")
         `when`(speciesService.getSpeciesWithStrainForSpecies(importObject.samples!!.first().species)).thenReturn("Human (Homo sapiens) [No strain available]")
-        `when`(sampleRepository.findBySubmission(anySubmission())).thenReturn(listOf(entityFactory.getSample()))
+        `when`(sampleRepository.findAllBySubmission(anySubmission())).thenReturn(listOf(entityFactory.getSample()))
 
         val submission = ilseImportServiceMock.saveSubmission("i0000001", importObject, "ticketNumber") as ApiSubmission
 
@@ -206,7 +208,7 @@ class IlseImportServiceTests @Autowired constructor(val ilseImportService: IlseI
         `when`(seqTypeMappingService.getSeqType(importObject.samples!!.first().type)).thenReturn(seqType)
         `when`(importService.extractTagmentationLibraryFromSampleIdentifierIfNecessary(importObject.samples!!.first().sampleName)).thenReturn("tagmentationLibrary")
         `when`(speciesService.getSpeciesWithStrainForSpecies(importObject.samples!!.first().species)).thenReturn("Human (Homo sapiens) [No strain available]")
-        `when`(sampleRepository.findBySubmission(anySubmission())).thenReturn(listOf(entityFactory.getSample()))
+        `when`(sampleRepository.findAllBySubmission(anySubmission())).thenReturn(listOf(entityFactory.getSample()))
         `when`(mailContentGeneratorService.getTicketSubjectPrefix(anySubmission())).thenReturn("ticketSubjectPrefix")
 
         val submission = ilseImportServiceMock.saveSubmission("i0000001", importObject, "ticketNumber") as ApiSubmission
@@ -250,7 +252,7 @@ class IlseImportServiceTests @Autowired constructor(val ilseImportService: IlseI
             `when`(externalMetadataSourceService.getSetOfValues("projectsWithAliases")).thenReturn(setOf(ilseObject.samples!!.first().odcf_project))
             `when`(runtimeOptionsRepository.findByName("unregisteredButAcceptedForImportSpecies")).thenReturn(entityFactory.getRuntimeOption("unregisteredButAcceptedForImportSpecies", "Other Species (please use remarks)"))
             `when`(speciesService.getSpeciesForImport()).thenReturn(listOf("Human (Homo sapiens) [No strain available]"))
-            `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+            `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
             doReturn(sample).`when`(ilseImportServiceMock).saveSample(anySubmission(), anyObject())
 
             ilseImportServiceMock.saveSamples(submission, ilseObject)
@@ -347,7 +349,6 @@ class IlseImportServiceTests @Autowired constructor(val ilseImportService: IlseI
     fun `Test successful reimport`() {
         val submission = entityFactory.getApiSubmission()
         val sample = entityFactory.getSample(submission)
-        submission.samples = listOf(sample)
         submission.originProjects = "project_before_reset"
 
         // sample after reset:
@@ -359,7 +360,7 @@ class IlseImportServiceTests @Autowired constructor(val ilseImportService: IlseI
         var submissionStatusChangedToReset = false
         val ilseId = submission.identifier.substring(1).toInt()
         `when`(ilseService.getSubmissionImportObjectFromApi(ilseId, true)).thenReturn(externalIlseSubmissionImportObject)
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
         `when`(seqTypeMappingService.getSeqType(sampleImportObject.type)).thenReturn(entityFactory.getSeqType())
         `when`(importService.extractTagmentationLibraryFromSampleIdentifierIfNecessary(sampleImportObject.sampleName)).thenReturn("")
         `when`(ldapService.getPerson()).thenReturn(entityFactory.getPerson())
@@ -381,7 +382,6 @@ class IlseImportServiceTests @Autowired constructor(val ilseImportService: IlseI
     fun `Test reimport of unresettable submission`() {
         val submission = entityFactory.getApiSubmission()
         val sample = entityFactory.getSample(submission)
-        submission.samples = listOf(sample)
         submission.resettable = false
         submission.originProjects = "project_before_reset"
 
@@ -394,7 +394,7 @@ class IlseImportServiceTests @Autowired constructor(val ilseImportService: IlseI
         var submissionStatusChangedToReset = false
         val ilseId = submission.identifier.substring(1).toInt()
         `when`(ilseService.getSubmissionImportObjectFromApi(ilseId)).thenReturn(externalIlseSubmissionImportObject)
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
         `when`(seqTypeMappingService.getSeqType(sampleImportObject.type)).thenReturn(entityFactory.getSeqType())
         `when`(importService.extractTagmentationLibraryFromSampleIdentifierIfNecessary(sampleImportObject.sampleName)).thenReturn("")
         `when`(ldapService.getPerson()).thenReturn(entityFactory.getPerson())
@@ -416,11 +416,10 @@ class IlseImportServiceTests @Autowired constructor(val ilseImportService: IlseI
     fun `Test unsuccessful reimport`() {
         val submission = entityFactory.getApiSubmission()
         val sample = entityFactory.getSample(submission)
-        submission.samples = listOf(sample)
 
         val ilseId = submission.identifier.substring(1).toInt()
         `when`(ilseService.getSubmissionImportObjectFromApi(ilseId, true)).thenThrow(ExternalApiReadException("IlseApiReadException", ApiType.ILSe))
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
         `when`(ldapService.getPerson()).thenReturn(entityFactory.getPerson())
 
         assertThatExceptionOfType(ExternalApiReadException::class.java).isThrownBy {
@@ -433,10 +432,9 @@ class IlseImportServiceTests @Autowired constructor(val ilseImportService: IlseI
         launch {
             val submission = entityFactory.getApiSubmission(Submission.Status.AUTO_CLOSED, "") as ApiSubmission
             val sample = entityFactory.getSample(submission)
-            submission.samples = listOf(sample)
             submission.fasttrack = true
 
-            `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+            `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
             `when`(externalMetadataSourceService.getSingleValue(matches("projectNotificationStatus"), anyMap())).thenReturn("true")
 
             ilseImportServiceMock.summariesAfterImport(submission)

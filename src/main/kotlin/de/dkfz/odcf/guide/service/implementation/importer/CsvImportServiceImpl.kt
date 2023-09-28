@@ -196,14 +196,11 @@ open class CsvImportServiceImpl(
             }
             throw GuideRuntimeException("Submission is empty.")
         }
-        if (submission.samples.isNotEmpty() && !override) {
+        if (!sampleRepository.existsAllBySubmission(submission) && !override) {
             throw GuideRuntimeException("Submission isn't empty and override is not activated!")
         } else {
-            val samples = csvRows.mapNotNull { row ->
-                saveFileAndSample(submission, row.toMutableMap(), override, initialUpload)
-            }.distinct()
-            if (!initialUpload) { sampleService.deletedFilesAndSamples(submission, samples) }
-            submission.samples = samples
+            csvRows.forEach { saveFileAndSample(submission, it.toMutableMap(), override, initialUpload) }
+            if (!initialUpload) { sampleService.deletedFilesAndSamples(submission) }
         }
         return submission
     }
@@ -298,6 +295,8 @@ open class CsvImportServiceImpl(
         sampleRepository.saveAndFlush(sample)
         fastqFile.sample = sample
         fileRepository.saveAndFlush(fastqFile)
+        fastqFile.deletionFlag = false
+        sample.deletionFlag = false
         return sample
     }
 

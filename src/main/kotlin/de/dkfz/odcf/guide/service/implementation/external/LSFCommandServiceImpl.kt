@@ -3,6 +3,7 @@ package de.dkfz.odcf.guide.service.implementation.external
 import com.fasterxml.jackson.databind.ObjectMapper
 import de.dkfz.odcf.guide.ClusterJobRepository
 import de.dkfz.odcf.guide.RuntimeOptionsRepository
+import de.dkfz.odcf.guide.SampleRepository
 import de.dkfz.odcf.guide.entity.cluster.ClusterJob
 import de.dkfz.odcf.guide.entity.cluster.ClusterJob.State.*
 import de.dkfz.odcf.guide.entity.cluster.ClusterJobTemplate
@@ -31,6 +32,7 @@ open class LSFCommandServiceImpl(
     private val mailSenderService: MailSenderService,
     private val mailContentGeneratorService: MailContentGeneratorService,
     private val remoteCommandsService: RemoteCommandsService,
+    private val sampleRepository: SampleRepository,
 ) : LSFCommandService {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -92,7 +94,7 @@ open class LSFCommandServiceImpl(
         }
 
         val lsfCommand = """bsub -W $maximumRuntime -R rusage[mem=$mem]
-            #${" -We ${submission.samples.size * estimatedRuntimePerSample}".takeIf { estimatedRuntimePerSample > 0 }.orEmpty()}
+            #${" -We ${sampleRepository.countAllBySubmission(submission) * estimatedRuntimePerSample}".takeIf { estimatedRuntimePerSample > 0 }.orEmpty()}
             # -J "$name"
             # -g "$jobGroup"
             # -o ${outputPath}_$name.out

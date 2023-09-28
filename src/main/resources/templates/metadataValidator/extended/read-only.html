@@ -65,6 +65,9 @@
             <li th:if="${not #lists.isEmpty(antibodyTargets)}">
                 <span th:text="#{readonly.summary.antibodyTargets}"></span> <span class="text-blue" th:text="${antibodyTargets}"></span>
             </li>
+            <li th:if="${not #lists.isEmpty(additionalHeaders) && showAdditionalHeaders}">
+                <span th:text="#{readonly.summary.additionalHeaders}"></span> <span class="text-blue" th:text="${#strings.listJoin(additionalHeaders, ', ')}"></span>
+            </li>
         </ul>
     </div>
 
@@ -123,6 +126,7 @@
                     <th class="h-tSample" th:text="#{instrumentModelSequencingKit}"></th>
                     <th class="h-tSample" th:text="#{fastqGenerator}"></th>
                     <th th:text="#{comment}"></th>
+                    <th th:if="${showAdditionalHeaders}" th:each="header : ${additionalHeaders}" th:text="${header}"></th>
                 </tr>
             </thead>
 
@@ -273,6 +277,9 @@
                         </td>
                         <td class="align-middle">
                             <span th:text="${sample.comment}" th:style="${index.index == 1} ? 'visibility: hidden;' : ''"></span>
+                        </td>
+                        <td class="align-middle" th:if="${showAdditionalHeaders}" th:each="header : ${additionalHeaders}">
+                            <span th:text="${sample.unknownValues?.get(header) ?: ''}" th:style="${index.index == 1} ? 'visibility: hidden;' : ''"></span>
                         </td>
                     </tr>
                 </th:block>

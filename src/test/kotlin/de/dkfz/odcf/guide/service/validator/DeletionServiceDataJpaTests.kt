@@ -72,12 +72,10 @@ open class DeletionServiceDataJpaTests @Autowired constructor(
     fun `check delete ApiSubmission`() {
         val submission = entityFactory.getApiSubmission()
         val sample = entityFactory.getSample(submission)
-        submission.samples = listOf(sample)
         val technicalSample = entityFactory.getTechnicalSample(sample)
         val file1 = entityFactory.getFile(sample)
         val file2 = entityFactory.getFile(sample)
         file2.fileName = "fileName2"
-        sample.files = listOf(file1, file2)
 
         val dummySubmission = entityFactory.getUploadSubmission()
         dummySubmission.identifier = "o0000000"
@@ -109,13 +107,10 @@ open class DeletionServiceDataJpaTests @Autowired constructor(
     fun `check delete UploadSubmission`() {
         val submission = entityFactory.getUploadSubmission()
         val sample = entityFactory.getSample(submission)
-        submission.samples = listOf(sample)
         val technicalSample = entityFactory.getTechnicalSample(sample)
         val file1 = entityFactory.getFile(sample)
         val file2 = entityFactory.getFile(sample)
         file2.fileName = "fileName2"
-        sample.files = listOf(file1, file2)
-        val mailBody = "Dear ODCF service,\n\nSubmission ${submission.identifier} has been deleted from the GUIDE.\n\nBest regards,\nODCF GUIDE"
 
         val dummySubmission = entityFactory.getUploadSubmission()
         dummySubmission.identifier = "o0000000"
@@ -151,7 +146,6 @@ open class DeletionServiceDataJpaTests @Autowired constructor(
         val file1 = entityFactory.getFile(sample)
         val file2 = entityFactory.getFile(sample)
         file2.fileName = "fileName2"
-        sample.files = listOf(file1, file2)
 
         entityManager.persistAndFlush(sample.seqType)
         entityManager.persistAndFlush(technicalSample)

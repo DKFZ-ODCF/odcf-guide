@@ -1,7 +1,9 @@
 package de.dkfz.odcf.guide.controller
 
 import de.dkfz.odcf.guide.FeedbackRepository
+import de.dkfz.odcf.guide.SampleRepository
 import de.dkfz.odcf.guide.entity.Feedback
+import de.dkfz.odcf.guide.helperObjects.mapDistinctAndNotNullOrBlank
 import de.dkfz.odcf.guide.service.interfaces.FeedbackService
 import de.dkfz.odcf.guide.service.interfaces.security.LdapService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
@@ -21,6 +23,7 @@ class FeedbackController(
     private val collectorService: CollectorService,
     private val feedbackService: FeedbackService,
     private val feedbackRepository: FeedbackRepository,
+    private val sampleRepository: SampleRepository,
     private val env: Environment
 ) {
 
@@ -29,26 +32,26 @@ class FeedbackController(
         val person = ldapService.getPerson()
 
         return if (person.isAdmin) {
-            model["feedbacks"] = feedbackRepository.findAll()
+            val feedbacks = feedbackRepository.findAll()
+            model["feedbacks"] = feedbacks
             model["ticketSystemBase"] = env.getRequiredProperty("application.mails.ticketSystemBaseUrl")
 
-            val projectMap: MutableMap<Feedback, String> = mutableMapOf()
-            val seqTypesMap: MutableMap<Feedback, String> = mutableMapOf()
-            feedbackRepository.findAll().forEach { feedback ->
-                projectMap[feedback] =
-                    feedback.submission.samples.map { it.project }.toSet().joinToString()
-
-                seqTypesMap[feedback] =
-                    feedback.submission.samples.mapNotNull { it.seqType?.name }.toSet().joinToString()
+            val projects = mutableMapOf<Feedback, String>()
+            val seqTypes = mutableMapOf<Feedback, String>()
+            val numberOfSamples = mutableMapOf<Feedback, Int>()
+            feedbacks.forEach { feedback ->
+                val samples = sampleRepository.findAllBySubmission(feedback.submission)
+                projects[feedback] = samples.mapDistinctAndNotNullOrBlank { it.project }.joinToString()
+                seqTypes[feedback] = samples.mapDistinctAndNotNullOrBlank { it.seqType?.name }.joinToString()
+                numberOfSamples[feedback] = samples.size
             }
 
             val averageRating = feedbackService.calculateAverage()
             model["averageRating"] = averageRating
             model["ratingStyle"] = getRatingStyle(averageRating)
-
-            model["projectMap"] = projectMap
-            model["seqTypesMap"] = seqTypesMap
-
+            model["projects"] = projects
+            model["seqTypes"] = seqTypes
+            model["numberOfSamples"] = numberOfSamples
             "feedback-overview"
         } else {
             model["errorMessage"] = "You are not allowed to access this page!"

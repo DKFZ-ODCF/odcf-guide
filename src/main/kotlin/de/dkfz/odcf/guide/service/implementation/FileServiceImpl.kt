@@ -120,7 +120,7 @@ class FileServiceImpl(
     }
 
     override fun createTsvFile(submission: Submission): String {
-        val samples = submission.samples.sortedBy { it.id }
+        val samples = sampleRepository.findAllBySubmission(submission).sortedBy { it.id }
         val tsvSamples = samples.map { SampleTsvMapping(it) }
         val mapper = CsvMapper()
         mapper.disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
@@ -140,8 +140,8 @@ class FileServiceImpl(
      */
     @Throws(MissingRuntimeOptionException::class)
     fun getNamesForTsvFiles(submission: Submission): Set<String> {
-        val basepath = runtimeOptionsRepository.findByName("tsvBasePath")?.value.orEmpty()
-        if (basepath.isEmpty()) {
+        val basePath = runtimeOptionsRepository.findByName("tsvBasePath")?.value.orEmpty()
+        if (basePath.isEmpty()) {
             throw MissingRuntimeOptionException("RuntimeOption 'tsvBasePath' is not set!")
         }
 
@@ -150,35 +150,37 @@ class FileServiceImpl(
             val ilsePrefix = ilseID.substring(0, 3)
             val ilseIdShort = ilseID.toInt().toString()
 
-            val subpath = runtimeOptionsRepository.findByName("tsvInternalSubpath")?.value.orEmpty()
+            val subPath = runtimeOptionsRepository.findByName("tsvInternalSubpath")?.value.orEmpty()
                 .replace("<ILSE_PREFIX>", ilsePrefix, false)
                 .replace("<ILSE_ID>", ilseID, false)
                 .replace("<SUBMISSION_ID>", ilseIdShort, false)
-            if (subpath.isEmpty()) {
+            if (subPath.isEmpty()) {
                 throw MissingRuntimeOptionException("RuntimeOption 'tsvInternalSubpath' is not set!")
             }
-            mutableSetOf(basepath + subpath)
+            setOf(basePath + subPath)
         } else {
-            val subpath = runtimeOptionsRepository.findByName("tsvExternalSubpath")?.value.orEmpty()
+            val subPath = runtimeOptionsRepository.findByName("tsvExternalSubpath")?.value.orEmpty()
                 .replace("<DATE>", SimpleDateFormat("yyyy-MM-dd").format(Date()), false)
                 .replace("<SUBMISSION_ID>", submission.identifier, false)
-            if (subpath.isEmpty()) {
+            if (subPath.isEmpty()) {
                 throw MissingRuntimeOptionException("RuntimeOption 'tsvExternalSubpath' is not set!")
             }
-            submission.projects.map { projectName ->
-                (basepath + subpath).replace("<PROJECT>", projectName, false)
-            }.distinct().toMutableSet()
+            sampleRepository.findAllBySubmission(submission).mapNotNull {
+                if (it.project.isBlank()) return@mapNotNull null
+                (basePath + subPath).replace("<PROJECT>", it.project, false)
+            }.toSet()
         }
     }
 
     override fun createLongTsvFile(submission: Submission, withImportIdentifier: Boolean, withExportNames: Boolean): String {
-        if (submission.samples.any { it.files.isEmpty() }) {
+        val samples = sampleRepository.findAllBySubmission(submission)
+        if (samples.any { fileRepository.findAllBySample(it).isEmpty() }) {
             return createTsvFile(submission).trimIndent()
         }
         val headers = emptySet<String>().toMutableSet()
         val rows = emptyList<Map<String, String>>().toMutableList()
-        submission.samples.forEach { sample ->
-            sample.files.forEach { file ->
+        samples.forEach { sample ->
+            fileRepository.findAllBySample(sample).forEach { file ->
                 val columns = emptyMap<String, String>().toMutableMap()
                 metaDataColumnRepository.findAll().sortedBy { it.columnOrder }.forEach { column ->
                     if (column.reflectionPropertyNameExport.isNotEmpty()) {
@@ -200,6 +202,12 @@ class FileServiceImpl(
                     }
                 }
                 if (!withExportNames) columns["uuid (do not change)"] = "${file.uuid}"
+
+                val allowedOrganizationalUnits = runtimeOptionsRepository.findByName("unknownValuesAllowedOrganizationalUnits")?.value.orEmpty().split(",")
+                if (withExportNames && allowedOrganizationalUnits.contains(submission.submitter.organizationalUnit)) {
+                    sample.unknownValues?.let { values -> columns.putAll(values.filterKeys { it.isNotBlank() }) }
+                }
+
                 rows.add(columns)
                 headers.addAll(columns.keys)
             }
@@ -254,7 +262,7 @@ class FileServiceImpl(
 
     override fun readTsvFile(submission: Submission, file: MultipartFile): List<Sample> {
         val sampleTsvMappingObjects = readFromSimpleCsv(file.inputStream)
-        val samples = sampleRepository.findBySubmission(submission)
+        val samples = sampleRepository.findAllBySubmission(submission)
 
         if (sampleTsvMappingObjects.size != samples.size) {
             throw RowNotFoundException(
@@ -309,6 +317,7 @@ class FileServiceImpl(
         } else {
             fileRepository.getOne(fileGuiDto.id)
         }
+        file.deletionFlag = false
         FileGuiDto::class.memberProperties.forEach { prop ->
             val fileProp = File::class.memberProperties.filterIsInstance<KMutableProperty<*>>().find { it.name == prop.name }
             fileProp?.setter?.call(file, prop.get(fileGuiDto))

@@ -4,6 +4,7 @@ import de.dkfz.odcf.guide.*
 import de.dkfz.odcf.guide.dtoObjects.FileGuiDto
 import de.dkfz.odcf.guide.dtoObjects.SampleGuiDto
 import de.dkfz.odcf.guide.entity.metadata.SeqType
+import de.dkfz.odcf.guide.entity.submissionData.File
 import de.dkfz.odcf.guide.entity.submissionData.Sample
 import de.dkfz.odcf.guide.entity.submissionData.Submission
 import de.dkfz.odcf.guide.entity.validation.ValidationLevel
@@ -161,18 +162,21 @@ class SampleServiceImpl(
 
     override fun updateSamples(submission: Submission, form: SampleForm) {
         /* id == 0 are empty objects and id == -1 are new objects */
-        val samples = form.sampleList!!.filter { it.id != 0 }.map { sample ->
-            if (sample.id == -1) sample.id = 0
-            sample.files = sample.files.orEmpty().filter { it.id != 0 }.map { file ->
-                if (file.id == -1) file.id = 0
-                file
+        val samples = mutableListOf<Sample>()
+        val files = mutableListOf<File>()
+        form.sampleList!!.filter { it.id != 0 }.forEach { sampleDto ->
+            if (sampleDto.id == -1) sampleDto.id = 0
+            val sample = convertToEntity(sampleDto)
+            samples.add(sample)
+            sampleDto.files.orEmpty().filter { it.id != 0 }.forEach { fileDto ->
+                if (fileDto.id == -1) fileDto.id = 0
+                files.add(fileService.convertToEntity(fileDto, sample))
             }
-            sample
-        }.map { convertToEntity(it) }
+        }
         val username = ldapService.getPerson().username
         submissionService.changeSubmissionState(submission, Submission.Status.LOCKED, username)
-        if (samples.any { !it.files.isNullOrEmpty() }) {
-            updateFilesAndSamples(submission, samples)
+        if (files.isNotEmpty()) {
+            updateFilesAndSamples(submission, samples, files)
         } else {
             updateSamples(submission, samples)
         }
@@ -191,7 +195,7 @@ class SampleServiceImpl(
         deleteNotNeededSeqTypeRequests()
     }
 
-    override fun updateFilesAndSamples(submission: Submission, samples: List<Sample>) {
+    override fun updateFilesAndSamples(submission: Submission, samples: List<Sample>, files: List<File>) {
         val projectPrefixMapping = collectorService.getProjectPrefixesForSamplesInSubmission(submission, submission.originProjectsSet).toMutableMap()
         samples.forEach { sample ->
             sample.submission = submission
@@ -214,14 +218,11 @@ class SampleServiceImpl(
             handleRequestedSeqTypes(sample.seqType, submission)
 
             technicalSampleRepository.save(technicalSample)
-            val files = sample.files.toMutableList()
             sampleRepository.save(sample)
             fileRepository.saveAll(files)
-            sample.files = files
         }
-        deletedFilesAndSamples(submission, samples)
+        deletedFilesAndSamples(submission)
         deleteNotNeededSeqTypeRequests()
-        submission.samples = samples
         submission.startTerminationPeriod = Date()
         submissionRepository.saveAndFlush(submission)
     }
@@ -284,14 +285,10 @@ class SampleServiceImpl(
         seqTypeRepository.deleteAll(seqTypes.minus(requestedSeqTypes))
     }
 
-    override fun deletedFilesAndSamples(submission: Submission, samples: List<Sample>) {
-        samples.forEach {
-            val filesToDelete = fileRepository.findAllBySample(it).minus(it.files.toSet())
-            fileRepository.deleteAll(filesToDelete)
-        }
-        val samplesToDelete = sampleRepository.findBySubmission(submission).minus(samples.toSet())
-        fileRepository.deleteAll(samplesToDelete.map { it.files }.flatten())
-        sampleRepository.deleteAll(samplesToDelete)
+    override fun deletedFilesAndSamples(submission: Submission) {
+        val samples = sampleRepository.findAllBySubmission(submission)
+        fileRepository.deleteAll(fileRepository.findAllBySampleIn(samples).filter { it.deletionFlag })
+        sampleRepository.deleteAll(samples.filter { it.deletionFlag })
     }
 
     @Throws(ParseException::class)
@@ -301,11 +298,11 @@ class SampleServiceImpl(
         } else {
             sampleRepository.getOne(sampleGuiDto.id)
         }
+        sample.deletionFlag = false
         SampleGuiDto::class.memberProperties.forEach { prop ->
             when (prop.name) {
                 "sex" -> sample.setSex(prop.get(sampleGuiDto) as String)
                 "libraryLayout" -> sample.setLibraryLayout(prop.get(sampleGuiDto) as String)
-                "files" -> sample.files = (prop.get(sampleGuiDto) as List<FileGuiDto>?)?.map { fileService.convertToEntity(it, sample) }.orEmpty()
                 "xenograft" -> sample.setXenograft(prop.get(sampleGuiDto).toString())
                 else -> {
                     val sampleProp = Sample::class.memberProperties.filterIsInstance<KMutableProperty<*>>().find { it.name == prop.name }

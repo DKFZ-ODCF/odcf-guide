@@ -2,6 +2,7 @@ package de.dkfz.odcf.guide.service.external
 
 import de.dkfz.odcf.guide.ClusterJobRepository
 import de.dkfz.odcf.guide.RuntimeOptionsRepository
+import de.dkfz.odcf.guide.SampleRepository
 import de.dkfz.odcf.guide.entity.cluster.ClusterJob
 import de.dkfz.odcf.guide.entity.cluster.ClusterJob.State.*
 import de.dkfz.odcf.guide.exceptions.GuideRuntimeException
@@ -50,6 +51,9 @@ class LSFCommandServiceTests @Autowired constructor() {
 
     @Mock
     lateinit var remoteCommandsService: RemoteCommandsService
+
+    @Mock
+    lateinit var sampleRepository: SampleRepository
 
     private val entityFactory = EntityFactory()
     private var mailBundle = ResourceBundle.getBundle("mails", Locale.getDefault())

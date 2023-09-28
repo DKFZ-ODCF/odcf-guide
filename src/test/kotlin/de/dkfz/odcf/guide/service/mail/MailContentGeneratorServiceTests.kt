@@ -1,11 +1,11 @@
 package de.dkfz.odcf.guide.service.mail
 
 import de.dkfz.odcf.guide.RuntimeOptionsRepository
+import de.dkfz.odcf.guide.SampleRepository
 import de.dkfz.odcf.guide.entity.submissionData.Submission
 import de.dkfz.odcf.guide.helper.AnyObject
 import de.dkfz.odcf.guide.helper.EntityFactory
 import de.dkfz.odcf.guide.service.implementation.mail.MailContentGeneratorServiceImpl
-import de.dkfz.odcf.guide.service.interfaces.FileService
 import de.dkfz.odcf.guide.service.interfaces.UrlGeneratorService
 import de.dkfz.odcf.guide.service.interfaces.mail.MailContentGeneratorService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
@@ -14,7 +14,6 @@ import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.mockito.ArgumentMatchers
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
@@ -47,7 +46,7 @@ class MailContentGeneratorServiceTests @Autowired constructor(private val mailCo
     lateinit var urlGeneratorService: UrlGeneratorService
 
     @Mock
-    lateinit var fileService: FileService
+    lateinit var sampleRepository: SampleRepository
 
     @Mock
     lateinit var env: Environment
@@ -86,12 +85,11 @@ class MailContentGeneratorServiceTests @Autowired constructor(private val mailCo
             val sample2 = entityFactory.getSample(submission)
             sample2.project = "project2"
             entityFactory.getTechnicalSample(sample2)
-            submission.samples = listOf(sample1, sample2)
             submission.closedUser = "closedUser"
 
-            `when`(fileService.fileExists(ArgumentMatchers.anyString())).thenReturn(true)
             `when`(runtimeOptionsRepository.findByName("otpImportLink")).thenReturn(entityFactory.getRuntimeOption("http://LINK?ticketNumber=TICKET_NUMBER&paths=FILE_PATH&dS=ABSOLUTE_PATH"))
             `when`(collectorService.getFormattedIdentifier(submission.identifier)).thenReturn(submission.identifier)
+            `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample1, sample2))
 
             val result = mailContentGeneratorServiceMock.getFinallySubmittedMailBody(submission, filePaths)
 
@@ -324,19 +322,21 @@ class MailContentGeneratorServiceTests @Autowired constructor(private val mailCo
     fun `get open submission reminder mail body`() {
         val submission = entityFactory.getApiSubmission()
         submission.submitter = entityFactory.getPerson()
+        val sample = entityFactory.getSample(submission)
         val baseUrl = "BASE_URL"
         val url = "URL"
 
         `when`(collectorService.getFormattedIdentifier(submission.identifier)).thenReturn(submission.identifier)
         `when`(env.getRequiredProperty("application.serverUrl")).thenReturn(baseUrl)
         `when`(urlGeneratorService.getURL(submission)).thenReturn(url)
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         val result = mailContentGeneratorServiceMock.getOpenSubmissionReminderMailBody(submission)
 
         assertThat(result).isEqualTo(
             mailBundle.getString("mailService.openSubmissionFirstReminderMailBody")
                 .replace("{0}", submission.submitter.fullName)
-                .replace("{1}", "project ${submission.projects.joinToString()} (${submission.identifier})")
+                .replace("{1}", "project ${listOf(sample.project).joinToString()} (${submission.identifier})")
                 .replace("{2}", url)
                 .replace("{3}", baseUrl)
         )
@@ -349,7 +349,6 @@ class MailContentGeneratorServiceTests @Autowired constructor(private val mailCo
         sample1.project = "p1"
         val sample2 = entityFactory.getSample(submission)
         sample2.project = "p2"
-        submission.samples = listOf(sample1, sample2)
         submission.submitter = entityFactory.getPerson()
         val baseUrl = "BASE_URL"
         val url = "URL"
@@ -357,13 +356,14 @@ class MailContentGeneratorServiceTests @Autowired constructor(private val mailCo
         `when`(collectorService.getFormattedIdentifier(submission.identifier)).thenReturn(submission.identifier)
         `when`(env.getRequiredProperty("application.serverUrl")).thenReturn(baseUrl)
         `when`(urlGeneratorService.getURL(submission)).thenReturn(url)
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample1, sample2))
 
         val result = mailContentGeneratorServiceMock.getOpenSubmissionReminderMailBody(submission)
 
         assertThat(result).isEqualTo(
             mailBundle.getString("mailService.openSubmissionFirstReminderMailBody")
                 .replace("{0}", submission.submitter.fullName)
-                .replace("{1}", "projects ${submission.projects.joinToString()} (${submission.identifier})")
+                .replace("{1}", "projects ${listOf(sample1, sample2).joinToString { it.project }} (${submission.identifier})")
                 .replace("{2}", url)
                 .replace("{3}", baseUrl)
         )
@@ -391,17 +391,18 @@ class MailContentGeneratorServiceTests @Autowired constructor(private val mailCo
     fun `get processing status update body single job`() {
         val job = entityFactory.getClusterJob()
         val submission = job.submission
-        submission.samples = listOf(entityFactory.getSample(submission))
+        val samples = listOf(entityFactory.getSample(submission))
 
         `when`(urlGeneratorService.getAdminURL(submission)).thenReturn("URL")
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(samples)
 
         val result = mailContentGeneratorServiceMock.getProcessingStatusUpdateBody(listOf(job))
 
         assertThat(result).isEqualTo(
             "${job.printableName}: ${job.state.name}\n" +
                 "\n" +
-                "${submission.samples.size} sample(s) in this submission:\n" +
-                submission.samples.joinToString("\n") { it.name } +
+                "${samples.size} sample(s) in this submission:\n" +
+                samples.joinToString("\n") { it.name } +
                 "\n\n" +
                 "For more details go to:\n" +
                 "URL"
@@ -413,9 +414,10 @@ class MailContentGeneratorServiceTests @Autowired constructor(private val mailCo
         val job = entityFactory.getClusterJob()
         val submission = job.submission
         val job2 = entityFactory.getClusterJob(submission)
-        submission.samples = listOf(entityFactory.getSample(submission))
+        val samples = listOf(entityFactory.getSample(submission))
 
         `when`(urlGeneratorService.getAdminURL(submission)).thenReturn("URL")
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(samples)
 
         val result = mailContentGeneratorServiceMock.getProcessingStatusUpdateBody(listOf(job, job2))
 
@@ -423,8 +425,8 @@ class MailContentGeneratorServiceTests @Autowired constructor(private val mailCo
             "${job.printableName}: ${job.state.name}\n" +
                 "${job2.printableName}: ${job2.state.name}\n" +
                 "\n" +
-                "${submission.samples.size} sample(s) in this submission:\n" +
-                submission.samples.joinToString("\n") { it.name } +
+                "${samples.size} sample(s) in this submission:\n" +
+                samples.joinToString("\n") { it.name } +
                 "\n\n" +
                 "For more details go to:\n" +
                 "URL"

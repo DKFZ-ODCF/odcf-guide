@@ -40,7 +40,7 @@ class PseudonymServiceImpl(
     }
 
     override fun getSimilarPids(submission: Submission): Set<Map<String, String>> {
-        return sampleRepository.findBySubmission(submission).flatMap { getSimilarPids(it) }.toSet()
+        return sampleRepository.findAllBySubmission(submission).flatMap { getSimilarPids(it) }.toSet()
     }
 
     override fun getSimilarPids(sample: Sample): Set<Map<String, String>> {

@@ -21,7 +21,7 @@ class ModificationServiceImpl(
 
     override fun removeProjectPrefixFromPids(submission: Submission, projectPrefixMapping: Map<String, String?>) {
         val mutableProjectPrefixMapping = projectPrefixMapping.toMutableMap()
-        sampleRepository.findBySubmission(submission).forEach {
+        sampleRepository.findAllBySubmission(submission).forEach {
             removeProjectPrefixFromPid(it, mutableProjectPrefixMapping)
         }
     }

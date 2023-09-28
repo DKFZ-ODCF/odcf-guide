@@ -2,6 +2,7 @@ package de.dkfz.odcf.guide.service.interfaces.validator
 
 import de.dkfz.odcf.guide.dtoObjects.FileGuiDto
 import de.dkfz.odcf.guide.dtoObjects.SampleGuiDto
+import de.dkfz.odcf.guide.entity.submissionData.File
 import de.dkfz.odcf.guide.entity.submissionData.Sample
 import de.dkfz.odcf.guide.entity.submissionData.Submission
 import de.dkfz.odcf.guide.entity.validation.ValidationLevel
@@ -95,16 +96,15 @@ interface SampleService {
      * @param submission Extended submission object containing the samples to be updated
      * @param samples List of sample objects containing new information that will replace the submission's current samples
      */
-    fun updateFilesAndSamples(submission: Submission, samples: List<Sample>)
+    fun updateFilesAndSamples(submission: Submission, samples: List<Sample>, files: List<File>)
 
     /**
      * Finds old files connected to the samples of the submission that are no longer represented and deletes them.
      * Also finds all old samples of the submission that are no longer represented and deletes them.
      *
      * @param submission Submission with new information
-     * @param samples Samples with new information
      */
-    fun deletedFilesAndSamples(submission: Submission, samples: List<Sample>)
+    fun deletedFilesAndSamples(submission: Submission,)
 
     /**
      * Converts SampleGuiDto object to Sample entity. If the `id` of the

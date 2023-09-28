@@ -50,7 +50,7 @@ class PseudonymServiceTests {
         sample2.pid = "prefix2-$pseudonym"
         sample2.sampleType = "sample-type02"
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
         `when`(sampleRepository.findAllByPidEndsWithAndProjectNotAndSeqType_Name(anyString(), anyString(), anyString())).thenReturn(listOf(sample1, sample2))
         `when`(externalMetadataSourceService.getSingleValue(matches("projectPrefixByProject"), anyMap())).thenReturn("")
         `when`(externalMetadataSourceService.getSetOfMapOfValues(matches("pidsByPseudonym"), anyMap())).thenReturn(
@@ -112,7 +112,7 @@ class PseudonymServiceTests {
         sample2.pid = "prefix2-$pseudonym"
         sample2.sampleType = "sample-type02"
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
         `when`(sampleRepository.findAllByPidEndsWithAndProjectNotAndSeqType_Name(anyString(), anyString(), anyString())).thenReturn(listOf(sample1))
         `when`(externalMetadataSourceService.getSingleValue(matches("projectPrefixByProject"), anyMap())).thenReturn("")
         `when`(externalMetadataSourceService.getSetOfMapOfValues(matches("pidsByPseudonym"), anyMap())).thenReturn(

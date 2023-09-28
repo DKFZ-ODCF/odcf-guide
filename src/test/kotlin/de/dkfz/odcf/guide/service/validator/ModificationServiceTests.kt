@@ -37,7 +37,7 @@ class ModificationServiceTests @Autowired constructor(private val modificationSe
         val projectPrefixMapping = emptyMap<String, String?>().toMutableMap()
         val prefix = "prefix_"
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample1, sample2))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample1, sample2))
         `when`(externalMetadataSourceService.getSingleValue(matches("projectPrefixByProject"), anyMap())).thenReturn(prefix)
 
         modificationServiceMock.removeProjectPrefixFromPids(submission, projectPrefixMapping)

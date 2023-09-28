@@ -153,8 +153,9 @@ open class SampleServiceDataJpaTests @Autowired constructor(
     fun `check update files and samples`() {
         val submission = entityFactory.getUploadSubmission()
         val sample = entityFactory.getSample(submission)
+        sample.deletionFlag = false
         val file = entityFactory.getFile(sample)
-        sample.files = listOf(file)
+        file.deletionFlag = false
         val technicalSample = entityFactory.getTechnicalSample(sample)
 
         entityManager.persistAndFlush(submission)
@@ -175,7 +176,7 @@ open class SampleServiceDataJpaTests @Autowired constructor(
 
         assertThat(submission.startTerminationPeriod).isNull()
 
-        sampleServiceMock.updateFilesAndSamples(submission, listOf(sample))
+        sampleServiceMock.updateFilesAndSamples(submission, listOf(sample), listOf(file))
 
         assertThat(resultSample.name).isEqualTo("${sample.pid}_${sample.sampleType}")
         assertThat(resultTechnicalSample.center).isEqualTo("newCenter")
@@ -187,7 +188,6 @@ open class SampleServiceDataJpaTests @Autowired constructor(
     fun `check update files and samples with form`() {
         val sample = entityFactory.getSample()
         val file = entityFactory.getFile(sample)
-        sample.files = listOf(file)
         val technicalSample = entityFactory.getTechnicalSample(sample)
         val submission = sample.submission
 

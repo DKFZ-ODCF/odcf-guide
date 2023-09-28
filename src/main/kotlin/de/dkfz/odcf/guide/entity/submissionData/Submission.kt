@@ -1,6 +1,5 @@
 package de.dkfz.odcf.guide.entity.submissionData
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import de.dkfz.odcf.guide.entity.Person
 import de.dkfz.odcf.guide.entity.basic.GuideEntity
 import de.dkfz.odcf.guide.entity.validation.ValidationLevel
@@ -76,10 +75,6 @@ abstract class Submission() : GuideEntity() {
     @JoinColumn
     open lateinit var submitter: Person
 
-    @JsonIgnore
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "submission")
-    open var samples: List<Sample> = emptyList() // to avoid an UnsupportedOperationException, this collection must be a list and not a set
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn
     open lateinit var validationLevel: ValidationLevel
@@ -147,9 +142,6 @@ abstract class Submission() : GuideEntity() {
 
     val formattedLockDate: String
         get() = getFormattedDate(lockDate)
-
-    val projects: Set<String>
-        get() = samples.map { it.project }.filter { it.isNotBlank() }.toSet()
 
     val ownTransfer: Boolean
         get() = this is ApiSubmission && this.sequencingTechnology.checkExternalMetadataSource.not()

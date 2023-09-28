@@ -257,7 +257,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         val otherSample1 = entityFactory.getSample()
         val otherSample2 = entityFactory.getSample(otherSample1.submission)
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(samples)
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(samples)
         `when`(externalMetadataSourceService.getSetOfMapOfValues(matches("mergingCandidatesData"), anyMap()))
             .thenReturn(setOf(mapOf("file_withdrawn" to "true")))
         `when`(
@@ -288,7 +288,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         val submission = sample1.submission as ApiSubmission
         submission.sequencingTechnology = entityFactory.getSequencingTechnologyWithClusterJobTemplate()
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(samples)
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(samples)
 
         val result = collectorServiceMock.getSampleListEnrichedByMergingSamplesGrouped(submission)
 
@@ -337,7 +337,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         val sample = entityFactory.getSample(submission)
 
         `when`(externalMetadataSourceService.getSetOfValues(matches("projects-by-person-or-organizational-unit"), anyMap())).thenReturn(setOf("projectA(f)", "projectB(t)"))
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         val projects = collectorServiceMock.getProjectsForSubmissionAndUser(submission, entityFactory.getPerson())
 
@@ -353,7 +353,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         val sample = entityFactory.getSample(submission)
 
         `when`(externalMetadataSourceService.getSetOfValues(matches("projects-by-person-or-organizational-unit"), anyMap())).thenReturn(setOf("projectA(f)", "projectB(t)"))
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         val result = collectorServiceMock.getImportableProjects(submission)
 
@@ -381,7 +381,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         val sample = entityFactory.getSample(submission)
         val candidateProjects = setOf("project1", "project2")
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
         `when`(externalMetadataSourceService.getSingleValue("projectPrefixByProject", mapOf("project" to "project"))).thenReturn("prefix")
         `when`(externalMetadataSourceService.getSingleValue("projectPrefixByProject", mapOf("project" to "project1"))).thenReturn("prefix1")
         `when`(externalMetadataSourceService.getSingleValue("projectPrefixByProject", mapOf("project" to "project2"))).thenReturn("prefix2")

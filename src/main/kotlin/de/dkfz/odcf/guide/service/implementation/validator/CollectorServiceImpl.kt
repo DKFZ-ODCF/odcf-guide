@@ -6,15 +6,17 @@ import de.dkfz.odcf.guide.entity.Person
 import de.dkfz.odcf.guide.entity.submissionData.Sample
 import de.dkfz.odcf.guide.entity.submissionData.Submission
 import de.dkfz.odcf.guide.entity.submissionData.Submission.Status.*
+import de.dkfz.odcf.guide.helperObjects.mapDistinctAndNotNullOrBlank
 import de.dkfz.odcf.guide.helperObjects.mapParallel
 import de.dkfz.odcf.guide.helperObjects.toBool
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.security.LdapService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class CollectorServiceImpl(
@@ -92,7 +94,7 @@ class CollectorServiceImpl(
             it.removeSuffix("(f)").replace("(t)", " (closed)")
         }.toMutableSet()
         projects.addAll(submission.originProjectsSet)
-        sampleRepository.findBySubmission(submission).forEach {
+        sampleRepository.findAllBySubmission(submission).forEach {
             if (it.project.isNotEmpty()) {
                 projects.add(it.project)
             }
@@ -123,7 +125,7 @@ class CollectorServiceImpl(
     }
 
     override fun getProjectPrefixesForSamplesInSubmission(submission: Submission, candidateProjects: Set<String>?): Map<String, String?> {
-        val projectPrefixes = submission.samples.map { it.project }.toSet().associateWith {
+        val projectPrefixes = sampleRepository.findAllBySubmission(submission).mapDistinctAndNotNullOrBlank { it.project }.associateWith {
             externalMetadataSourceService.getSingleValue("projectPrefixByProject", mapOf("project" to it))
         }.toMutableMap()
 
@@ -160,7 +162,7 @@ class CollectorServiceImpl(
     }
 
     override fun getSampleListEnrichedByMergingSamplesGrouped(submission: Submission): Map<String, List<Sample>> {
-        val samples = sampleRepository.findBySubmission(submission).toSet()
+        val samples = sampleRepository.findAllBySubmission(submission).toSet()
         val groupedSamples = if (submission.ownTransfer) {
             getSampleListEnrichedByMergingSamples(samples, false).groupBy { it.abstractSampleId }
         } else {

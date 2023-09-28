@@ -54,8 +54,7 @@ open class JsonImportServiceImpl(
     override fun reimport(submission: Submission) {
         if (submission.resettable) {
             submissionService.changeSubmissionState(submission, Submission.Status.LOCKED, ldapService.getPerson().username, "in preparation for reset of submission")
-            sampleRepository.deleteAll(submission.samples)
-            submission.samples = mutableListOf()
+            sampleRepository.deleteAll(sampleRepository.findAllBySubmission(submission))
             val importSourceData = importSourceDataRepository.findBySubmissionIdentifier(submission.identifier)
                 ?: throw IllegalArgumentException("Did not find import source data for submission with id '${submission.identifier}'.")
             val submissionImportObject = Gson().fromJson(importSourceData.jsonContent, SubmissionImportObject::class.java)

@@ -1,9 +1,13 @@
 package de.dkfz.odcf.guide.controller.metadataValidation
 
-import de.dkfz.odcf.guide.*
+import de.dkfz.odcf.guide.FileRepository
+import de.dkfz.odcf.guide.RuntimeOptionsRepository
+import de.dkfz.odcf.guide.SampleRepository
+import de.dkfz.odcf.guide.SubmissionRepository
 import de.dkfz.odcf.guide.entity.submissionData.File
 import de.dkfz.odcf.guide.entity.submissionData.Sample
 import de.dkfz.odcf.guide.entity.submissionData.Submission
+import de.dkfz.odcf.guide.helperObjects.mapDistinctAndNotNullOrBlank
 import de.dkfz.odcf.guide.service.implementation.RequestedValueServiceImpl
 import de.dkfz.odcf.guide.service.interfaces.external.LSFCommandService
 import de.dkfz.odcf.guide.service.interfaces.security.LdapService
@@ -27,7 +31,8 @@ class ReadOnlyController(
     private val collectorService: CollectorService,
     private val fileRepository: FileRepository,
     private val lsfCommandService: LSFCommandService,
-    private val requestedValueServiceImpl: RequestedValueServiceImpl
+    private val requestedValueServiceImpl: RequestedValueServiceImpl,
+    private val sampleRepository: SampleRepository,
 ) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -56,7 +61,7 @@ class ReadOnlyController(
 
     private fun getReadOnlyPage(model: Model, submission: Submission, redirectAttributes: RedirectAttributes, isExtended: Boolean = false): String {
         val formattedIdentifier = collectorService.getFormattedIdentifier(submission.identifier)
-        if (submission.samples.isEmpty()) {
+        if (!sampleRepository.existsAllBySubmission(submission)) {
             redirectAttributes.addFlashAttribute("errorMessage", "There were no samples found in submission $formattedIdentifier")
             redirectAttributes.addFlashAttribute("error", true)
             return "redirect:/metadata-validator/overview/" + ("user".takeIf { !ldapService.isCurrentUserAdmin() } ?: "admin")
@@ -64,25 +69,26 @@ class ReadOnlyController(
 
         val samplesWithMergeCandidates = collectorService.getSampleListEnrichedByMergingSamplesGrouped(submission)
         val samplesWithMergeCandidatesWithPaths = collectorService.getPathsWithSampleList(samplesWithMergeCandidates, submission)
+        val samples = sampleRepository.findAllBySubmission(submission)
 
         model["admin"] = ldapService.getPerson().isAdmin
-        model["hideFinalSubmitButton"] = submission.status != Submission.Status.VALIDATED
+        model["hideFinalSubmitButton"] = !submission.isValidated
         model["submission"] = submission
         model["isFinished"] = submission.isFinished
         model["samples"] = samplesWithMergeCandidatesWithPaths
         model["identifier"] = formattedIdentifier
         model["merging"] = collectorService.foundMergeableSamples(submission)
         model["otpProjectPath"] = runtimeOptionsRepository.findByName("otpProjectPath")?.value.orEmpty()
-        model["projects"] = submission.samples.map { it.project }.toSet().sortedBy { it }
-        model["seqTypes"] = submission.samples.map { it.seqType?.name }.toSet().sortedBy { it }.joinToString()
-        model["numberOfXenograft"] = submission.samples.count { it.xenograft }
-        model["antibodyTargets"] = submission.samples.mapNotNull { it.antibodyTarget.ifBlank { null } }.toSet().sortedBy { it }.joinToString()
-        model["numberOfStopped"] = submission.samples.count { it.proceed == Sample.Proceed.NO }
-        model["showAntibody"] = submission.samples.any { it.seqType?.needAntibodyTarget ?: false }
-        model["showTagmentationLib"] = submission.samples.any { it.seqType?.tagmentation ?: false }
-        model["showSingleCellWellLabel"] = submission.samples.any { (it.seqType?.singleCell ?: false) && !(it.seqType?.name?.contains("10x") ?: false) }
-        model["showLowCoverageRequested"] = submission.samples.any { it.seqType?.lowCoverageRequestable ?: false }
-        model["showSampleTypeCategory"] = submission.samples.any { it.seqType?.needSampleTypeCategory ?: false }
+        model["projects"] = samples.mapDistinctAndNotNullOrBlank { it.project }.sorted()
+        model["seqTypes"] = samples.mapDistinctAndNotNullOrBlank { it.seqType?.name }.sorted().joinToString()
+        model["numberOfXenograft"] = samples.count { it.xenograft }
+        model["antibodyTargets"] = samples.mapDistinctAndNotNullOrBlank { it.antibodyTarget }.sorted().joinToString()
+        model["numberOfStopped"] = samples.count { it.proceed == Sample.Proceed.NO }
+        model["showAntibody"] = samples.any { it.seqType?.needAntibodyTarget ?: false }
+        model["showTagmentationLib"] = samples.any { it.seqType?.tagmentation ?: false }
+        model["showSingleCellWellLabel"] = samples.any { (it.seqType?.singleCell ?: false) && !(it.seqType?.name?.contains("10x") ?: false) }
+        model["showLowCoverageRequested"] = samples.any { it.seqType?.lowCoverageRequestable ?: false }
+        model["showSampleTypeCategory"] = samples.any { it.seqType?.needSampleTypeCategory ?: false }
         model["hasSubmissionTypeSamples"] = submission.hasSubmissionTypeSamples
         model["numberOfWithdrawn"] = samplesWithMergeCandidates.values.flatten().count { it.isExternalWithdrawnSample }
         model["clusterJobs"] = lsfCommandService.collectJobs(submission)
@@ -107,6 +113,11 @@ class ReadOnlyController(
             }
             model["samples"] = samplesMap
             model["allFilesReadable"] = allFilesReadable
+            model["additionalHeaders"] = samplesWithMergeCandidates.values.flatten()
+                .mapNotNull { it.unknownValues?.keys?.toList() }.flatten()
+                .distinct().filter { it.isNotBlank() }
+            model["showAdditionalHeaders"] = runtimeOptionsRepository.findByName("unknownValuesAllowedOrganizationalUnits")?.value.orEmpty()
+                .split(",").contains(submission.submitter.organizationalUnit)
 
             "metadataValidator/extended/read-only"
         } else {

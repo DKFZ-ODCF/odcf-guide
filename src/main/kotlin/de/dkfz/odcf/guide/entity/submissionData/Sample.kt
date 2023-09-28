@@ -133,10 +133,6 @@ class Sample() : GuideEntity() {
     @ElementCollection
     var unknownValues: Map<String, String>? = null
 
-    @JsonIgnore
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "sample")
-    var files: List<File> = emptyList()
-
     /*================================================================================================================*/
 
     val singleCell: Boolean

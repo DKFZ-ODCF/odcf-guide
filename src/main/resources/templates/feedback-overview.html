@@ -42,10 +42,10 @@
                         <a th:href="@{/metadata-validator/submission/simple/admin(identifier=${feedback.submission.identifier})}"
                            target="_blank">[[${feedback.submission.identifier}]]</a>
                     </td>
-                    <td th:text="${projectMap.get(feedback)}"></td>
-                    <td th:text="${seqTypesMap.get(feedback)}"></td>
+                    <td th:text="${projects.get(feedback)}"></td>
+                    <td th:text="${seqTypes.get(feedback)}"></td>
                     <td th:text="${feedback.rating}"></td>
-                    <td th:text="${feedback.submission.samples.size()}"></td>
+                    <td th:text="${numberOfSamples.get(feedback)}"></td>
                     <td th:text="${feedback.message}"></td>
                     <td>
                         <span th:if="${feedback.ticket != ''}">

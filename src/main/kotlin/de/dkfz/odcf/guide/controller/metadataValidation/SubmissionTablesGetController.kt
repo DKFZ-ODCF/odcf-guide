@@ -10,6 +10,7 @@ import de.dkfz.odcf.guide.entity.submissionData.Submission
 import de.dkfz.odcf.guide.entity.submissionData.TechnicalSample
 import de.dkfz.odcf.guide.helperObjects.enums.ExtendedPage
 import de.dkfz.odcf.guide.helperObjects.enums.SimplePage
+import de.dkfz.odcf.guide.helperObjects.mapDistinctAndNotNullOrBlank
 import de.dkfz.odcf.guide.helperObjects.setParallel
 import de.dkfz.odcf.guide.service.interfaces.BrowserService
 import de.dkfz.odcf.guide.service.interfaces.RequestedValueService
@@ -45,7 +46,7 @@ class SubmissionTablesGetController(
     private val modificationService: ModificationService,
     private val fileRepository: FileRepository,
     private val parserRepository: ParserRepository,
-    private val fieldRequestedValuesRepository: FieldRequestedValuesRepository,
+    private val sampleRepository: SampleRepository,
     private val requestedValueService: RequestedValueService,
     private val browserService: BrowserService,
     private val env: Environment
@@ -273,13 +274,8 @@ class SubmissionTablesGetController(
         val seqKitInfos = externalMetadataSourceService.getSetOfValues("instrument-model-with-sequencing-kits")
         model["instrumentModels"] = seqKitInfos.map { it.replace("[]", "").trim() }.toSet().sorted()
             .plus(requestedValueService.getRequestedValuesForUserAndFieldNameAndSubmission("instrumentModelWithSequencingKit", submission))
-
-        val filesWithSamples = emptyMap<Sample, List<File>>().toMutableMap()
-        submission.samples.sortedBy { it.id }.forEach { sample ->
-            filesWithSamples[sample] = fileRepository.findAllBySample(sample).sortedBy { it.readNumber }
-        }
-
-        model["files"] = filesWithSamples
+        model["files"] = sampleRepository.findAllBySubmissionOrderById(submission)
+            .associateWith { sample -> fileRepository.findAllBySample(sample).sortedBy { it.readNumber } }
 
         val fakeSample = Sample()
         fakeSample.id = -1
@@ -300,10 +296,10 @@ class SubmissionTablesGetController(
         user: Person,
         timeout: Int
     ) {
-        val samples = submission.samples
+        val samples = sampleRepository.findAllBySubmissionOrderById(submission)
         model["columns"] = SimplePage.values()
-        model["samples"] = model.getAttribute("samples") ?: samples.sortedBy { it.id }
-        model["selectedProjects"] = samples.map { it.project }.filter { it.isNotEmpty() }.distinct()
+        model["samples"] = model.getAttribute("samples") ?: samples
+        model["selectedProjects"] = samples.mapDistinctAndNotNullOrBlank { it.project }.sorted()
         model["projects"] = availableProjects.sorted()
         model["projectPrefixes"] = projectPrefixMapping
         val seqTypes = seqTypeRepository.findAllByIsRequestedIsFalseOrderByNameAsc().toMutableList()

@@ -55,7 +55,7 @@
                                         <input th:id="|checkbox_${submission.identifier}|" type="checkbox" th:value="${submission.identifier}" name="submissions"/>
                                         <label th:for="|checkbox_${submission.identifier}|">
                                             <a th:href="@{/metadata-validator/submission/simple/user(uuid=${submission.uuid})}" target="_blank"
-                                               th:text="|${submission.identifier} [${submission.samples.size()} samples] (${submission.submitter?.fullName})|">
+                                               th:text="|${submission.identifier} [${submissionsSampleCount.get(submission)} samples] (${submission.submitter?.fullName})|">
                                             </a>
                                             contains <span th:text="${countMd5InSubmissions.get(submission)}"></span> md5 sums that were also found in this upload.
                                         </label>

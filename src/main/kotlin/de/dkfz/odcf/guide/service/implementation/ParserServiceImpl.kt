@@ -60,20 +60,16 @@ open class ParserServiceImpl(
         val errorListParseIdentifier = mutableListOf<String>()
         val errorListProject = mutableListOf<String>()
 
-        for (sample in submission.samples) {
+        sampleRepository.findAllBySubmission(submission).forEach { sample ->
             val parser = parserRepository.findByProject(sample.project)
-
             if (parser != null) {
                 val parseIdentifier = sample.parseIdentifier
-
                 if (parseIdentifier.matches(parser.formattedRegex.toRegex())) {
-
-                    for (parserField in parser.parserFields!!) {
-                        val components = parserField.parserComponents
-
+                    parser.parserFields?.forEach { field ->
+                        val components = field.parserComponents
                         if (!components.isNullOrEmpty()) {
-                            val property = Sample::class.memberProperties.filterIsInstance<KMutableProperty<*>>().find { it.name == parserField.columnMapping }
-                            property?.setter?.call(sample, createStringForParserField(parser.formattedRegex.toRegex(), parserField, parseIdentifier, components)) ?: errorListParseIdentifier.add(parseIdentifier)
+                            val property = Sample::class.memberProperties.filterIsInstance<KMutableProperty<*>>().find { it.name == field.columnMapping }
+                            property?.setter?.call(sample, createStringForParserField(parser.formattedRegex.toRegex(), field, parseIdentifier, components)) ?: errorListParseIdentifier.add(parseIdentifier)
                         }
                     }
                     sampleRepository.save(sample)

@@ -11,6 +11,7 @@ import de.dkfz.odcf.guide.exceptions.ExternalApiReadException
 import de.dkfz.odcf.guide.exceptions.UserNotFoundException
 import de.dkfz.odcf.guide.helperObjects.importObjects.ExternalIlseSubmissionImportObject
 import de.dkfz.odcf.guide.helperObjects.importObjects.IlseSampleImportObject
+import de.dkfz.odcf.guide.helperObjects.mapDistinctAndNotNullOrBlank
 import de.dkfz.odcf.guide.service.interfaces.*
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.external.IlseApiService
@@ -74,8 +75,7 @@ open class IlseImportServiceImpl(
     override fun reimport(submission: Submission) {
         if (submission.resettable) {
             submissionService.changeSubmissionState(submission, Submission.Status.LOCKED, ldapService.getPerson().username, "in preparation for reset of submission")
-            sampleRepository.deleteAll(submission.samples)
-            submission.samples = emptyList()
+            sampleRepository.deleteAll(sampleRepository.findAllBySubmission(submission))
 
             val ilseId = submission.identifier.substring(1).toInt()
             saveSamples(submission, ilseService.getSubmissionImportObjectFromApi(ilseId, true))
@@ -159,7 +159,7 @@ open class IlseImportServiceImpl(
         }
         submission.originProjects = originProjectSet.joinToString(";")
         submissionRepository.saveAndFlush(submission)
-        if (sampleRepository.findBySubmission(submission).size != importObject.samples!!.size) {
+        if (sampleRepository.findAllBySubmission(submission).size != importObject.samples!!.size) {
             logger.error("number of saved samples different to number of ilse samples")
             throw IllegalStateException("number of saved samples different to number of ilse samples")
         }
@@ -279,7 +279,7 @@ open class IlseImportServiceImpl(
                 pseudonymService.checkSimilarPidsAndSendMail(submission)
             }
         }
-        val projects = sampleRepository.findBySubmission(submission).map { it.project }.toSet().joinToString(transform = { "'$it'" })
+        val projects = sampleRepository.findAllBySubmission(submission).mapDistinctAndNotNullOrBlank { it.project }.joinToString(transform = { "'$it'" })
         if (submission.fasttrack && externalMetadataSourceService.getSingleValue("projectNotificationStatus", mapOf("projects" to projects)).toBoolean()) {
             mailSenderService.sendMailFasttrackImported(submission)
         }

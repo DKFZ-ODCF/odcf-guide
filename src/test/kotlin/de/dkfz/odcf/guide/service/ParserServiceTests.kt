@@ -147,9 +147,9 @@ class ParserServiceTests {
     fun `When applyParser with a project without parser throw Exception`() {
         val submission = entityFactory.getUploadSubmission()
         val sample = entityFactory.getSample(submission)
-        submission.samples = listOf(sample)
 
         `when`(parserRepository.findByProject("project")).thenReturn(null)
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         assertThatExceptionOfType(ParserException::class.java).isThrownBy {
             parserServiceMock.applyParser(submission)
@@ -161,10 +161,10 @@ class ParserServiceTests {
         val submission = entityFactory.getUploadSubmission()
         val sample = entityFactory.getSample(submission)
         sample.parseIdentifier = "parseID"
-        submission.samples = listOf(sample)
         val parser = entityFactory.getParser()
 
         `when`(parserRepository.findByProject("project")).thenReturn(parser)
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         assertThatExceptionOfType(ParserException::class.java).isThrownBy {
             parserServiceMock.applyParser(submission)
@@ -175,7 +175,6 @@ class ParserServiceTests {
     fun `apply parser with wrong entity mapping`() {
         val submission = entityFactory.getUploadSubmission()
         val sample = entityFactory.getSample(submission)
-        submission.samples = listOf(sample)
         val parser = entityFactory.getParser()
         parser.parserRegex = "abc"
         sample.parseIdentifier = "abc"
@@ -184,6 +183,7 @@ class ParserServiceTests {
         parser.parserFields = listOf(field)
 
         `when`(parserRepository.findByProject("project")).thenReturn(parser)
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         assertThatExceptionOfType(ParserException::class.java).isThrownBy {
             parserServiceMock.applyParser(submission)
@@ -195,7 +195,6 @@ class ParserServiceTests {
         val submission = entityFactory.getUploadSubmission()
         val sample = entityFactory.getSample(submission)
         sample.parseIdentifier = "P_1"
-        submission.samples = listOf(sample)
         val parser = entityFactory.getParser()
 
         val pidField = entityFactory.getParserField(parser)
@@ -220,6 +219,7 @@ class ParserServiceTests {
         `when`(parserRepository.findByProject("project")).thenReturn(parser)
         `when`(sampleRepository.save(sample)).thenReturn(sample)
         `when`(submissionRepository.save(submission)).thenReturn(submission)
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         parserServiceMock.applyParser(submission)
 
@@ -232,7 +232,6 @@ class ParserServiceTests {
         val submission = entityFactory.getUploadSubmission()
         val sample = entityFactory.getSample(submission)
         sample.parseIdentifier = "cc1_t1"
-        submission.samples = listOf(sample)
         val parser = entityFactory.getParser()
         val pidField = entityFactory.getParserField(parser)
         pidField.fieldName = "patient_id"
@@ -258,6 +257,7 @@ class ParserServiceTests {
         `when`(parserRepository.findByProject("project")).thenReturn(parser)
         `when`(sampleRepository.save(sample)).thenReturn(sample)
         `when`(submissionRepository.save(submission)).thenReturn(submission)
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         parserServiceMock.applyParser(submission)
 
@@ -270,7 +270,6 @@ class ParserServiceTests {
         val submission = entityFactory.getUploadSubmission()
         val sample = entityFactory.getSample(submission)
         sample.parseIdentifier = "P_1A"
-        submission.samples = listOf(sample)
         val parser = entityFactory.getParser()
 
         val pidField = entityFactory.getParserField(parser)
@@ -303,6 +302,7 @@ class ParserServiceTests {
         parser.parserFields = listOf(pidField, stField)
 
         `when`(parserRepository.findByProject("project")).thenReturn(parser)
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
         `when`(sampleRepository.save(sample)).thenReturn(sample)
         `when`(submissionRepository.save(submission)).thenReturn(submission)
 

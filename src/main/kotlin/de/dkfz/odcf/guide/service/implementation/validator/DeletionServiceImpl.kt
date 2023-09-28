@@ -49,7 +49,7 @@ open class DeletionServiceImpl(
     }
 
     override fun deleteSamples(submission: Submission): Boolean {
-        return deleteSamples(sampleRepository.findBySubmission(submission))
+        return deleteSamples(sampleRepository.findAllBySubmission(submission))
     }
 
     override fun deleteSamples(samples: List<Sample>): Boolean {

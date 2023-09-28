@@ -1,10 +1,11 @@
 package de.dkfz.odcf.guide.service.implementation.mail
 
 import de.dkfz.odcf.guide.RuntimeOptionsRepository
+import de.dkfz.odcf.guide.SampleRepository
 import de.dkfz.odcf.guide.entity.cluster.ClusterJob
 import de.dkfz.odcf.guide.entity.submissionData.ApiSubmission
 import de.dkfz.odcf.guide.entity.submissionData.Submission
-import de.dkfz.odcf.guide.service.interfaces.FileService
+import de.dkfz.odcf.guide.helperObjects.mapDistinctAndNotNullOrBlank
 import de.dkfz.odcf.guide.service.interfaces.UrlGeneratorService
 import de.dkfz.odcf.guide.service.interfaces.mail.MailContentGeneratorService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
@@ -18,9 +19,9 @@ import java.util.*
 @Service
 class MailContentGeneratorServiceImpl(
     private val runtimeOptionsRepository: RuntimeOptionsRepository,
+    private val sampleRepository: SampleRepository,
     private val collectorService: CollectorService,
     private val urlGeneratorService: UrlGeneratorService,
-    private val fileService: FileService,
     private val env: Environment
 ) : MailContentGeneratorService {
 
@@ -68,11 +69,12 @@ class MailContentGeneratorServiceImpl(
     }
 
     override fun getOpenSubmissionReminderMailBody(submission: Submission): String {
-        val projectPrefix = if (submission.projects.size> 1) "projects" else "project"
+        val projects = sampleRepository.findAllBySubmission(submission).mapDistinctAndNotNullOrBlank { it.project }
+        val projectPrefix = if (projects.size> 1) "projects" else "project"
 
         return mailBundle.getString("mailService.openSubmissionFirstReminderMailBody")
             .replace("{0}", submission.submitter.fullName)
-            .replace("{1}", "$projectPrefix ${submission.projects.joinToString()} (${collectorService.getFormattedIdentifier(submission.identifier)})")
+            .replace("{1}", "$projectPrefix ${projects.joinToString()} (${collectorService.getFormattedIdentifier(submission.identifier)})")
             .replace("{2}", urlGeneratorService.getURL(submission))
             .replace("{3}", env.getRequiredProperty("application.serverUrl"))
     }
@@ -93,7 +95,7 @@ class MailContentGeneratorServiceImpl(
 
             return body.replace("{fragment_extendedSubmission}", mailBundle.getString("mailService.finallySubmittedMailBody.extendedSubmission"))
                 .replace("{fragment_multipleProjects}", if (filePaths.size > 1) "${mailBundle.getString("mailService.finallySubmittedMailBody.multipleProjects")}\n" else "")
-                .replace("{projects}", submission.projects.sorted().joinToString(", "))
+                .replace("{projects}", sampleRepository.findAllBySubmission(submission).mapDistinctAndNotNullOrBlank { it.project }.sorted().joinToString())
                 .replace("{filePath}", filePaths.joinToString("\n"))
                 .replace("{otpImportLink}", otpImportLink)
         }
@@ -130,17 +132,18 @@ class MailContentGeneratorServiceImpl(
 
     override fun getProcessingStatusUpdateBody(jobs: List<ClusterJob>): String {
         val submission = jobs.first().submission
+        val samples = sampleRepository.findAllBySubmission(submission)
         return mailBundle.getString("lsfService.processingStatusUpdateBody")
             .replace("{0}", jobs.joinToString("\n") { "${it.printableName}: ${it.state.name}" })
-            .replace("{1}", "${submission.samples.size}")
-            .replace("{2}", submission.samples.joinToString("\n") { it.name })
+            .replace("{1}", "${samples.size}")
+            .replace("{2}", samples.joinToString("\n") { it.name })
             .replace("{3}", urlGeneratorService.getAdminURL(submission))
             .trim()
     }
 
     override fun getFinalProcessingStatusUpdateBody(job: ClusterJob): String {
         val submission = Hibernate.unproxy(job.submission) as Submission
-        val samplesWithPaths = collectorService.getPathsWithSampleList(submission.samples.groupBy { it.abstractSampleId }, submission)
+        val samplesWithPaths = collectorService.getPathsWithSampleList(sampleRepository.findAllBySubmission(submission).groupBy { it.abstractSampleId }, submission)
         return mailBundle.getString("lsfService.finalProcessingStatusUpdateBody")
             .replace("{0}", submission.identifier)
             .replace("{1}", samplesWithPaths.map { "${it.key} -> samples [${it.value.joinToString { it.name }}]" }.joinToString("\n"))

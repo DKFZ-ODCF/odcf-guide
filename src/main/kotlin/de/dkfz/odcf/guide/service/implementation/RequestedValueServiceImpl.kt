@@ -86,7 +86,7 @@ class RequestedValueServiceImpl(
         when (clazz) {
             Sample::class -> sampleRepository.saveAll(correctFields(samples, property, oldValue, newValue))
             TechnicalSample::class -> technicalSampleRepository.saveAll(correctFields(samples.mapNotNull { it.technicalSample }.toSet(), property, oldValue, newValue))
-            File::class -> fileRepository.saveAll(correctFields(samples.map { it.files }.flatten().toSet(), property, oldValue, newValue))
+            File::class -> fileRepository.saveAll(correctFields(samples.flatMap { fileRepository.findAllBySample(it) }.toSet(), property, oldValue, newValue))
         }
     }
 
@@ -177,7 +177,7 @@ class RequestedValueServiceImpl(
     }
 
     override fun getSubmissionUsesRequestedValues(submission: Submission): Map<String, Set<String>> {
-        val samples = sampleRepository.findBySubmission(submission)
+        val samples = sampleRepository.findAllBySubmission(submission)
 
         val requestedSeqTypes = seqTypeRequestedValuesRepository.findAllByUsedSubmissionsContains(submission).filterNot { it.isFinished }
         val usedReqSeqTypes = mutableSetOf<SeqTypeRequestedValue>()

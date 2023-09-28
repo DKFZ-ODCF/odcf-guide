@@ -130,9 +130,7 @@ class TerminationServiceTests @Autowired constructor(private val terminationServ
         verify(submissionService, times(0)).changeSubmissionState(submission, Submission.Status.REMOVED_BY_ADMIN)
         assertThat(logsList).hasSize(1)
         assertThat(logsList.first().level).isEqualTo(Level.ERROR)
-        assertThat(logsList.first().message).startsWith(
-            "The submission ${submission.identifier} could not be terminated because there was an error when writing out the TSV File"
-        )
+        assertThat(logsList.first().message).startsWith("The submission ${submission.identifier} could not be terminated because there was an error when writing out the TSV File")
     }
 
     @Test

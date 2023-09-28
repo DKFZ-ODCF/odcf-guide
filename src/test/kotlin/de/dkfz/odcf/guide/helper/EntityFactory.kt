@@ -77,7 +77,6 @@ class EntityFactory {
 
     fun getSample(submission: Submission): Sample {
         val sample = Sample(submission)
-        submission.samples = listOf(sample)
         sample.parseIdentifier = "parseIdentifier"
         sample.abstractSampleId = "abstractSampleId"
         sample.antibody = "antibody"

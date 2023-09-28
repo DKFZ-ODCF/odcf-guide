@@ -34,11 +34,14 @@ interface PersonRepository : JpaRepository<Person, Int> {
 }
 
 interface SampleRepository : JpaRepository<Sample, Int> {
-    fun findBySubmission(submission: Submission): List<Sample>
+    fun findAllBySubmission(submission: Submission): List<Sample>
+    fun findFirstBySubmission(submission: Submission): Sample
+    fun existsAllBySubmission(submission: Submission): Boolean
     fun findAllBySeqTypeAndSubmission_StatusIn(seqType: SeqType, status: List<Submission.Status>): List<Sample>
     fun findAllBySubmissionIn(submission: Set<Submission>): Set<Sample>
     fun findBySubmissionAndProceedNot(submission: Submission, proceed: Sample.Proceed): List<Sample>
     fun findBySubmissionOrderByIdAsc(submission: Submission): List<Sample>
+    fun findAllBySubmissionOrderById(submission: Submission): List<Sample>
     fun findBySubmissionAndName(submission: Submission, name: String): Sample?
     fun findAllByPidEndsWithAndProjectNotAndSeqType_Name(pseudonym: String, project: String, SeqTypeName: String): List<Sample>
 
@@ -51,6 +54,7 @@ interface SampleRepository : JpaRepository<Sample, Int> {
         antibodyTarget: String,
         submission: Submission
     ): Set<Sample>
+    fun countAllBySubmission(submission: Submission): Int
 }
 
 interface TechnicalSampleRepository : JpaRepository<TechnicalSample, Int>

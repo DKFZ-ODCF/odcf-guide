@@ -55,23 +55,16 @@ class FeedbackServiceImpl(
     }
 
     override fun calculateAverage(): String {
-        var lastFeedbackCount = 25
-        val averageRating: Double
-        if (feedbackRepository.findAll().size > 0) {
-            if (feedbackRepository.findAll().size < lastFeedbackCount) {
-                lastFeedbackCount = feedbackRepository.findAll().size
-            }
-
-            val lastFeedbacks = feedbackRepository.findAllByOrderByDateDesc().take(lastFeedbackCount)
-            averageRating = lastFeedbacks.sumOf { it.rating.ordinal }.toDouble() / lastFeedbackCount
-
-            return when {
+        val feedbacks = feedbackRepository.findAllByOrderByDateDesc()
+        return if (feedbacks.isNotEmpty()) {
+            val averageRating = feedbacks.take(25).map { it.rating.ordinal }.average()
+            when {
                 averageRating < 0.5 -> "sad"
                 averageRating > 1.5 -> "happy"
                 else -> "neutral"
             }
         } else {
-            return "noRating"
+            "noRating"
         }
     }
 }

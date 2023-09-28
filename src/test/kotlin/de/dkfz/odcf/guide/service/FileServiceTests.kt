@@ -5,7 +5,6 @@ import de.dkfz.odcf.guide.MetaDataColumnRepository
 import de.dkfz.odcf.guide.RuntimeOptionsRepository
 import de.dkfz.odcf.guide.SampleRepository
 import de.dkfz.odcf.guide.entity.submissionData.Sample
-import de.dkfz.odcf.guide.entity.submissionData.Submission
 import de.dkfz.odcf.guide.exceptions.MissingRuntimeOptionException
 import de.dkfz.odcf.guide.exceptions.RowNotFoundException
 import de.dkfz.odcf.guide.exceptions.SampleNamesDontMatchException
@@ -68,9 +67,8 @@ class FileServiceTests {
     fun `test generated tsv header`() {
         val sample = entityFactory.getSample()
         val submission = sample.submission
-        submission.samples = listOf(sample)
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         val tsvContent = fileServiceMock.createTsvFile(submission)
 
@@ -120,9 +118,8 @@ class FileServiceTests {
     fun `test generated tsv`() {
         val sample = entityFactory.getSample()
         val submission = sample.submission
-        submission.samples = listOf(sample)
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         val tsvContent = fileServiceMock.createTsvFile(submission)
 
@@ -157,11 +154,10 @@ class FileServiceTests {
         val file = entityFactory.getFile()
         val sample = file.sample
         val technicalSample = entityFactory.getTechnicalSample(sample)
-        sample.files = listOf(file)
         sample.technicalSample = entityFactory.getTechnicalSample(sample)
         val submission = sample.submission
-        submission.samples = listOf(sample)
         submission.identifier = "o0000001"
+        submission.submitter = entityFactory.getPerson()
 
         val col1 = entityFactory.getMetaDataColumn()
         val col2 = entityFactory.getMetaDataColumn("col2", "TechnicalSample", "center")
@@ -169,6 +165,8 @@ class FileServiceTests {
         val col4 = entityFactory.getMetaDataColumn("col4", "Submission", "identifier")
 
         `when`(metaDataColumnRepository.findAll()).thenReturn(listOf(col1, col2, col3, col4))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(fileRepository.findAllBySample(sample)).thenReturn(listOf(file))
         `when`(runtimeOptionsRepository.findByName("tsvBasePath")).thenReturn(entityFactory.getRuntimeOption("target/TSV_BASEPATH/SUBFOLDER/"))
         `when`(runtimeOptionsRepository.findByName("tsvExternalSubpath")).thenReturn(entityFactory.getRuntimeOption("TSV_EXTERNAL"))
         `when`(runtimeOptionsRepository.findByName("tsvInternalSubpath")).thenReturn(entityFactory.getRuntimeOption("TSV_INTERNAL"))
@@ -184,12 +182,84 @@ class FileServiceTests {
     }
 
     @Test
-    fun `test create long tsv withot export names`() {
+    fun `test create long tsv with additional metadata`() {
         val file = entityFactory.getFile()
         val sample = file.sample
-        sample.files = listOf(file)
+        sample.unknownValues = mapOf("a1" to "b1", "a2" to "b2")
+        val technicalSample = entityFactory.getTechnicalSample(sample)
+        sample.technicalSample = entityFactory.getTechnicalSample(sample)
         val submission = sample.submission
-        submission.samples = listOf(sample)
+        submission.identifier = "o0000001"
+        submission.submitter = entityFactory.getPerson()
+
+        val col1 = entityFactory.getMetaDataColumn()
+        val col2 = entityFactory.getMetaDataColumn("col2", "TechnicalSample", "center")
+        val col3 = entityFactory.getMetaDataColumn("col3", "File", "fileName")
+        val col4 = entityFactory.getMetaDataColumn("col4", "Submission", "identifier")
+
+        `when`(metaDataColumnRepository.findAll()).thenReturn(listOf(col1, col2, col3, col4))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(fileRepository.findAllBySample(sample)).thenReturn(listOf(file))
+        `when`(runtimeOptionsRepository.findByName("tsvBasePath")).thenReturn(entityFactory.getRuntimeOption("target/TSV_BASEPATH/SUBFOLDER/"))
+        `when`(runtimeOptionsRepository.findByName("tsvExternalSubpath")).thenReturn(entityFactory.getRuntimeOption("TSV_EXTERNAL"))
+        `when`(runtimeOptionsRepository.findByName("tsvInternalSubpath")).thenReturn(entityFactory.getRuntimeOption("TSV_INTERNAL"))
+        `when`(runtimeOptionsRepository.findByName("unknownValuesAllowedOrganizationalUnits")).thenReturn(entityFactory.getRuntimeOption(submission.submitter.organizationalUnit))
+
+        val tsvContent = fileServiceMock.createLongTsvFile(submission)
+
+        assertThat(tsvContent.trim().split("\n").size).isEqualTo(2)
+        val headerRow = tsvContent.split("\n")[0].split("\t")
+        assertThat(headerRow).contains("a1", "a2")
+        val dataRow = tsvContent.split("\n")[1].split("\t")
+        assertThat(dataRow[0]).isEqualTo(sample.name)
+        assertThat(dataRow[1]).isEqualTo(technicalSample.center)
+        assertThat(dataRow[2]).isEqualTo(file.fileName)
+        assertThat(dataRow[3]).isEqualTo(submission.identifier)
+        assertThat(dataRow).contains("b1", "b2")
+    }
+
+    @Test
+    fun `test create long tsv with additional metadata but wrong OE`() {
+        val file = entityFactory.getFile()
+        val sample = file.sample
+        sample.unknownValues = mapOf("a1" to "b1", "a2" to "b2")
+        val technicalSample = entityFactory.getTechnicalSample(sample)
+        sample.technicalSample = entityFactory.getTechnicalSample(sample)
+        val submission = sample.submission
+        submission.identifier = "o0000001"
+        submission.submitter = entityFactory.getPerson()
+
+        val col1 = entityFactory.getMetaDataColumn()
+        val col2 = entityFactory.getMetaDataColumn("col2", "TechnicalSample", "center")
+        val col3 = entityFactory.getMetaDataColumn("col3", "File", "fileName")
+        val col4 = entityFactory.getMetaDataColumn("col4", "Submission", "identifier")
+
+        `when`(metaDataColumnRepository.findAll()).thenReturn(listOf(col1, col2, col3, col4))
+        `when`(runtimeOptionsRepository.findByName("tsvBasePath")).thenReturn(entityFactory.getRuntimeOption("target/TSV_BASEPATH/SUBFOLDER/"))
+        `when`(runtimeOptionsRepository.findByName("tsvExternalSubpath")).thenReturn(entityFactory.getRuntimeOption("TSV_EXTERNAL"))
+        `when`(runtimeOptionsRepository.findByName("tsvInternalSubpath")).thenReturn(entityFactory.getRuntimeOption("TSV_INTERNAL"))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(fileRepository.findAllBySample(sample)).thenReturn(listOf(file))
+        `when`(runtimeOptionsRepository.findByName("unknownValuesAllowedOrganizationalUnits")).thenReturn(entityFactory.getRuntimeOption("OE_FAKE"))
+
+        val tsvContent = fileServiceMock.createLongTsvFile(submission)
+
+        assertThat(tsvContent.trim().split("\n").size).isEqualTo(2)
+        val headerRow = tsvContent.split("\n")[0].split("\t")
+        assertThat(headerRow).doesNotContain("a1", "a2")
+        val dataRow = tsvContent.split("\n")[1].split("\t")
+        assertThat(dataRow[0]).isEqualTo(sample.name)
+        assertThat(dataRow[1]).isEqualTo(technicalSample.center)
+        assertThat(dataRow[2]).isEqualTo(file.fileName)
+        assertThat(dataRow[3]).isEqualTo(submission.identifier)
+        assertThat(dataRow).doesNotContain("b1", "b2")
+    }
+
+    @Test
+    fun `test create long tsv without export names`() {
+        val file = entityFactory.getFile()
+        val sample = file.sample
+        val submission = sample.submission
 
         val col1 = entityFactory.getMetaDataColumn()
         val col2 = entityFactory.getMetaDataColumn()
@@ -198,6 +268,8 @@ class FileServiceTests {
         col3.reflectionPropertyNameExport = "fileName"
 
         `when`(metaDataColumnRepository.findAll()).thenReturn(listOf(col1, col2, col3))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(fileRepository.findAllBySample(sample)).thenReturn(listOf(file))
 
         val tsvContent = fileServiceMock.createLongTsvFile(submission, withExportNames = false)
 
@@ -212,9 +284,8 @@ class FileServiceTests {
     fun `test write long tsv`() {
         val file = entityFactory.getFile()
         val sample = file.sample
-        sample.files = listOf(file)
         val submission = sample.submission
-        submission.samples = listOf(sample)
+        submission.submitter = entityFactory.getPerson()
 
         val col1 = entityFactory.getMetaDataColumn()
         val col2 = entityFactory.getMetaDataColumn()
@@ -225,6 +296,7 @@ class FileServiceTests {
         `when`(metaDataColumnRepository.findAll()).thenReturn(listOf(col1, col2, col3))
         `when`(runtimeOptionsRepository.findByName("tsvBasePath")).thenReturn(entityFactory.getRuntimeOption("target/"))
         `when`(runtimeOptionsRepository.findByName("tsvInternalSubpath")).thenReturn(entityFactory.getRuntimeOption("sub/"))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         val path = fileServiceMock.writeLongTsvFile(submission)
 
@@ -239,7 +311,7 @@ class FileServiceTests {
         val fis = FileInputStream("testData/simple.tsv")
         val multipartFile = MockMultipartFile("file", fis)
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
         `when`(seqTypeMappingService.getSeqType("RNA")).thenReturn(seqType)
         `when`(collectorService.getImportableProjects(submission)).thenReturn(setOf("3"))
 
@@ -270,7 +342,7 @@ class FileServiceTests {
         val fis = FileInputStream("testData/simple.tsv")
         val multipartFile = MockMultipartFile("file", fis)
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample, sample2))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample, sample2))
 
         assertThatExceptionOfType(RowNotFoundException::class.java).isThrownBy {
             fileServiceMock.readTsvFile(submission, multipartFile)
@@ -285,7 +357,7 @@ class FileServiceTests {
         val fis = FileInputStream("testData/simple.tsv")
         val multipartFile = MockMultipartFile("file", fis)
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         assertThatExceptionOfType(SampleNamesDontMatchException::class.java).isThrownBy {
             fileServiceMock.readTsvFile(submission, multipartFile)
@@ -305,9 +377,6 @@ class FileServiceTests {
             val file = entityFactory.getFile()
             file.md5 = "hdks0098df7fe7508cc6h1c384316f4h"
             val sample = file.sample
-            sample.files = listOf(file)
-            val submission = sample.submission
-            submission.samples = listOf(sample)
             val fis = FileInputStream(filePath)
             val multipartFile = MockMultipartFile("file", fis)
 
@@ -338,9 +407,6 @@ class FileServiceTests {
         val file = entityFactory.getFile()
         file.md5 = "hdks0098df7fe7508cc6h1c384316f4h"
         val sample = file.sample
-        sample.files = listOf(file)
-        val submission = sample.submission
-        submission.samples = listOf(sample)
         val fis = FileInputStream("testData/long.tsv")
         val multipartFile = MockMultipartFile("file", fis)
 
@@ -360,19 +426,8 @@ class FileServiceTests {
         assertThat(row["SEQUENCING_TYPE"]).isEqualTo("EXON")
     }
 
-    private fun get2SamplesSubmissionInternal(): Submission {
-        val sample1 = entityFactory.getSample()
-        sample1.project = "project1"
-        val submission = sample1.submission
-        submission.identifier = "i0000001"
-        val sample2 = entityFactory.getSample(submission)
-        sample2.project = "project2"
-        submission.samples = listOf(sample1, sample2)
-
-        return submission
-    }
-
-    private fun get2SamplesSubmissionExternal(): Submission {
+    @Test
+    fun `test names for tsv files missing basepath`() {
         val submission = entityFactory.getUploadSubmission()
         val sample1 = entityFactory.getSample(submission)
         sample1.project = "project1"
@@ -380,16 +435,8 @@ class FileServiceTests {
         val sample2 = entityFactory.getSample(submission)
         sample2.project = "project2"
         sample2.technicalSample = entityFactory.getTechnicalSample(sample2)
-        submission.samples = listOf(sample1, sample2)
 
-        return submission
-    }
-
-    @Test
-    fun `test names for tsv files missing basepath`() {
-        val submission = get2SamplesSubmissionInternal()
-
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(submission.samples.toList())
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample1, sample2))
         `when`(runtimeOptionsRepository.findByName("tsvBasePath")).thenReturn(null)
 
         assertThatExceptionOfType(MissingRuntimeOptionException::class.java)
@@ -399,9 +446,14 @@ class FileServiceTests {
 
     @Test
     fun `test names for tsv files missing internal subpath`() {
-        val submission = get2SamplesSubmissionInternal()
+        val sample1 = entityFactory.getSample()
+        sample1.project = "project1"
+        val submission = sample1.submission
+        submission.identifier = "i0000001"
+        val sample2 = entityFactory.getSample(submission)
+        sample2.project = "project2"
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(submission.samples.toList())
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample1, sample2))
         `when`(runtimeOptionsRepository.findByName("tsvBasePath")).thenReturn(entityFactory.getRuntimeOption("TSV_BASEPATH/"))
         `when`(runtimeOptionsRepository.findByName("tsvInternalSubpath")).thenReturn(null)
 
@@ -412,9 +464,15 @@ class FileServiceTests {
 
     @Test
     fun `test names for tsv files missing external subpath`() {
-        val submission = get2SamplesSubmissionExternal()
+        val submission = entityFactory.getUploadSubmission()
+        val sample1 = entityFactory.getSample(submission)
+        sample1.project = "project1"
+        sample1.technicalSample = entityFactory.getTechnicalSample(sample1)
+        val sample2 = entityFactory.getSample(submission)
+        sample2.project = "project2"
+        sample2.technicalSample = entityFactory.getTechnicalSample(sample2)
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(submission.samples.toList())
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample1, sample2))
         `when`(runtimeOptionsRepository.findByName("tsvBasePath")).thenReturn(entityFactory.getRuntimeOption("TSV_BASEPATH/"))
         `when`(runtimeOptionsRepository.findByName("tsvExternalSubpath")).thenReturn(null)
 
@@ -425,35 +483,42 @@ class FileServiceTests {
 
     @Test
     fun `test names for tsv files internal`() {
-        val submission = get2SamplesSubmissionInternal()
+        val sample1 = entityFactory.getSample()
+        sample1.project = "project1"
+        val submission = sample1.submission
+        submission.identifier = "i0012345"
+        val sample2 = entityFactory.getSample(submission)
+        sample2.project = "project2"
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(submission.samples.toList())
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample1, sample2))
         `when`(runtimeOptionsRepository.findByName("tsvBasePath")).thenReturn(entityFactory.getRuntimeOption("TSV_BASEPATH/"))
         `when`(runtimeOptionsRepository.findByName("tsvInternalSubpath")).thenReturn(entityFactory.getRuntimeOption("internal/core/<ILSE_PREFIX>/<ILSE_ID>/<SUBMISSION_ID>.tsv"))
 
         val filePaths = fileServiceMock.getNamesForTsvFiles(submission)
-        val ilseID = submission.identifier.substring(1)
-        val ilsePrefix = ilseID.substring(0, 3)
-        val ilseIdShort = ilseID.toInt().toString()
 
         assertThat(filePaths.size).isEqualTo(1)
-        assertThat(filePaths.toTypedArray().get(0).startsWith("TSV_BASEPATH/internal/"))
-        assertThat(filePaths.toTypedArray().get(0).equals("TSV_BASEPATH/internal/core/$ilsePrefix/$ilseID>/$ilseIdShort.tsv"))
+        assertThat(filePaths.first()).isEqualTo("TSV_BASEPATH/internal/core/012/012345/12345.tsv")
     }
 
     @Test
     fun `test names for tsv files external`() {
-        val submission = get2SamplesSubmissionExternal()
+        val submission = entityFactory.getUploadSubmission()
+        val sample1 = entityFactory.getSample(submission)
+        sample1.project = "project1"
+        sample1.technicalSample = entityFactory.getTechnicalSample(sample1)
+        val sample2 = entityFactory.getSample(submission)
+        sample2.project = "project2"
+        sample2.technicalSample = entityFactory.getTechnicalSample(sample2)
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(submission.samples.toList())
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample1, sample2))
         `when`(runtimeOptionsRepository.findByName("tsvBasePath")).thenReturn(entityFactory.getRuntimeOption("TSV_BASEPATH/"))
         `when`(runtimeOptionsRepository.findByName("tsvExternalSubpath")).thenReturn(entityFactory.getRuntimeOption("external/<PROJECT>/<DATE>-<SUBMISSION_ID>.tsv"))
 
         val filePaths = fileServiceMock.getNamesForTsvFiles(submission)
 
         assertThat(filePaths.size).isEqualTo(2)
-        assertThat(filePaths.toTypedArray()[0]).startsWith("TSV_BASEPATH/external/")
-        assertThat(filePaths.toTypedArray()[0]).isEqualTo("TSV_BASEPATH/external/${submission.samples.first().project}/${SimpleDateFormat("yyyy-MM-dd").format(Date())}-${submission.identifier}.tsv")
+        assertThat(filePaths.first()).startsWith("TSV_BASEPATH/external/")
+        assertThat(filePaths.first()).isEqualTo("TSV_BASEPATH/external/${sample1.project}/${SimpleDateFormat("yyyy-MM-dd").format(Date())}-${submission.identifier}.tsv")
     }
 
     @Test
@@ -496,7 +561,7 @@ class FileServiceTests {
         val fis = FileInputStream("testData/simple.tsv")
         val multipartFile = MockMultipartFile("file", fis)
 
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
         `when`(seqTypeMappingService.getSeqType("RNA")).thenReturn(seqType)
 
         fileServiceMock.readTsvFile(submission, multipartFile)

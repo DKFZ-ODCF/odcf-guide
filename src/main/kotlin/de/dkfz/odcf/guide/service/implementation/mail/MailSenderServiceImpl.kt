@@ -1,7 +1,9 @@
 package de.dkfz.odcf.guide.service.implementation.mail
 
+import de.dkfz.odcf.guide.SampleRepository
 import de.dkfz.odcf.guide.entity.submissionData.Submission
 import de.dkfz.odcf.guide.exceptions.GuideRuntimeException
+import de.dkfz.odcf.guide.helperObjects.mapDistinctAndNotNullOrBlank
 import de.dkfz.odcf.guide.service.interfaces.UrlGeneratorService
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.mail.MailContentGeneratorService
@@ -31,6 +33,7 @@ class MailSenderServiceImpl(
     private val collectorService: CollectorService,
     private val urlGeneratorService: UrlGeneratorService,
     private val externalMetadataSourceService: ExternalMetadataSourceService,
+    private val sampleRepository: SampleRepository,
     private val env: Environment
 ) : MailSenderService {
 
@@ -179,7 +182,7 @@ class MailSenderServiceImpl(
     }
 
     override fun sendMailToAllSubmissionMembers(subject: String, body: String, submission: Submission) {
-        val mailAddresses = submission.projects.flatMap { projectName ->
+        val mailAddresses = sampleRepository.findAllBySubmission(submission).mapDistinctAndNotNullOrBlank { it.project }.flatMap { projectName ->
             externalMetadataSourceService.getSetOfValues("usersToBeNotifiedByProject", mapOf("project" to projectName))
         }.toSet().minus(submission.submitter.mail).plus(env.getRequiredProperty("application.mails.ticketSystemAddress"))
 
@@ -195,7 +198,7 @@ class MailSenderServiceImpl(
     }
 
     override fun sendReceivedSubmissionMail(submission: Submission, sendToUser: Boolean) {
-        val projects = submission.samples.map { it.project }.distinct().sorted().joinToString()
+        val projects = sampleRepository.findAllBySubmission(submission).mapDistinctAndNotNullOrBlank { it.project }.sorted().joinToString()
         val subject = mailContentGeneratorService.getTicketSubjectPrefix(submission) + " Transferred metadata table to ODCF validation service - $projects"
         if (sendToUser) {
             sendMailToSubmitter(subject, mailContentGeneratorService.mailBodyReceivedSubmission(submission), submission.submitter.mail)

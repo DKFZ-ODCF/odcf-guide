@@ -2,10 +2,12 @@ package de.dkfz.odcf.guide.controller
 
 import de.dkfz.odcf.guide.ClusterJobRepository
 import de.dkfz.odcf.guide.PersonRepository
+import de.dkfz.odcf.guide.SampleRepository
 import de.dkfz.odcf.guide.SubmissionRepository
 import de.dkfz.odcf.guide.entity.submissionData.ApiSubmission
 import de.dkfz.odcf.guide.entity.submissionData.Submission
 import de.dkfz.odcf.guide.entity.submissionData.UploadSubmission
+import de.dkfz.odcf.guide.helperObjects.mapDistinctAndNotNullOrBlank
 import de.dkfz.odcf.guide.service.interfaces.security.LdapService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
 import org.springframework.core.env.Environment
@@ -28,6 +30,7 @@ class OverviewController(
     private val ldapService: LdapService,
     private val personRepository: PersonRepository,
     private val clusterJobRepository: ClusterJobRepository,
+    private val sampleRepository: SampleRepository,
     private val env: Environment
 ) {
 
@@ -156,12 +159,13 @@ class OverviewController(
         }.filter { it is clazz }
         val submissionMap = submissions.sortedBy { it.identifier }.map {
             val map = emptyMap<String, String>().toMutableMap()
-            map["submission"] = "${it.identifier} [${it.samples.size} samples] (${it.submitter.fullName})"
+            val samples = sampleRepository.findAllBySubmission(it)
+            map["submission"] = "${it.identifier} [${samples.size} samples] (${it.submitter.fullName})"
             map["identifier"] = it.identifier
             map["customName"] = if (it is UploadSubmission) it.customName else ""
             map["stateNotActive"] = (it.isDiscontinued || it.isFinished).toString()
             map["uuid"] = it.uuid.toString()
-            map["projectNames"] = it.projects.sorted().joinToString()
+            map["projectNames"] = samples.mapDistinctAndNotNullOrBlank { it.project }.sorted().joinToString()
             map["importDate"] = it.formattedImportDate
             map["received"] = it.getFormattedDate(it.externalDataAvailabilityDate)
             map["state"] = it.status.name

@@ -43,7 +43,7 @@ open class RepositoriesTests @Autowired constructor(
         entityManager.persist(sample)
         entityManager.flush()
 
-        val samples = sampleRepository.findBySubmission(submission)
+        val samples = sampleRepository.findAllBySubmission(submission)
         assertThat(samples.size).isEqualTo(1)
         assertThat(samples[0].submission).isEqualTo(submission)
         assertThat(samples[0].pid).isEqualTo(sample.pid)
@@ -62,7 +62,7 @@ open class RepositoriesTests @Autowired constructor(
         entityManager.persist(sample2)
         entityManager.flush()
 
-        val samples = sampleRepository.findBySubmission(submission)
+        val samples = sampleRepository.findAllBySubmission(submission)
         assertThat(samples.size).isEqualTo(2)
         assertThat(samples[0].pid).isEqualTo(sample2.pid)
         assertThat(samples[1].pid).isEqualTo(sample1.pid)

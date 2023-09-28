@@ -10,6 +10,7 @@ import de.dkfz.odcf.guide.entity.submissionData.Submission
 import de.dkfz.odcf.guide.exceptions.*
 import de.dkfz.odcf.guide.helperObjects.importObjects.IlseSubmissionImportObject
 import de.dkfz.odcf.guide.helperObjects.importObjects.SubmissionImportObject
+import de.dkfz.odcf.guide.helperObjects.mapDistinctAndNotNullOrBlank
 import de.dkfz.odcf.guide.service.deprecated.JsonImportService
 import de.dkfz.odcf.guide.service.interfaces.*
 import de.dkfz.odcf.guide.service.interfaces.importer.CsvImportService
@@ -83,7 +84,7 @@ class ImportController(
             return ResponseEntity(e.message, HttpHeaders(), HttpStatus.FORBIDDEN)
         } catch (e: DataIntegrityViolationException) {
             val submission1 = submissionRepository.findByIdentifier(importService.generateIlseIdentifier(ilse))!!
-            return ResponseEntity(sampleRepository.findBySubmission(submission1)[0].project + "\n", HttpHeaders(), HttpStatus.OK)
+            return ResponseEntity(sampleRepository.findAllBySubmission(submission1)[0].project + "\n", HttpHeaders(), HttpStatus.OK)
         }
         return sendMails(submission)
     }
@@ -255,8 +256,8 @@ class ImportController(
             redirectAttributes.addFlashAttribute("error", true)
             redirectAttributes.addFlashAttribute("errorMessage", md5fids.localizedMessage)
             redirectAttributes.addFlashAttribute("duplicatedMd5", true)
-            redirectAttributes.addFlashAttribute("duplicatedMd5Message", md5fids.localizedMessage)
             redirectAttributes.addFlashAttribute("submissions", md5fids.submissions)
+            redirectAttributes.addFlashAttribute("submissionsSampleCount", md5fids.submissions.associateWith { sampleRepository.countAllBySubmission(it) })
             redirectAttributes.addFlashAttribute("countMd5InSubmissions", md5fids.countMd5InSubmissions)
             redirectAttributes.addFlashAttribute("admin", user.isAdmin)
             "redirect:/metadata-validator/overview/uploaded/$errorPageSuffix"
@@ -326,7 +327,7 @@ class ImportController(
             return ResponseEntity(e.message, HttpHeaders(), HttpStatus.CONFLICT)
         } catch (e: DataIntegrityViolationException) {
             val submission1 = submissionRepository.findByIdentifier(identifier)!!
-            return ResponseEntity(sampleRepository.findBySubmission(submission1)[0].project + "\n", HttpHeaders(), HttpStatus.OK)
+            return ResponseEntity(sampleRepository.findAllBySubmission(submission1)[0].project + "\n", HttpHeaders(), HttpStatus.OK)
         }
         return sendMails(submission)
     }
@@ -342,7 +343,7 @@ class ImportController(
             logger.error(e.stackTraceToString())
             return ResponseEntity("Imported, but can not send mail(s)", HttpHeaders(), HttpStatus.PARTIAL_CONTENT)
         }
-        return ResponseEntity(sampleRepository.findBySubmission(submission).map { it.project }.toSet().joinToString() + "\n", HttpHeaders(), HttpStatus.OK)
+        return ResponseEntity(sampleRepository.findAllBySubmission(submission).mapDistinctAndNotNullOrBlank { it.project }.joinToString() + "\n", HttpHeaders(), HttpStatus.OK)
     }
 
     private fun showError(redirectAttributes: RedirectAttributes, ilse: Int, ticketNumber: String, errorKey: String, error: String): RedirectView {

@@ -551,7 +551,7 @@ class RequestedValueServiceTests {
             requestedValue2.setStateByString("accepted")
 
             `when`(fieldRequestedValuesRepository.findAllByUsedSubmissionsContains(submission)).thenReturn(setOf(requestedValue, requestedValue2))
-            `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+            `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
             val usesReqValues = requestedValueServiceMock.getSubmissionUsesRequestedValues(submission)
 
@@ -575,7 +575,7 @@ class RequestedValueServiceTests {
             requestedValue.className = "TechnicalSample"
 
             `when`(fieldRequestedValuesRepository.findAllByUsedSubmissionsContains(submission)).thenReturn(setOf(requestedValue))
-            `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+            `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
             val usesReqValues = requestedValueServiceMock.getSubmissionUsesRequestedValues(submission)
 
@@ -593,7 +593,7 @@ class RequestedValueServiceTests {
         requestedValue.className = "TechnicalSample"
 
         `when`(fieldRequestedValuesRepository.findAllByUsedSubmissionsContains(submission)).thenReturn(setOf(requestedValue))
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         val usesReqValues = requestedValueServiceMock.getSubmissionUsesRequestedValues(submission)
 
@@ -620,7 +620,7 @@ class RequestedValueServiceTests {
 
         `when`(seqTypeRequestedValuesRepository.findAllByUsedSubmissionsContains(submission)).thenReturn(setOf(requestedSeqType, requestedSeqType2))
         `when`(fieldRequestedValuesRepository.findAllByUsedSubmissionsContains(submission)).thenReturn(setOf(requestedValueCenter, requestedValueAbt, requestedValueAbt2))
-        `when`(sampleRepository.findBySubmission(submission)).thenReturn(listOf(sample, sample2))
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample, sample2))
 
         val usesReqValues = requestedValueServiceMock.getSubmissionUsesRequestedValues(submission)
 

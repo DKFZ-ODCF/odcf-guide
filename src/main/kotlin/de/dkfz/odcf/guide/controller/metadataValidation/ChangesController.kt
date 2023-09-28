@@ -2,6 +2,7 @@ package de.dkfz.odcf.guide.controller.metadataValidation
 
 import de.dkfz.odcf.guide.ApiSubmissionRepository
 import de.dkfz.odcf.guide.ClusterJobRepository
+import de.dkfz.odcf.guide.SampleRepository
 import de.dkfz.odcf.guide.SubmissionRepository
 import de.dkfz.odcf.guide.controller.metadataValidation.MetaValController.Companion.EXTENDED_READ_ONLY
 import de.dkfz.odcf.guide.controller.metadataValidation.MetaValController.Companion.EXTENDED_TABLE_PAGE_ADMIN
@@ -14,9 +15,10 @@ import de.dkfz.odcf.guide.exceptions.GuideRuntimeException
 import de.dkfz.odcf.guide.exceptions.OutputFileNotWritableException
 import de.dkfz.odcf.guide.helperObjects.ControllerHelper
 import de.dkfz.odcf.guide.service.deprecated.JsonImportService
-import de.dkfz.odcf.guide.service.interfaces.*
 import de.dkfz.odcf.guide.service.interfaces.FileService
 import de.dkfz.odcf.guide.service.interfaces.MergingService
+import de.dkfz.odcf.guide.service.interfaces.SequencingTechnologyService
+import de.dkfz.odcf.guide.service.interfaces.TerminationService
 import de.dkfz.odcf.guide.service.interfaces.external.LSFCommandService
 import de.dkfz.odcf.guide.service.interfaces.importer.IlseImportService
 import de.dkfz.odcf.guide.service.interfaces.mail.MailSenderService
@@ -54,6 +56,7 @@ class ChangesController(
     private val apiSubmissionRepository: ApiSubmissionRepository,
     private val sequencingTechnologyService: SequencingTechnologyService,
     private val clusterJobRepository: ClusterJobRepository,
+    private val sampleRepository: SampleRepository,
     private val authorizationService: AuthorizationService
 ) {
 
@@ -301,7 +304,7 @@ class ChangesController(
     @PostMapping("/retrigger-sequencing-technology")
     fun retriggerSequencingTechnology(@RequestParam identifier: String): String {
         val submission = apiSubmissionRepository.findByIdentifier(identifier) ?: throw GuideRuntimeException("Submission $identifier not found")
-        val sequencingTechnologyName = submission.samples.first().requestedSequencingInfo
+        val sequencingTechnologyName = sampleRepository.findFirstBySubmission(submission).requestedSequencingInfo
         val sequencingTechnology = sequencingTechnologyService.getSequencingTechnology(sequencingTechnologyName)
         submission.sequencingTechnology = sequencingTechnology ?: submission.sequencingTechnology
         submission.validationLevel = sequencingTechnology?.validationLevel ?: submission.validationLevel
