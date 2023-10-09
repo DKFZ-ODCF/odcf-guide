@@ -1,0 +1,5 @@
+---
+title: Fixed false throwing of error "Submission isn't empty" when uploading a submission
+issue: GUIDE-736
+author: Oydin Iqbal
+type: bug

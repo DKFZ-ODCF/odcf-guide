@@ -196,7 +196,7 @@ open class CsvImportServiceImpl(
             }
             throw GuideRuntimeException("Submission is empty.")
         }
-        if (!sampleRepository.existsAllBySubmission(submission) && !override) {
+        if (sampleRepository.existsBySubmission(submission) && !override) {
             throw GuideRuntimeException("Submission isn't empty and override is not activated!")
         } else {
             csvRows.forEach { saveFileAndSample(submission, it.toMutableMap(), override, initialUpload) }

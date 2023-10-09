@@ -1,0 +1,5 @@
+---
+title: added timestamp to the name of external metadata tables when written to the file system
+issue: GUIDE-732
+author: Oydin Iqbal
+type: change

@@ -160,7 +160,7 @@ class FileServiceImpl(
             setOf(basePath + subPath)
         } else {
             val subPath = runtimeOptionsRepository.findByName("tsvExternalSubpath")?.value.orEmpty()
-                .replace("<DATE>", SimpleDateFormat("yyyy-MM-dd").format(Date()), false)
+                .replace("<DATE>", SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(Date()), false)
                 .replace("<SUBMISSION_ID>", submission.identifier, false)
             if (subPath.isEmpty()) {
                 throw MissingRuntimeOptionException("RuntimeOption 'tsvExternalSubpath' is not set!")

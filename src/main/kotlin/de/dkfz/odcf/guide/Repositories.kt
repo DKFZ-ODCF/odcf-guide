@@ -36,7 +36,7 @@ interface PersonRepository : JpaRepository<Person, Int> {
 interface SampleRepository : JpaRepository<Sample, Int> {
     fun findAllBySubmission(submission: Submission): List<Sample>
     fun findFirstBySubmission(submission: Submission): Sample
-    fun existsAllBySubmission(submission: Submission): Boolean
+    fun existsBySubmission(submission: Submission): Boolean
     fun findAllBySeqTypeAndSubmission_StatusIn(seqType: SeqType, status: List<Submission.Status>): List<Sample>
     fun findAllBySubmissionIn(submission: Set<Submission>): Set<Sample>
     fun findBySubmissionAndProceedNot(submission: Submission, proceed: Sample.Proceed): List<Sample>

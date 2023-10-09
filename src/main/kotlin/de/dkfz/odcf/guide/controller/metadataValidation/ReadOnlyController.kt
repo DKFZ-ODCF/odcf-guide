@@ -61,7 +61,7 @@ class ReadOnlyController(
 
     private fun getReadOnlyPage(model: Model, submission: Submission, redirectAttributes: RedirectAttributes, isExtended: Boolean = false): String {
         val formattedIdentifier = collectorService.getFormattedIdentifier(submission.identifier)
-        if (!sampleRepository.existsAllBySubmission(submission)) {
+        if (!sampleRepository.existsBySubmission(submission)) {
             redirectAttributes.addFlashAttribute("errorMessage", "There were no samples found in submission $formattedIdentifier")
             redirectAttributes.addFlashAttribute("error", true)
             return "redirect:/metadata-validator/overview/" + ("user".takeIf { !ldapService.isCurrentUserAdmin() } ?: "admin")

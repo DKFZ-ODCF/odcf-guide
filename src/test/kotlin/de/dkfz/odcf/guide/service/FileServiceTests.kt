@@ -518,7 +518,7 @@ class FileServiceTests {
 
         assertThat(filePaths.size).isEqualTo(2)
         assertThat(filePaths.first()).startsWith("TSV_BASEPATH/external/")
-        assertThat(filePaths.first()).isEqualTo("TSV_BASEPATH/external/${sample1.project}/${SimpleDateFormat("yyyy-MM-dd").format(Date())}-${submission.identifier}.tsv")
+        assertThat(filePaths.first()).isEqualTo("TSV_BASEPATH/external/${sample1.project}/${SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(Date())}-${submission.identifier}.tsv")
     }
 
     @Test

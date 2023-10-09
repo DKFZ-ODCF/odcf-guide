@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## 1.7.33
+
+
+### Changes and Improvements
+
+- GUIDE-732: added timestamp to the name of external metadata tables when written to the file system (Oydin Iqbal)
+
+### Bugfixes
+
+- GUIDE-736: Fixed false throwing of error "Submission isn't empty" when uploading a submission (Oydin Iqbal)
+
 ## 1.7.32
 
 
