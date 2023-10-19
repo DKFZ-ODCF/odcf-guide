@@ -45,7 +45,7 @@ open class LdapServiceImpl(
         }
 
         val loggedInUser = SecurityContextHolder.getContext().authentication
-        val username = loggedInUser.name
+        val username = loggedInUser?.name ?: throw UserNotFoundException("no authentication information available")
 
         if (username == "anonymousUser") throw UserNotFoundException("user is not yet logged in")
         return getPersonByUsername(username)

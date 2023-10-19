@@ -39,7 +39,7 @@ interface SampleRepository : JpaRepository<Sample, Int> {
     fun existsBySubmission(submission: Submission): Boolean
     fun findAllBySeqTypeAndSubmission_StatusIn(seqType: SeqType, status: List<Submission.Status>): List<Sample>
     fun findAllBySubmissionIn(submission: Set<Submission>): Set<Sample>
-    fun findBySubmissionAndProceedNot(submission: Submission, proceed: Sample.Proceed): List<Sample>
+    fun findAllBySubmissionAndProceedNot(submission: Submission, proceed: Sample.Proceed): List<Sample>
     fun findBySubmissionOrderByIdAsc(submission: Submission): List<Sample>
     fun findAllBySubmissionOrderById(submission: Submission): List<Sample>
     fun findBySubmissionAndName(submission: Submission, name: String): Sample?

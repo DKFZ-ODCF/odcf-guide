@@ -24,6 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
 import org.springframework.ldap.core.AttributesMapper
 import org.springframework.ldap.core.LdapTemplate
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.test.context.support.WithMockUser
 
 @SpringBootTest
@@ -143,12 +144,54 @@ class LdapServiceTests @Autowired constructor(private val ldapService: LdapServi
     }
 
     @Test
+    fun `test if admin status is recognized`() {
+        val person = entityFactory.getPerson()
+        person.isAdmin = true
+
+        `when`(env.getRequiredProperty("backdoor.user")).thenReturn("false")
+        `when`(personRepository.findByUsername(USERNAME)).thenReturn(person)
+
+        val isAdmin = ldapServiceMock.isCurrentUserAdmin()
+
+        assertThat(isAdmin).isEqualTo(true)
+    }
+
+    @Test
+    fun `test no authentication information available throws UserNotFoundException`() {
+        `when`(env.getRequiredProperty("backdoor.user")).thenReturn("false")
+        val contextObject = SecurityContextHolder.getContext()
+        mockStatic(SecurityContextHolder::class.java).use { utilities ->
+            contextObject.authentication = null
+            utilities.`when`<Any>(SecurityContextHolder::getContext).thenReturn(contextObject)
+        }
+
+        Assertions.assertThatExceptionOfType(UserNotFoundException::class.java).isThrownBy {
+            ldapServiceMock.getPerson()
+        }.withMessage("no authentication information available")
+    }
+
+    @Test
+    fun `test admin is false when UserNotFoundException is thrown`() {
+        `when`(env.getRequiredProperty("backdoor.user")).thenReturn("false")
+        val contextObject = SecurityContextHolder.getContext()
+        mockStatic(SecurityContextHolder::class.java).use { utilities ->
+            contextObject.authentication = null
+            utilities.`when`<Any>(SecurityContextHolder::getContext).thenReturn(contextObject)
+        }
+
+        val isAdmin = ldapServiceMock.isCurrentUserAdmin()
+
+        assertThat(isAdmin).isEqualTo(false)
+    }
+
+    @Test
     fun `When getPersonByUsername then return user`() {
         val person = entityFactory.getPerson()
 
         `when`(personRepository.findByUsername(person.username)).thenReturn(person)
 
         val user = ldapServiceMock.getPersonByUsername(person.username)
+
         assertThat(user).isEqualTo(person)
     }
 
@@ -166,6 +209,7 @@ class LdapServiceTests @Autowired constructor(private val ldapService: LdapServi
         `when`(personRepository.findByMail(person.mail)).thenReturn(person)
 
         val user = ldapServiceMock.getPersonByMail(person.mail)
+
         assertThat(user).isEqualTo(person)
     }
 

@@ -1,0 +1,5 @@
+---
+title: fixed bug related to 'logged-in status' appearing after server restart
+issue: GUIDE-737
+author: Gregor Warsow
+type: bug

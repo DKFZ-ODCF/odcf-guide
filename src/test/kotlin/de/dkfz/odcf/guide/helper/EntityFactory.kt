@@ -183,7 +183,7 @@ class EntityFactory {
             "run id" to "some_run_id",
             "species" to "some_species",
             "sample type" to "sample_type",
-            "sex" to "o"
+            "sex" to "other"
         )
     }
 
@@ -372,7 +372,7 @@ class EntityFactory {
         sampleGuiDto.pid = "pid"
         sampleGuiDto.sampleType = "sampleType"
         sampleGuiDto.xenograft = false
-        sampleGuiDto.sampleTypeCategory = "TUMOR"
+        sampleGuiDto.sampleTypeCategory = "CONTROL"
         sampleGuiDto.sex = "MALE"
         sampleGuiDto.phenotype = "phenotype"
         sampleGuiDto.libraryLayout = "single"

@@ -328,7 +328,7 @@ class SubmissionTablesGetController(
         model["otpProjectConfig"] = runtimeOptionsRepository.findByName("otpProjectConfig")?.value.orEmpty()
         model["hasSubmissionTypeSamples"] = submission.hasSubmissionTypeSamples
         model["hasStoppedSamples"] = samples.any { it.proceed == Sample.Proceed.NO }
-        model["sampleTypeCategories"] = Sample.SampleTypeCategories.values().map { it.name }
+        model["sampleTypeCategories"] = Sample.SampleTypeCategory.values()
         runBlocking(Dispatchers.Default) {
             model["hasParser"] = samples.setParallel { withContext(Dispatchers.IO) { parserRepository.findByProject(it.project) } }.any { it != null }
         }

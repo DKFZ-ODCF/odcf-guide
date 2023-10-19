@@ -71,7 +71,7 @@ class ReadOnlyController(
         val samplesWithMergeCandidatesWithPaths = collectorService.getPathsWithSampleList(samplesWithMergeCandidates, submission)
         val samples = sampleRepository.findAllBySubmission(submission)
 
-        model["admin"] = ldapService.getPerson().isAdmin
+        model["admin"] = ldapService.isCurrentUserAdmin()
         model["hideFinalSubmitButton"] = !submission.isValidated
         model["submission"] = submission
         model["isFinished"] = submission.isFinished

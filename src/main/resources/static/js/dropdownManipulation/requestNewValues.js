@@ -19,6 +19,7 @@ function initSelectizeWithRequestOption() {
                 dropdownParent: 'body',
                 openOnFocus: false,
                 createOnBlur: true,
+                respect_word_boundaries: false,
                 onInitialize: function () {
                     this.clear(true);
                     let selectedValue = this.$input.data("selected-value");

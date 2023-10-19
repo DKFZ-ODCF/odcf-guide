@@ -132,7 +132,7 @@ class FileServiceTests {
         assertThat(secondRow[i++]).isEqualTo(sample.pid)
         assertThat(secondRow[i++]).isEqualTo(sample.sampleType)
         assertThat(secondRow[i++]).isEqualTo(sample.xenograft.toString())
-        assertThat(secondRow[i++]).isEqualTo(sample.sampleTypeCategory)
+        assertThat(secondRow[i++]).isEqualTo(sample.sampleTypeCategory?.toString().orEmpty())
         assertThat(secondRow[i++]).isEqualTo(sample.speciesWithStrain)
         assertThat(secondRow[i++]).isEqualTo(sample.sex.toString())
         assertThat(secondRow[i++]).isEqualTo(sample.phenotype)

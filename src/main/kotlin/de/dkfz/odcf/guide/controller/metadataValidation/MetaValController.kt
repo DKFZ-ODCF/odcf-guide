@@ -24,7 +24,7 @@ class MetaValController(
 
     @GetMapping("")
     fun redirectToOverview(): String {
-        if (ldapService.getPerson().isAdmin) {
+        if (ldapService.isCurrentUserAdmin()) {
             return "redirect:/metadata-validator/overview/admin"
         }
         return "redirect:/metadata-validator/overview/user"

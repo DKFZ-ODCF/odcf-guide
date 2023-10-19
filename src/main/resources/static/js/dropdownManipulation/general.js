@@ -73,6 +73,7 @@ function initSelectizeGeneral() {
                 persist: false,
                 closeAfterSelect: true,
                 dropdownParent: 'body',
+                respect_word_boundaries: false,
             });
         }
     }

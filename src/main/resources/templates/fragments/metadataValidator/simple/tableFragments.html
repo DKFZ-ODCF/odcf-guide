@@ -99,15 +99,20 @@
 
     <!-- SAMPLE TYPE CATEGORY -->
     <td class="align-middle h-sample sampleTypeCategory" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
-        <select class="browser-default selectize-general sampleTypeCategory-dropdown validation-custom validation-color-not-required"
+        <select class="browser-default selectize-general sampleTypeCategory-dropdown validation-custom"
+                th:classappend="${validation['sampleTypeCategory']?.required} ? 'validation-color' : 'validation-color-not-required'"
                 th:name="|sampleList[${sampleCounter.index}].sampleTypeCategory|"
+                th:required="${validation['sampleTypeCategory']?.required}"
                 th:disabled="${!(sample.seqType?.needSampleTypeCategory ?: false)}">
-            <option disabled="disabled" selected="selected" value="" th:text="#{select}"></option>
+            <option value="" th:text="#{select}"></option>
             <option th:each="category : ${sampleTypeCategories}"
                     th:value="${category}" th:text="${category}"
                     th:selected="${category == sample.sampleTypeCategory}">
             </option>
         </select>
+        <div class="invalid-feedback">
+            <span th:utext="${validation['sampleTypeCategory']?.description}"></span>
+        </div>
     </td>
 
     <!-- SPECIES -->

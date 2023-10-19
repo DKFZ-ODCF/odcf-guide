@@ -6,11 +6,11 @@ function initSelectizeProject() {
     for (let dropdown of dropdowns) {
         if (dropdown.selectize === undefined && !dropdown.closest('table').hidden) {
             $(dropdown).selectize({
-                //plugins: ["restore_on_backspace"],
                 create: false,
                 persist: false,
                 closeAfterSelect: true,
                 dropdownParent: 'body',
+                respect_word_boundaries: false,
                 render: {
                     item: function (item, escape) {
                         return "<div>" +

@@ -65,7 +65,7 @@ class ParserController(
 
     @GetMapping("/add-new-parser")
     fun addNewParser(model: Model): String {
-        return if (ldapService.getPerson().isAdmin) {
+        return if (ldapService.isCurrentUserAdmin()) {
             val fields = listOf(ParserField("patient_id", "pid"), ParserField("sample_type", "sampleType"))
             model["projects"] = collectorService.getProjectsForAdmins()
             model["fields"] = fields
@@ -80,7 +80,7 @@ class ParserController(
 
     @GetMapping("/edit-parser")
     fun editParser(model: Model, @RequestParam project: String): String {
-        return if (ldapService.getPerson().isAdmin) {
+        return if (ldapService.isCurrentUserAdmin()) {
             val parser = parserRepository.findByProject(project)
             if (parser != null) {
                 model["parser"] = parser

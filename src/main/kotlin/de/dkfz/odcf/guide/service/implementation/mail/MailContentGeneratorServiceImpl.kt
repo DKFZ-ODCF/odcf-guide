@@ -4,6 +4,7 @@ import de.dkfz.odcf.guide.RuntimeOptionsRepository
 import de.dkfz.odcf.guide.SampleRepository
 import de.dkfz.odcf.guide.entity.cluster.ClusterJob
 import de.dkfz.odcf.guide.entity.submissionData.ApiSubmission
+import de.dkfz.odcf.guide.entity.submissionData.Sample
 import de.dkfz.odcf.guide.entity.submissionData.Submission
 import de.dkfz.odcf.guide.helperObjects.mapDistinctAndNotNullOrBlank
 import de.dkfz.odcf.guide.service.interfaces.UrlGeneratorService
@@ -132,7 +133,7 @@ class MailContentGeneratorServiceImpl(
 
     override fun getProcessingStatusUpdateBody(jobs: List<ClusterJob>): String {
         val submission = jobs.first().submission
-        val samples = sampleRepository.findAllBySubmission(submission)
+        val samples = sampleRepository.findAllBySubmissionAndProceedNot(submission, Sample.Proceed.NO)
         return mailBundle.getString("lsfService.processingStatusUpdateBody")
             .replace("{0}", jobs.joinToString("\n") { "${it.printableName}: ${it.state.name}" })
             .replace("{1}", "${samples.size}")
@@ -143,7 +144,7 @@ class MailContentGeneratorServiceImpl(
 
     override fun getFinalProcessingStatusUpdateBody(job: ClusterJob): String {
         val submission = Hibernate.unproxy(job.submission) as Submission
-        val samplesWithPaths = collectorService.getPathsWithSampleList(sampleRepository.findAllBySubmission(submission).groupBy { it.abstractSampleId }, submission)
+        val samplesWithPaths = collectorService.getPathsWithSampleList(sampleRepository.findAllBySubmissionAndProceedNot(submission, Sample.Proceed.NO).groupBy { it.abstractSampleId }, submission)
         return mailBundle.getString("lsfService.finalProcessingStatusUpdateBody")
             .replace("{0}", submission.identifier)
             .replace("{1}", samplesWithPaths.map { "${it.key} -> samples [${it.value.joinToString { it.name }}]" }.joinToString("\n"))

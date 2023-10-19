@@ -1,6 +1,18 @@
 # CHANGELOG
 
 
+## 1.7.34
+
+
+### Changes and Improvements
+
+- GUIDE-723: improved sample type category code and remove default value (Timo Wiese)
+- GUIDE-726: fixed mails for job states to ignore stopped samples (Timo Wiese)
+
+### Bugfixes
+
+- GUIDE-737: fixed bug related to 'logged-in status' appearing after server restart (Gregor Warsow)
+
 ## 1.7.33
 
 

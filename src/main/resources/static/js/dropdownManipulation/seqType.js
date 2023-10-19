@@ -23,6 +23,7 @@ function initSelectizeSeqType() {
                 dropdownParent: 'body',
                 openOnFocus: false,
                 createOnBlur: true,
+                respect_word_boundaries: false,
                 render: {
                     item: function (item, escape) {
                         return "<div data-single-cell='" + escape(item.data.singleCell) +

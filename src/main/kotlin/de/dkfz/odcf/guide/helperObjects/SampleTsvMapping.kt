@@ -11,7 +11,7 @@ class SampleTsvMapping() {
         pid = sample.pid
         sample_type = sample.sampleType
         xenograft = sample.xenograft.toString()
-        sample_type_category = sample.sampleTypeCategory
+        sample_type_category = sample.sampleTypeCategory?.toString().orEmpty()
         species_with_strain = sample.speciesWithStrain
         sex = sample.sex.toString()
         phenotype = sample.phenotype

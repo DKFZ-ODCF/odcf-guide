@@ -37,7 +37,7 @@ class OverviewController(
     @GetMapping("")
     fun showSimpleMetadataValidator(redirectAttributes: RedirectAttributes, model: Model): String {
         model.asMap().forEach { redirectAttributes.addFlashAttribute(it.key, it.value) }
-        if (ldapService.getPerson().isAdmin) {
+        if (ldapService.isCurrentUserAdmin()) {
             return "redirect:/metadata-validator/overview/admin"
         }
         return "redirect:/metadata-validator/overview/user"
@@ -45,7 +45,7 @@ class OverviewController(
 
     @GetMapping("/admin")
     fun showAdminOverview(redirectAttributes: RedirectAttributes, model: Model): String {
-        if (!ldapService.getPerson().isAdmin) {
+        if (!ldapService.isCurrentUserAdmin()) {
             return "redirect:/error/403"
         }
         model["types"] = listOf("active", "closed", "terminated", "auto-closed", "finished-externally", "exported")
@@ -68,7 +68,7 @@ class OverviewController(
     @GetMapping("/uploaded")
     fun showUploadedOverview(redirectAttributes: RedirectAttributes, model: Model): String {
         model.asMap().forEach { redirectAttributes.addFlashAttribute(it.key, it.value) }
-        if (ldapService.getPerson().isAdmin) {
+        if (ldapService.isCurrentUserAdmin()) {
             return "redirect:/metadata-validator/overview/uploaded/admin"
         }
         return "redirect:/metadata-validator/overview/uploaded/user"

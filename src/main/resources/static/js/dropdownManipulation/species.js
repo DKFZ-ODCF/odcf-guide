@@ -47,6 +47,7 @@ function initSelectizeSpecies() {
                 maxItems: 2,
                 openOnFocus: false,
                 createOnBlur: true,
+                respect_word_boundaries: false,
                 onInitialize: function () {
                     this.clear(true);
                     let items = this.$input.data("items")?.split('+');

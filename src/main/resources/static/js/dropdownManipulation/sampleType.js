@@ -87,17 +87,12 @@ function checkSampleTypeCategory(changedRelatedElement) {
         xhttp.send();
         xhttp.onload = function() {
             let sampleTypeCategory = this.response;
-            if (sampleTypeCategory  === "") {
-                sampleTypeCategory = "UNDEFINED";
-            }
-            sampleTypeCategoryDropdown.selectize.addItem(sampleTypeCategory, true);
-            // this makes the sampleTypeCategoryDropdown read-only if the sampleTypeCategory is TUMOR or CONTROL
-            if (!(["IGNORED", "UNDEFINED"].includes(sampleTypeCategory))) {
-                sampleTypeCategoryDropdown.selectize.lock();
-            } else {
-                sampleTypeCategoryDropdown.selectize.unlock();
+            let selectizeElement = sampleTypeCategoryDropdown.selectize;
+            selectizeElement.addItem(sampleTypeCategory, true);
+            selectizeElement.lock();
+            if ((["IGNORED", "UNDEFINED", ""].includes(sampleTypeCategory))) {
+                selectizeElement.unlock();
             }
         };
     }
-
 }

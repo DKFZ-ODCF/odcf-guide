@@ -1,6 +1,7 @@
 package de.dkfz.odcf.guide.service.implementation.validator
 
 import de.dkfz.odcf.guide.*
+import de.dkfz.odcf.guide.annotation.PrivateSetter
 import de.dkfz.odcf.guide.dtoObjects.FileGuiDto
 import de.dkfz.odcf.guide.dtoObjects.SampleGuiDto
 import de.dkfz.odcf.guide.entity.metadata.SeqType
@@ -20,6 +21,8 @@ import java.util.*
 import kotlin.jvm.internal.CallableReference
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KMutableProperty0
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.functions
 import kotlin.reflect.full.memberProperties
 
 @Service
@@ -299,16 +302,14 @@ class SampleServiceImpl(
             sampleRepository.getOne(sampleGuiDto.id)
         }
         sample.deletionFlag = false
-        SampleGuiDto::class.memberProperties.forEach { prop ->
-            when (prop.name) {
-                "sex" -> sample.setSex(prop.get(sampleGuiDto) as String)
-                "libraryLayout" -> sample.setLibraryLayout(prop.get(sampleGuiDto) as String)
-                "xenograft" -> sample.setXenograft(prop.get(sampleGuiDto).toString())
-                else -> {
-                    val sampleProp = Sample::class.memberProperties.filterIsInstance<KMutableProperty<*>>().find { it.name == prop.name }
-                    sampleProp?.setter?.call(sample, prop.get(sampleGuiDto))
-                }
+        SampleGuiDto::class.memberProperties.forEach { property ->
+            val sampleProperty = Sample::class.memberProperties.filterIsInstance<KMutableProperty<*>>().find { it.name == property.name } ?: return@forEach
+            sampleProperty.findAnnotation<PrivateSetter>()?.let { annotation ->
+                val setter = Sample::class.functions.find { it.name == annotation.name }
+                setter?.call(sample, property.get(sampleGuiDto).toString())
+                return@forEach
             }
+            sampleProperty.setter.call(sample, property.get(sampleGuiDto))
         }
         return sample
     }

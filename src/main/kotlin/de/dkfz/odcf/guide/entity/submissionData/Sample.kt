@@ -1,11 +1,13 @@
 package de.dkfz.odcf.guide.entity.submissionData
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import de.dkfz.odcf.guide.annotation.PrivateSetter
 import de.dkfz.odcf.guide.annotation.ReflectionDelimiter
 import de.dkfz.odcf.guide.entity.basic.GuideEntity
 import de.dkfz.odcf.guide.entity.metadata.SeqType
 import de.dkfz.odcf.guide.helperObjects.SampleTsvMapping
 import de.dkfz.odcf.guide.helperObjects.toBool
+import de.dkfz.odcf.guide.helperObjects.valueOf
 import javax.persistence.*
 
 @Entity
@@ -56,10 +58,9 @@ class Sample() : GuideEntity() {
 
     var tagmentationLibrary: String = ""
 
+    @PrivateSetter("setXenograft")
     var xenograft: Boolean = false
         private set
-
-    var sampleTypeCategory: String = ""
 
     @JsonIgnore
     var singleCellPlate: String = ""
@@ -107,12 +108,19 @@ class Sample() : GuideEntity() {
     @JoinColumn
     var technicalSample: TechnicalSample? = null
 
+    @PrivateSetter("setSex")
     @Enumerated(EnumType.STRING)
-    var sex: Sex = Sex.UNKNOWN
+    var sex = Sex.UNKNOWN
         private set
 
+    @PrivateSetter("setProceed")
     @Enumerated(EnumType.STRING)
-    var proceed: Proceed = Proceed.UNKNOWN
+    var proceed = Proceed.UNKNOWN
+        private set
+
+    @PrivateSetter("setSampleTypeCategory")
+    @Enumerated(EnumType.STRING)
+    var sampleTypeCategory: SampleTypeCategory? = null
         private set
 
     var sampleType: String = ""
@@ -126,6 +134,7 @@ class Sample() : GuideEntity() {
 
     var lowCoverageRequested: Boolean = false
 
+    @PrivateSetter("setLibraryLayout")
     @Enumerated(EnumType.STRING)
     var libraryLayout: LibraryLayout? = null
         private set
@@ -196,59 +205,20 @@ class Sample() : GuideEntity() {
 
     /*================================================================================================================*/
 
-    fun setSex(sex: String?) {
-        if (!sex.isNullOrEmpty()) {
-            when (sex.lowercase().substring(0, 1)) {
-                "f" -> {
-                    this.sex = Sex.FEMALE
-                    return
-                }
-                "m" -> {
-                    this.sex = Sex.MALE
-                    return
-                }
-                "o" -> {
-                    this.sex = Sex.OTHER
-                    return
-                }
-            }
-        }
-        this.sex = Sex.UNKNOWN
+    fun setSex(sex: String) {
+        this.sex = Sex.findByChar(sex.first().lowercase()) ?: Sex.UNKNOWN
     }
 
     fun setProceed(proceed: String) {
-        if (proceed.isNotEmpty()) {
-            when (proceed.lowercase()) {
-                "yes" -> {
-                    this.proceed = Proceed.YES
-                    return
-                }
-                "no" -> {
-                    this.proceed = Proceed.NO
-                    return
-                }
-                "-" -> {
-                    this.proceed = Proceed.UNKNOWN
-                    return
-                }
-            }
-        }
-        this.proceed = Proceed.UNKNOWN
+        this.proceed = valueOf<Proceed>(proceed.uppercase(), Proceed.UNKNOWN)
     }
 
-    fun setLibraryLayout(libraryLayout: String?) {
-        if (!libraryLayout.isNullOrEmpty()) {
-            when (libraryLayout.lowercase()) {
-                "paired" -> {
-                    this.libraryLayout = LibraryLayout.PAIRED
-                    return
-                }
-                "single" -> {
-                    this.libraryLayout = LibraryLayout.SINGLE
-                    return
-                }
-            }
-        }
+    fun setLibraryLayout(libraryLayout: String) {
+        this.libraryLayout = valueOf<LibraryLayout>(libraryLayout.uppercase())
+    }
+
+    fun setSampleTypeCategory(sampleTypeCategory: String) {
+        this.sampleTypeCategory = valueOf<SampleTypeCategory>(sampleTypeCategory.uppercase())
     }
 
     fun setXenograft(xenograft: String) {
@@ -261,7 +231,7 @@ class Sample() : GuideEntity() {
         pid = tsvMappingObject.pid
         sampleType = tsvMappingObject.sample_type
         xenograft = tsvMappingObject.xenograft.toBoolean()
-        sampleTypeCategory = tsvMappingObject.sample_type_category
+        setSampleTypeCategory(tsvMappingObject.sample_type_category)
         setSex(tsvMappingObject.sex)
         speciesWithStrain = tsvMappingObject.species_with_strain
         phenotype = tsvMappingObject.phenotype
@@ -293,7 +263,11 @@ class Sample() : GuideEntity() {
         FEMALE,
         MALE,
         UNKNOWN,
-        OTHER
+        OTHER;
+
+        companion object {
+            fun findByChar(char: String) = Sex.values().find { it.toString().first().lowercase() == char }
+        }
     }
 
     enum class LibraryLayout {
@@ -307,7 +281,7 @@ class Sample() : GuideEntity() {
         UNKNOWN
     }
 
-    enum class SampleTypeCategories {
+    enum class SampleTypeCategory {
         DISEASE,
         CONTROL,
         IGNORED,

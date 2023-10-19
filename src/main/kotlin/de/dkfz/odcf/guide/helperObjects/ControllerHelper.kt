@@ -9,7 +9,7 @@ class ControllerHelper(
 ) {
 
     fun getRedirectPage(submission: Submission): String {
-        return if (ldapService.getPerson().isAdmin) {
+        return if (ldapService.isCurrentUserAdmin()) {
             "redirect:" + (if (submission.isExtended) MetaValController.EXTENDED_TABLE_PAGE_ADMIN else MetaValController.SIMPLE_TABLE_PAGE_ADMIN) + "?identifier=" + submission.identifier
         } else {
             "redirect:" + (if (submission.isExtended) MetaValController.EXTENDED_TABLE_PAGE_USER else MetaValController.SIMPLE_TABLE_PAGE_USER) + "?uuid=" + submission.uuid

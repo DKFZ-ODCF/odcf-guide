@@ -125,7 +125,7 @@ open class SampleServiceDataJpaTests @Autowired constructor(
         assertThat(resultSample.pid).isEqualTo(sampleGuiDto.pid)
         assertThat(resultSample.sampleType).isEqualTo(sampleGuiDto.sampleType.lowercase())
         assertThat(resultSample.xenograft).isEqualTo(sampleGuiDto.xenograft)
-        assertThat(resultSample.sampleTypeCategory).isEqualTo(sampleGuiDto.sampleTypeCategory)
+        assertThat(resultSample.sampleTypeCategory.toString()).isEqualTo(sampleGuiDto.sampleTypeCategory)
         assertThat(resultSample.sex.toString().lowercase()).isEqualTo(sampleGuiDto.sex.lowercase())
         assertThat(resultSample.phenotype).isEqualTo(sampleGuiDto.phenotype)
         assertThat(resultSample.libraryLayout.toString().lowercase()).isEqualTo(sampleGuiDto.libraryLayout.lowercase())

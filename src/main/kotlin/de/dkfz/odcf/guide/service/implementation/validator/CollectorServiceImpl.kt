@@ -78,7 +78,7 @@ class CollectorServiceImpl(
 
     override fun foundMergeableSamples(submission: Submission): Boolean {
         if (submission.ownTransfer) return false
-        val samples = sampleRepository.findBySubmissionAndProceedNot(submission, Sample.Proceed.NO)
+        val samples = sampleRepository.findAllBySubmissionAndProceedNot(submission, Sample.Proceed.NO)
         return samples.map { it.getMergingFieldData.toString() }.toSet().size < samples.size || getSampleListEnrichedByMergingSamples(samples.toSet()).size > samples.size
     }
 

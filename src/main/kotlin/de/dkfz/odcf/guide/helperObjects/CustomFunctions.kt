@@ -34,3 +34,13 @@ inline fun <T, reified R> Iterable<T>.mapDistinctAndNotNullOrBlank(transform: (T
     }
     return mapNotNull { transform(it) }.distinct()
 }
+
+inline fun <reified T : Enum<T>> valueOf(type: String): T? {
+    return try {
+        java.lang.Enum.valueOf(T::class.java, type)
+    } catch (e: IllegalArgumentException) {
+        null
+    }
+}
+
+inline fun <reified T : Enum<T>> valueOf(type: String, default: T): T = valueOf<T>(type) ?: default

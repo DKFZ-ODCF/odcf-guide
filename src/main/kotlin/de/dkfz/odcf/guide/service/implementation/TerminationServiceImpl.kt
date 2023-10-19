@@ -83,7 +83,7 @@ class TerminationServiceImpl(
         submission.startTerminationPeriod = Date()
         submissionRepository.saveAndFlush(submission)
         mailSenderService.sendMailToTicketSystem(
-            mailContentGeneratorService.getTicketSubject(submission, "reminderService.terminationResetMailSubject"),
+            mailContentGeneratorService.getTicketSubject(submission, "mailService.terminationResetMailSubject"),
             mailContentGeneratorService.getMailBody(
                 "mailService.terminationResetMailBody",
                 mapOf("{0}" to collectorService.getFormattedIdentifier(submission.identifier))

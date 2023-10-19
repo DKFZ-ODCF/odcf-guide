@@ -1,0 +1,5 @@
+---
+title: fixed mails for job states to ignore stopped samples
+issue: GUIDE-726
+author: Timo Wiese
+type: change

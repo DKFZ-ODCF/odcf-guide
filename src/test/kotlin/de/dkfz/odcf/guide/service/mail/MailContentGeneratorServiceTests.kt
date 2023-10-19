@@ -2,6 +2,7 @@ package de.dkfz.odcf.guide.service.mail
 
 import de.dkfz.odcf.guide.RuntimeOptionsRepository
 import de.dkfz.odcf.guide.SampleRepository
+import de.dkfz.odcf.guide.entity.submissionData.Sample
 import de.dkfz.odcf.guide.entity.submissionData.Submission
 import de.dkfz.odcf.guide.helper.AnyObject
 import de.dkfz.odcf.guide.helper.EntityFactory
@@ -394,7 +395,7 @@ class MailContentGeneratorServiceTests @Autowired constructor(private val mailCo
         val samples = listOf(entityFactory.getSample(submission))
 
         `when`(urlGeneratorService.getAdminURL(submission)).thenReturn("URL")
-        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(samples)
+        `when`(sampleRepository.findAllBySubmissionAndProceedNot(submission, Sample.Proceed.NO)).thenReturn(samples)
 
         val result = mailContentGeneratorServiceMock.getProcessingStatusUpdateBody(listOf(job))
 
@@ -417,7 +418,7 @@ class MailContentGeneratorServiceTests @Autowired constructor(private val mailCo
         val samples = listOf(entityFactory.getSample(submission))
 
         `when`(urlGeneratorService.getAdminURL(submission)).thenReturn("URL")
-        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(samples)
+        `when`(sampleRepository.findAllBySubmissionAndProceedNot(submission, Sample.Proceed.NO)).thenReturn(samples)
 
         val result = mailContentGeneratorServiceMock.getProcessingStatusUpdateBody(listOf(job, job2))
 
