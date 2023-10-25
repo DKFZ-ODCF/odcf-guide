@@ -24,7 +24,7 @@ class CollectorServiceImpl(
     private val apiSubmissionRepository: ApiSubmissionRepository,
     private val uploadSubmissionRepository: UploadSubmissionRepository,
     private val sampleRepository: SampleRepository,
-    private val otpCachedProjectRepository: OtpCachedProjectRepository,
+    private val projectRepository: ProjectRepository,
     private val externalMetadataSourceService: ExternalMetadataSourceService,
     private val ldapService: LdapService,
     private val runtimeOptionsRepository: RuntimeOptionsRepository
@@ -177,7 +177,7 @@ class CollectorServiceImpl(
             samples.values.mapParallel { samples ->
                 val sample = samples.first()
                 val project = withContext(Dispatchers.IO) {
-                    otpCachedProjectRepository.findByName(sample.project)
+                    projectRepository.findByName(sample.project)
                 }
                 val seqTypeDirName = externalMetadataSourceService.getSingleValue("SeqTypeDirName", mapOf("seqType" to sample.seqType?.name.orEmpty()))
                 Triple(samples, project, seqTypeDirName)

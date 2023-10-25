@@ -44,7 +44,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
     lateinit var seqTypeMappingService: SeqTypeMappingService
 
     @Mock
-    lateinit var otpCachedProjectRepository: OtpCachedProjectRepository
+    lateinit var projectRepository: ProjectRepository
 
     @Mock
     lateinit var externalMetadataSourceService: ExternalMetadataSourceService
@@ -409,11 +409,11 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
             sample1.getMergingFieldData.toString() to listOf(sample1),
             sample2.getMergingFieldData.toString() to listOf(sample2)
         )
-        val cachedProject = entityFactory.getOtpCachedProject()
+        val cachedProject = entityFactory.getProject()
         val projectPathTemplate = entityFactory.getRuntimeOption("<PROJECT>/sequencing/<SEQ_TYPE_EXT>/view-by-pid/<PID>/<SAMPLE_TYPE_EXT>/<WELL_LABEL>/<LIBRARY_LAYOUT>/run<RUN_NAME>/sequence/<FASTQ_FILE_NAME>")
 
         `when`(runtimeOptionsRepository.findByName("projectPathTemplate")).thenReturn(projectPathTemplate)
-        `when`(otpCachedProjectRepository.findByName(sample.project)).thenReturn(cachedProject)
+        `when`(projectRepository.findByName(sample.project)).thenReturn(cachedProject)
         `when`(externalMetadataSourceService.getSingleValue("SeqTypeDirName", mapOf("seqType" to sample.seqType?.name.orEmpty()))).thenReturn("seqTypeDir")
 
         val pathsWithSamples = collectorServiceMock.getPathsWithSampleList(samples, submission)
@@ -431,11 +431,11 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         submission.sequencingTechnology.checkExternalMetadataSource = false
         val sample = entityFactory.getSample(submission)
         val samples = mapOf(sample.getMergingFieldData.toString() to listOf(sample))
-        val cachedProject = entityFactory.getOtpCachedProject()
+        val cachedProject = entityFactory.getProject()
         val projectPathTemplateNonOtp = entityFactory.getRuntimeOption("<PROJECT>/nonOTP/ont/view-by-pid/<PID>/<SAMPLE_TYPE_INT>/<SEQ_TYPE_INT>/<ASID>/")
 
         `when`(runtimeOptionsRepository.findByName("projectPathTemplateNonOtp")).thenReturn(projectPathTemplateNonOtp)
-        `when`(otpCachedProjectRepository.findByName(sample.project)).thenReturn(cachedProject)
+        `when`(projectRepository.findByName(sample.project)).thenReturn(cachedProject)
         `when`(externalMetadataSourceService.getSingleValue("SeqTypeDirName", mapOf("seqType" to sample.seqType?.name.orEmpty()))).thenReturn("seqTypeDir")
 
         val pathsWithSamples = collectorServiceMock.getPathsWithSampleList(samples, submission)

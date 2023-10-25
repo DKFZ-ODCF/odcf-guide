@@ -1,12 +1,13 @@
-package de.dkfz.odcf.guide.entity.otpCached
+package de.dkfz.odcf.guide.entity.storage
 
+import de.dkfz.odcf.guide.entity.Person
 import java.text.DecimalFormat
 import java.util.*
 import javax.persistence.*
 import kotlin.math.pow
 
 @Entity
-class OtpCachedProject {
+class Project {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -19,7 +20,8 @@ class OtpCachedProject {
 
     lateinit var unixGroup: String
 
-    lateinit var pis: String
+    @ManyToMany
+    var pis: Set<Person> = emptySet()
 
     var closed = false
 
@@ -38,6 +40,10 @@ class OtpCachedProject {
     var quotaProjectFolder: Long = -1
 
     var quotaAnalysisFolder: Long = -1
+
+    fun getPiFullNames(): String {
+        return pis.joinToString { it.fullName }
+    }
 
     fun getProjectSize(): String {
         return getSize(this.sizeProjectFolder)

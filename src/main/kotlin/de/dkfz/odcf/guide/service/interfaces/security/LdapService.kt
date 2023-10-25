@@ -28,6 +28,7 @@ interface LdapService {
      * @return Person object of the found user.
      * @throws UserNotFoundException If no user with a matching username can be found in the database or LDAP.
      */
+    @Throws(UserNotFoundException::class)
     fun getPersonByUsername(username: String): Person
 
     /**

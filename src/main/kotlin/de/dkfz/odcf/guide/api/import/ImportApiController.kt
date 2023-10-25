@@ -1,4 +1,4 @@
-package de.dkfz.odcf.guide.api
+package de.dkfz.odcf.guide.api.import
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonMappingException

@@ -8,13 +8,13 @@ import de.dkfz.odcf.guide.entity.cluster.ClusterJob
 import de.dkfz.odcf.guide.entity.metadata.SeqType
 import de.dkfz.odcf.guide.entity.metadata.SequencingTechnology
 import de.dkfz.odcf.guide.entity.options.RuntimeOptions
-import de.dkfz.odcf.guide.entity.otpCached.OtpCachedProject
 import de.dkfz.odcf.guide.entity.parser.Parser
 import de.dkfz.odcf.guide.entity.parser.ParserComponent
 import de.dkfz.odcf.guide.entity.parser.ParserField
 import de.dkfz.odcf.guide.entity.requestedValues.FieldRequestedValue
 import de.dkfz.odcf.guide.entity.requestedValues.RequestedValue
 import de.dkfz.odcf.guide.entity.requestedValues.SeqTypeRequestedValue
+import de.dkfz.odcf.guide.entity.storage.Project
 import de.dkfz.odcf.guide.entity.submissionData.*
 import de.dkfz.odcf.guide.entity.validation.Validation
 import de.dkfz.odcf.guide.entity.validation.ValidationLevel
@@ -136,9 +136,10 @@ interface ValidationRepository : JpaRepository<Validation, Int> {
     fun findByField(field: String): Validation
 }
 
-interface OtpCachedProjectRepository : JpaRepository<OtpCachedProject, Int> {
-    fun findByName(name: String): OtpCachedProject?
-    fun findAllByNameIn(names: Set<String>): Set<OtpCachedProject>
+interface ProjectRepository : JpaRepository<Project, Int> {
+    fun findByName(name: String): Project?
+    fun findAllByNameIn(names: Set<String>): Set<Project>
+    fun <T> findAllByOrderByNameAsc(type: Class<T>): Set<T>
 }
 
 interface MetaDataColumnRepository : JpaRepository<MetaDataColumn, Int> {

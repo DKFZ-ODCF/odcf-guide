@@ -2,7 +2,7 @@ package de.dkfz.odcf.guide.controller
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonMappingException
-import de.dkfz.odcf.guide.OtpCachedProjectRepository
+import de.dkfz.odcf.guide.ProjectRepository
 import de.dkfz.odcf.guide.exceptions.ExternalApiReadException
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.external.IlseApiService
@@ -19,7 +19,7 @@ import java.util.*
 @RequestMapping("/services")
 class ExternalServicesController(
     private val authorizationService: AuthorizationService,
-    private val otpCachedProjectRepository: OtpCachedProjectRepository,
+    private val projectRepository: ProjectRepository,
     private val ilseService: IlseApiService,
     private val externalMetadataSourceService: ExternalMetadataSourceService,
 ) {
@@ -69,7 +69,7 @@ class ExternalServicesController(
     ): ResponseEntity<*> {
         authorizationService.checkAuthorization(token)?.let { return it }
 
-        val path = otpCachedProjectRepository.findByName(projectName)?.pathProjectFolder.orEmpty()
+        val path = projectRepository.findByName(projectName)?.pathProjectFolder.orEmpty()
         val headers = HttpHeaders()
         headers.add("Content-Type", TEXT_PLAIN_VALUE)
         return ResponseEntity(path, headers, HttpStatus.OK)

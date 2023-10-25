@@ -59,6 +59,7 @@ open class LdapServiceImpl(
         }
     }
 
+    @Throws(UserNotFoundException::class)
     override fun getPersonByUsername(username: String): Person {
         val lowercaseUsername = username.lowercase()
         var resultPerson = personRepository.findByUsername(lowercaseUsername)

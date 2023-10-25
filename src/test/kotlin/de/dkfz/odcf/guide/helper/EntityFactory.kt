@@ -10,13 +10,13 @@ import de.dkfz.odcf.guide.entity.cluster.ClusterJobTemplate
 import de.dkfz.odcf.guide.entity.metadata.SeqType
 import de.dkfz.odcf.guide.entity.metadata.SequencingTechnology
 import de.dkfz.odcf.guide.entity.options.RuntimeOptions
-import de.dkfz.odcf.guide.entity.otpCached.OtpCachedProject
 import de.dkfz.odcf.guide.entity.parser.Parser
 import de.dkfz.odcf.guide.entity.parser.ParserComponent
 import de.dkfz.odcf.guide.entity.parser.ParserField
 import de.dkfz.odcf.guide.entity.requestedValues.FieldRequestedValue
 import de.dkfz.odcf.guide.entity.requestedValues.RequestedValue
 import de.dkfz.odcf.guide.entity.requestedValues.SeqTypeRequestedValue
+import de.dkfz.odcf.guide.entity.storage.Project
 import de.dkfz.odcf.guide.entity.submissionData.*
 import de.dkfz.odcf.guide.entity.validation.Validation
 import de.dkfz.odcf.guide.entity.validation.ValidationLevel
@@ -325,17 +325,17 @@ class EntityFactory {
         return runtimeOption
     }
 
-    fun getOtpCachedProject(): OtpCachedProject {
-        val otpCachedProject = OtpCachedProject()
-        otpCachedProject.latestUpdate = Date()
-        otpCachedProject.name = "project${number++}"
-        otpCachedProject.unixGroup = "unixGroup"
-        otpCachedProject.pis = "pi"
-        otpCachedProject.seqTypes = "WGS"
-        otpCachedProject.lastDataReceived = Date().toString()
-        otpCachedProject.pathProjectFolder = "/path/to/project"
-        otpCachedProject.pathAnalysisFolder = "/path/to/analysis"
-        return otpCachedProject
+    fun getProject(): Project {
+        val project = Project()
+        project.latestUpdate = Date()
+        project.name = "project${number++}"
+        project.unixGroup = "unixGroup"
+        project.pis = setOf(getPerson())
+        project.seqTypes = "WGS"
+        project.lastDataReceived = Date().toString()
+        project.pathProjectFolder = "/path/to/project"
+        project.pathAnalysisFolder = "/path/to/analysis"
+        return project
     }
 
     fun getSubmissionImportObject(): SubmissionImportObject {

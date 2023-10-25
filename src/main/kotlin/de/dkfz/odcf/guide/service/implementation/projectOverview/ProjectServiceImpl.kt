@@ -2,12 +2,14 @@ package de.dkfz.odcf.guide.service.implementation.projectOverview
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import de.dkfz.odcf.guide.OtpCachedProjectRepository
+import de.dkfz.odcf.guide.ProjectRepository
 import de.dkfz.odcf.guide.RuntimeOptionsRepository
-import de.dkfz.odcf.guide.entity.otpCached.OtpCachedProject
+import de.dkfz.odcf.guide.entity.storage.Project
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.external.SqlService
 import de.dkfz.odcf.guide.service.interfaces.projectOverview.ProjectService
+import de.dkfz.odcf.guide.service.interfaces.security.LdapService
+import org.slf4j.LoggerFactory
 import org.springframework.core.env.Environment
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -20,7 +22,8 @@ import kotlin.math.pow
 open class ProjectServiceImpl(
     private val externalMetadataSourceService: ExternalMetadataSourceService,
     private val sqlService: SqlService,
-    private val otpCachedProjectRepository: OtpCachedProjectRepository,
+    private val ldapService: LdapService,
+    private val projectRepository: ProjectRepository,
     private val runtimeOptionsRepository: RuntimeOptionsRepository,
     private val env: Environment
 ) : ProjectService {
@@ -50,6 +53,8 @@ open class ProjectServiceImpl(
             return quotaDataSource!!.connection
         }
 
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
     /** Regularly caches project infos from OTP in the GUIDE. */
     @Scheduled(cron = "\${application.projectOverview.cron.otp}")
     open fun storeProjectInfosFromOtp() {
@@ -58,20 +63,25 @@ open class ProjectServiceImpl(
         otpProjects.forEach {
             val projectName = it["project"]
             if (projectName != null) {
-                var otpCachedProject = otpCachedProjectRepository.findByName(projectName)
-                if (otpCachedProject == null) {
-                    otpCachedProject = OtpCachedProject()
-                }
-                otpCachedProject.name = projectName
-                otpCachedProject.latestUpdate = Date()
-                otpCachedProject.unixGroup = it["unix"].orEmpty()
-                otpCachedProject.pis = externalMetadataSourceService.getSetOfValues("pisByProject", mapOf("project" to projectName)).joinToString()
-                otpCachedProject.closed = it["closed"]?.equals("t") ?: false
-                otpCachedProject.pathProjectFolder = if (it["dir_project"] != null) "${projectPathPrefix}${it["dir_project"]}" else ""
-                otpCachedProject.pathAnalysisFolder = it["dir_analysis"].orEmpty()
-                otpCachedProject.seqTypes = externalMetadataSourceService.getSetOfValues("seqTypesByProject", mapOf("project" to projectName)).joinToString()
-                otpCachedProject.lastDataReceived = externalMetadataSourceService.getSingleValue("lastDataRecdByProject", mapOf("project" to projectName))
-                otpCachedProjectRepository.save(otpCachedProject)
+                val project = projectRepository.findByName(projectName) ?: Project()
+                project.name = projectName
+                project.latestUpdate = Date()
+                project.unixGroup = it["unix"].orEmpty()
+                project.pis = externalMetadataSourceService.getSetOfValues("pisByProject", mapOf("project" to projectName))
+                    .mapNotNull { username ->
+                        try {
+                            ldapService.getPersonByUsername(username)
+                        } catch (e: Exception) {
+                            logger.warn("user '$username' not added as PI to project $projectName with reason:\n${e.localizedMessage}")
+                            null
+                        }
+                    }.toSet()
+                project.closed = it["closed"]?.equals("t") ?: false
+                project.pathProjectFolder = if (it["dir_project"] != null) "${projectPathPrefix}${it["dir_project"]}" else ""
+                project.pathAnalysisFolder = it["dir_analysis"].orEmpty()
+                project.seqTypes = externalMetadataSourceService.getSetOfValues("seqTypesByProject", mapOf("project" to projectName)).joinToString()
+                project.lastDataReceived = externalMetadataSourceService.getSingleValue("lastDataRecdByProject", mapOf("project" to projectName))
+                projectRepository.save(project)
             }
         }
         deleteProjectsNotRepresentedAnymore(otpProjects)
@@ -80,7 +90,7 @@ open class ProjectServiceImpl(
     /** Regularly updates the information about the size of the project storage folders. */
     @Scheduled(cron = "\${application.projectOverview.cron.filesystem}")
     open fun storeProjectStorageInfos() {
-        otpCachedProjectRepository.findAll().forEach { project ->
+        projectRepository.findAll().forEach { project ->
             val sql = "SELECT size_phys FROM usage\n" +
                 "JOIN folders f ON f.id = usage.path_id\n" +
                 "WHERE mount_path = '<PATH>'\n" +
@@ -99,7 +109,7 @@ open class ProjectServiceImpl(
                     sql.replace("<PATH>", project.pathAnalysisFolder)
                 ).firstOrNull() ?: "-1"
                 ).toLong()
-            otpCachedProjectRepository.save(project)
+            projectRepository.save(project)
         }
     }
 
@@ -107,14 +117,14 @@ open class ProjectServiceImpl(
         val notLoaded = "Not loaded yet"
         val map = emptyMap<String, String?>().toMutableMap()
         map.putAll(it)
-        val otpCachedProject = otpCachedProjectRepository.findByName(it["project"]!!)
-        map["unix"] = otpCachedProject?.unixGroup ?: notLoaded
-        map["pis"] = otpCachedProject?.pis ?: notLoaded
-        map["closed"] = otpCachedProject?.closed.toString().substring(0, 1)
-        map["projectSize"] = otpCachedProject?.getProjectSize() ?: notLoaded
-        map["analysisSize"] = otpCachedProject?.getAnalysisSize() ?: notLoaded
-        map["kindOfData"] = otpCachedProject?.seqTypes ?: notLoaded
-        map["lastDataReceived"] = otpCachedProject?.lastDataReceived ?: notLoaded
+        val project = projectRepository.findByName(it["project"]!!)
+        map["unix"] = project?.unixGroup ?: notLoaded
+        map["pis"] = project?.getPiFullNames() ?: notLoaded
+        map["closed"] = project?.closed.toString().substring(0, 1)
+        map["projectSize"] = project?.getProjectSize() ?: notLoaded
+        map["analysisSize"] = project?.getAnalysisSize() ?: notLoaded
+        map["kindOfData"] = project?.seqTypes ?: notLoaded
+        map["lastDataReceived"] = project?.lastDataReceived ?: notLoaded
         return map
     }
 
@@ -126,9 +136,9 @@ open class ProjectServiceImpl(
      */
     fun deleteProjectsNotRepresentedAnymore(otpProjects: Set<Map<String, String>>) {
         val otpProjectNames = otpProjects.map { it["project"] }
-        otpCachedProjectRepository.findAll().forEach {
+        projectRepository.findAll().forEach {
             if (!otpProjectNames.contains(it.name)) {
-                otpCachedProjectRepository.delete(it)
+                projectRepository.delete(it)
             }
         }
     }

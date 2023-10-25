@@ -1,8 +1,6 @@
 package de.dkfz.odcf.guide.helper
 
-import de.dkfz.odcf.guide.entity.*
-import de.dkfz.odcf.guide.entity.metadata.*
-import de.dkfz.odcf.guide.entity.otpCached.OtpCachedProject
+import de.dkfz.odcf.guide.entity.storage.Project
 import de.dkfz.odcf.guide.entity.submissionData.*
 import org.mockito.Mockito
 
@@ -38,9 +36,9 @@ interface AnyObject {
         return uninitializedFile()
     }
 
-    private fun uninitializedOtpCachedProject(): OtpCachedProject = OtpCachedProject()
-    fun anyOtpCachedProject(): OtpCachedProject {
-        Mockito.anyObject<OtpCachedProject>()
-        return uninitializedOtpCachedProject()
+    private fun uninitializedProject(): Project = Project()
+    fun anyOtpCachedProject(): Project {
+        Mockito.anyObject<Project>()
+        return uninitializedProject()
     }
 }

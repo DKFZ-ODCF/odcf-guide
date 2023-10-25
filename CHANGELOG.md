@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## 1.7.35
+
+
+### New Features
+
+- GUIDE-738: implemented a new project overview API (Timo Wiese)
+
 ## 1.7.34
 
 

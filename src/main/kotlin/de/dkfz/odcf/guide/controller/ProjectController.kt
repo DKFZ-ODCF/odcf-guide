@@ -1,7 +1,7 @@
 package de.dkfz.odcf.guide.controller
 
-import de.dkfz.odcf.guide.OtpCachedProjectRepository
 import de.dkfz.odcf.guide.PersonRepository
+import de.dkfz.odcf.guide.ProjectRepository
 import de.dkfz.odcf.guide.RuntimeOptionsRepository
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.projectOverview.ProjectService
@@ -25,7 +25,7 @@ class ProjectController(
     private val externalMetadataSourceService: ExternalMetadataSourceService,
     private val projectService: ProjectService,
     private val ldapService: LdapService,
-    private val otpCachedProjectRepository: OtpCachedProjectRepository,
+    private val projectRepository: ProjectRepository,
     private val runtimeOptionsRepository: RuntimeOptionsRepository,
     private val personRepository: PersonRepository,
     private val env: Environment
@@ -49,7 +49,7 @@ class ProjectController(
             infosByPerson.add(projectService.prepareMap(it))
         }
 
-        val (infosByPublic, infosByGroup) = otpCachedProjectRepository.findAllByNameIn(
+        val (infosByPublic, infosByGroup) = projectRepository.findAllByNameIn(
             externalMetadataSourceService.getSetOfValues(
                 "projects-by-person-or-organizational-unit",
                 mapOf("username" to user.username, "organizationalUnit" to user.organizationalUnit)
@@ -73,7 +73,7 @@ class ProjectController(
         if (!ldapService.isCurrentUserAdmin()) {
             return "redirect:/project/overview/user"
         }
-        model["otpCachedProjects"] = otpCachedProjectRepository.findAll().sortedBy { it.name }
+        model["projects"] = projectRepository.findAll().sortedBy { it.name }
         model["otpUrlOverview"] = env.getRequiredProperty("otp.url.overview")
         model["otpUrlUserManagement"] = env.getRequiredProperty("otp.url.userManagement")
         model["otpProjectPath"] = runtimeOptionsRepository.findByName("otpProjectPath")?.value.orEmpty()
@@ -89,13 +89,13 @@ class ProjectController(
             return ResponseEntity("You are not allowed, to access this page!\n", HttpHeaders(), HttpStatus.FORBIDDEN)
         }
 
-        val otpCachedProjects = otpCachedProjectRepository.findAll().sortedBy { it.name }
+        val projects = projectRepository.findAll().sortedBy { it.name }
         var quotaSettings = ""
 
         val defaultProjectQuota = runtimeOptionsRepository.findByName("projectFolderQuota")?.value
         val defaultAnalysisQuota = runtimeOptionsRepository.findByName("analysisFolderQuota")?.value
 
-        for (project in otpCachedProjects) {
+        for (project in projects) {
             val quotaProject =
                 if (project.quotaProjectFolder != (-1).toLong()) project.getProjectQuotaSize()
                 else defaultProjectQuota

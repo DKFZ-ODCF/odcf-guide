@@ -24,20 +24,20 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="otpCachedProject : ${otpCachedProjects}" th:class="${otpCachedProject.closed} ? 'opacity-05': ''">
+        <tr th:each="project : ${projects}" th:class="${project.closed} ? 'opacity-05': ''">
             <td>
-                <a th:href="${otpUrlOverview + '?project=' + otpCachedProject.name}"
-                   th:text="${otpCachedProject.name}" target="_blank"></a>
+                <a th:href="${otpUrlOverview + '?project=' + project.name}"
+                   th:text="${project.name}" target="_blank"></a>
             </td>
             <td>
-                <a th:href="${otpUrlUserManagement + '?project=' + otpCachedProject.name}"
-                   th:text="${otpCachedProject.unixGroup}" target="_blank"></a>
+                <a th:href="${otpUrlUserManagement + '?project=' + project.name}"
+                   th:text="${project.unixGroup}" target="_blank"></a>
             </td>
-            <td th:text="${otpCachedProject.pis}"></td>
-            <td th:text="${otpCachedProject.seqTypes}"></td>
-            <td th:text="${otpCachedProject.lastDataReceived}"></td>
-            <td class="text-right pr-3" th:text="${otpCachedProject.projectSize}"></td>
-            <td class="text-right pr-3" th:text="${otpCachedProject.analysisSize}"></td>
+            <td th:text="${project.piFullNames}"></td>
+            <td th:text="${project.seqTypes}"></td>
+            <td th:text="${project.lastDataReceived}"></td>
+            <td class="text-right pr-3" th:text="${project.projectSize}"></td>
+            <td class="text-right pr-3" th:text="${project.analysisSize}"></td>
         </tr>
         </tbody>
     </table>
