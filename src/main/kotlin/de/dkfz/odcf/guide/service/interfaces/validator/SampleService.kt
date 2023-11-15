@@ -99,6 +99,18 @@ interface SampleService {
     fun updateFilesAndSamples(submission: Submission, samples: List<Sample>, files: List<File>)
 
     /**
+     * In a submission, group together the files that might be fastq file pairs (filename only differs in the suffix).
+     * Afterward, check if the fastq file pairs are grouped together under the right sample(s) and correct it if necessary.
+     *
+     * - If files are not fastq file pairs but have the same sample, split it up into 2 separate samples
+     * - If files are fastq file pairs but have different samples, merge the files together in one sample and delete the redundant sample
+     *
+     * @param sampleFiles all the files within a submission that may or may not be fastq file pairs
+     * @param submission the submission to which the files and samples belong
+     */
+    fun mergeFastqFilePairs(sampleFiles: List<File>, submission: Submission)
+
+    /**
      * Finds old files connected to the samples of the submission that are no longer represented and deletes them.
      * Also finds all old samples of the submission that are no longer represented and deletes them.
      *

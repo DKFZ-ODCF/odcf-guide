@@ -432,3 +432,17 @@ function hideNewNewsIndicator(){
         xhttp.send();
     }
 }
+
+function copyTokenToClipboard() {
+    let button = this.event.currentTarget;
+    let apiToken = document.getElementById("apiToken");
+    navigator.clipboard.writeText(apiToken.textContent).then(() => {
+        button.classList.add("fa-check", "fa-solid");
+        button.classList.remove("fa-clipboard", "fa-regular");
+        setTimeout(function() {
+            button.classList.remove("fa-check", "fa-solid");
+            button.classList.add("fa-clipboard", "fa-regular");
+            button.blur();
+        }, 2000);
+    });
+}

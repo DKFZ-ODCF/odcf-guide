@@ -51,15 +51,7 @@ class ImportServiceImpl(
 
     @Throws(RelationException::class)
     override fun findSampleByFileName(filename: String, submission: Submission): Sample? {
-        val regexSuffix = runtimeOptionsRepository.findByName("fastqFileSuffix")!!.value
-        val regex = ("(.*)$regexSuffix\$".toRegex())
-        val regexSuffixForLike = regexSuffix
-            .replace("[R|I]", "_")
-            .replace("[1|2]", "_")
-            .replace("\\", "") // this adds "___.fastq.gz" to a file name, why do we do this?
-        val searchFileName = regex.find(filename)?.groupValues?.get(1)?.plus(regexSuffixForLike) ?: filename // groupValues 0 => full regex match, groupValues 1 => first match group
-
-        val files = fileRepository.findByFileNameLikeIgnoreCaseAndSample_Submission(searchFileName, submission)
+        val files = findFastqFilePairs(filename, submission)
         if (files.isNotEmpty()) {
             val sample: Sample = files[0].sample
             for (file in files) {
@@ -71,6 +63,18 @@ class ImportServiceImpl(
             return sample
         }
         return null
+    }
+
+    override fun findFastqFilePairs(filename: String, submission: Submission): List<File> {
+        val regexSuffix = runtimeOptionsRepository.findByName("fastqFileSuffix")!!.value
+        val regex = ("(.*)$regexSuffix\$".toRegex())
+        val regexSuffixForLike = regexSuffix
+            .replace("[R|I]", "_")
+            .replace("[1|2]", "_")
+            .replace("\\", "")
+        val searchFileName = regex.find(filename)?.groupValues?.get(1)?.plus(regexSuffixForLike) ?: filename // groupValues 0 => full regex match, groupValues 1 => first match group
+
+        return fileRepository.findByFileNameLikeIgnoreCaseAndSample_Submission(searchFileName, submission)
     }
 
     override fun createTicket(identifier: String, projects: List<String>): String {

@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## 1.7.36
+
+
+### Changes and Improvements
+
+- GUIDE-742: make user token visible for users in the GUI (Tim Lorbacher)
+
+### Other
+
+- GUIDE-710: implemented functionality that groups together fastq file pairs within submissions with each save (Oydin Iqbal)
+
 ## 1.7.35
 
 

@@ -230,4 +230,36 @@ class ImportServiceTests @Autowired constructor(private val importService: Impor
 
         assertThat(result).isEmpty()
     }
+
+    @Test
+    fun `Check functionality findFastqFilePairs`() {
+        val file = entityFactory.getFile()
+        val file2 = entityFactory.getFile()
+        file2.fileName = "fileName_R2.fastq.gz"
+        val submission = entityFactory.getApiSubmission()
+
+        `when`(runtimeOptionsRepository.findByName("fastqFileSuffix")).thenReturn(entityFactory.getRuntimeOption("_[R|I][1|2]\\.fastq\\.gz"))
+        `when`(fileRepository.findByFileNameLikeIgnoreCaseAndSample_Submission(anyString(), anySubmission())).thenReturn(listOf(file, file2))
+
+        val fastqFilePairs = importServiceMock.findFastqFilePairs(file.fileName, submission)
+
+        assertThat(fastqFilePairs.size).isEqualTo(2)
+        assertThat(fastqFilePairs).isEqualTo(listOf(file, file2))
+    }
+
+    @Test
+    fun `Check functionality findFastqFilePairs find no pair`() {
+        val file = entityFactory.getFile()
+        val file2 = entityFactory.getFile()
+        file2.fileName = "otherFileName_R2.fastq.gz"
+        val submission = entityFactory.getApiSubmission()
+
+        `when`(runtimeOptionsRepository.findByName("fastqFileSuffix")).thenReturn(entityFactory.getRuntimeOption("_[R|I][1|2]\\.fastq\\.gz"))
+        `when`(fileRepository.findByFileNameLikeIgnoreCaseAndSample_Submission(anyString(), anySubmission())).thenReturn(listOf(file))
+
+        val fastqFilePairs = importServiceMock.findFastqFilePairs(file.fileName, submission)
+
+        assertThat(fastqFilePairs.size).isEqualTo(1)
+        assertThat(fastqFilePairs).isEqualTo(listOf(file))
+    }
 }

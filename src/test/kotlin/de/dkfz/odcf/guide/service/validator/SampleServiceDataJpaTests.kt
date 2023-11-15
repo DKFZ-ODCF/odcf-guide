@@ -17,10 +17,13 @@ import de.dkfz.odcf.guide.service.interfaces.validator.ModificationService
 import de.dkfz.odcf.guide.service.interfaces.validator.SubmissionService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyList
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
@@ -58,6 +61,9 @@ open class SampleServiceDataJpaTests @Autowired constructor(
 
     @Mock
     lateinit var collectorService: CollectorService
+
+    @Mock
+    lateinit var runtimeOptionsRepository: RuntimeOptionsRepository
 
     @Mock
     lateinit var modificationService: ModificationService
@@ -167,6 +173,7 @@ open class SampleServiceDataJpaTests @Autowired constructor(
         file.fileName = "newFileName"
         technicalSample.center = "newCenter"
 
+        `when`(runtimeOptionsRepository.findByName("fastqFileSuffix")).thenReturn(entityFactory.getRuntimeOption("_[R|I][1|2]\\.fastq\\.gz"))
         var resultSample = Sample()
         `when`(sampleRepository.save(anySample())).then { i -> (i.arguments[0] as Sample).also { resultSample = it } }
         var resultTechnicalSample = TechnicalSample()
@@ -206,6 +213,7 @@ open class SampleServiceDataJpaTests @Autowired constructor(
         val form = SampleForm()
         form.sampleList = arrayListOf(sampleGuiDto)
 
+        `when`(runtimeOptionsRepository.findByName("fastqFileSuffix")).thenReturn(entityFactory.getRuntimeOption("_[R|I][1|2]\\.fastq\\.gz"))
         `when`(sampleRepository.getOne(sampleGuiDto.id)).thenReturn(entityManager.find(Sample::class.java, sample.id))
         `when`(fileService.convertToEntity(fileGuiDto, sample)).thenReturn(entityManager.find(File::class.java, file.id))
         var resultSample = Sample()
@@ -235,5 +243,165 @@ open class SampleServiceDataJpaTests @Autowired constructor(
         assertThat(resultTechnicalSample.runDate).isEqualTo("2000-01-01")
         assertThat(resultTechnicalSample.runId).isEqualTo("runId")
         assertThat(resultTechnicalSample.sequencingKit).isEqualTo("sequencingKit")
+    }
+
+    @Test
+    fun `check mergeFastqFilePairs functionality`() {
+        val submission = entityFactory.getApiSubmission()
+        val sample = entityFactory.getSample(submission)
+        val sample2 = entityFactory.getSample(submission)
+        sample2.seqType = sample.seqType
+        val file1 = entityFactory.getFile(sample)
+        val file2 = entityFactory.getFile(sample2)
+
+        entityManager.persistAndFlush(submission)
+        entityManager.persistAndFlush(sample.seqType)
+        entityManager.persistAndFlush(sample)
+        entityManager.persistAndFlush(sample2)
+        entityManager.persistAndFlush(file1)
+        entityManager.persistAndFlush(file2)
+
+        `when`(runtimeOptionsRepository.findByName("fastqFileSuffix")).thenReturn(entityFactory.getRuntimeOption("_[R|I][1|2]\\.fastq\\.gz"))
+        val captor = ArgumentCaptor.forClass(Sample::class.java)
+        `when`(sampleRepository.delete(captor.capture())).then { entityManager.remove(sample2) }
+
+        sampleServiceMock.mergeFastqFilePairs(listOf(file1, file2), submission)
+
+        // Verify that sample2 is deleted
+        val deletedSample2 = entityManager.find(Sample::class.java, sample2.id)
+        assertThat(deletedSample2).isNull()
+
+        // Verify that sample2 was the one to be removed
+        val capturedSample = captor.value
+        assertThat(capturedSample).isEqualTo(sample2)
+    }
+
+    @Test
+    fun `check mergeFastqFilePairs functionality do not merge samples that are not the same`() {
+        val submission = entityFactory.getApiSubmission()
+        val sample = entityFactory.getSample(submission)
+        val sample2 = entityFactory.getSample(submission)
+        val file1 = entityFactory.getFile(sample)
+        val file2 = entityFactory.getFile(sample2)
+
+        entityManager.persistAndFlush(submission)
+        entityManager.persistAndFlush(sample.seqType)
+        entityManager.persistAndFlush(sample2.seqType)
+        entityManager.persistAndFlush(sample)
+        entityManager.persistAndFlush(sample2)
+        entityManager.persistAndFlush(file1)
+        entityManager.persistAndFlush(file2)
+
+        `when`(runtimeOptionsRepository.findByName("fastqFileSuffix")).thenReturn(entityFactory.getRuntimeOption("_[R|I][1|2]\\.fastq\\.gz"))
+
+        sampleServiceMock.mergeFastqFilePairs(listOf(file1, file2), submission)
+
+        verify(sampleRepository, times(0)).delete(anySample())
+    }
+
+    @Test
+    fun `check mergeFastqFilePairs functionality do not merge samples if not fastq file pairs`() {
+        val submission = entityFactory.getApiSubmission()
+        val sample = entityFactory.getSample(submission)
+        val sample2 = entityFactory.getSample(submission)
+        val file1 = entityFactory.getFile(sample)
+        val file2 = entityFactory.getFile(sample2)
+
+        entityManager.persistAndFlush(submission)
+        entityManager.persistAndFlush(sample.seqType)
+        entityManager.persistAndFlush(sample2.seqType)
+        entityManager.persistAndFlush(sample)
+        entityManager.persistAndFlush(sample2)
+        entityManager.persistAndFlush(file1)
+        entityManager.persistAndFlush(file2)
+
+        `when`(runtimeOptionsRepository.findByName("fastqFileSuffix")).thenReturn(entityFactory.getRuntimeOption("_[R|I][1|2]\\.fastq\\.gz"))
+
+        sampleServiceMock.mergeFastqFilePairs(listOf(file1, file2), submission)
+
+        verify(sampleRepository, times(0)).delete(anySample())
+    }
+
+    @Test
+    fun `check mergeFastqFilePairs functionality split up samples if files are not fastq file pairs`() {
+        val submission = entityFactory.getApiSubmission()
+        val sample = entityFactory.getSample(submission)
+        val technicalSample = entityFactory.getTechnicalSample(sample)
+        val file1 = entityFactory.getFile(sample)
+        val file2 = entityFactory.getFile(sample)
+        file2.fileName = "someOtherFilename.fastq.gz"
+        sample.technicalSample = technicalSample
+
+        entityManager.persistAndFlush(submission)
+        entityManager.persistAndFlush(sample.seqType)
+        entityManager.persistAndFlush(technicalSample)
+        entityManager.persistAndFlush(sample)
+        entityManager.persistAndFlush(file1)
+        entityManager.persistAndFlush(file2)
+
+        `when`(runtimeOptionsRepository.findByName("fastqFileSuffix")).thenReturn(entityFactory.getRuntimeOption("_[R|I][1|2]\\.fastq\\.gz"))
+        `when`(fileRepository.findAllBySample(sample)).thenReturn(listOf(file1, file2))
+        var resultSample = Sample()
+        `when`(sampleRepository.save(anySample())).then { i -> (i.arguments[0] as Sample).also { resultSample = it } }
+        var resultTechnicalSample = TechnicalSample()
+        `when`(technicalSampleRepository.save(anyTechnicalSample())).then { i -> (i.arguments[0] as TechnicalSample).also { resultTechnicalSample = it } }
+
+        sampleServiceMock.mergeFastqFilePairs(listOf(file1, file2), submission)
+
+        assertThat(file1.sample === file2.sample).isFalse
+        assertThat(resultSample).isNotNull
+        assertThat(sample == resultSample).isTrue
+        assertThat(resultSample.technicalSample).isNotNull
+        assertThat(file2.sample.technicalSample == resultTechnicalSample).isTrue
+        assertThat(technicalSample == resultTechnicalSample).isTrue
+    }
+
+    @Test
+    fun `check mergeFastqFilePairs functionality split up samples if files are not fastq file pairs version 2`() {
+        val submission = entityFactory.getApiSubmission()
+        val sample = entityFactory.getSample(submission)
+        val technicalSample = entityFactory.getTechnicalSample(sample)
+        val file1 = entityFactory.getFile(sample)
+        val file2 = entityFactory.getFile(sample)
+        file2.fileName = "someOtherFilename.fastq.gz"
+        sample.technicalSample = technicalSample
+
+        entityManager.persistAndFlush(submission)
+        entityManager.persistAndFlush(sample.seqType)
+        entityManager.persistAndFlush(technicalSample)
+        entityManager.persistAndFlush(sample)
+        entityManager.persistAndFlush(file1)
+        entityManager.persistAndFlush(file2)
+
+        `when`(runtimeOptionsRepository.findByName("fastqFileSuffix")).thenReturn(entityFactory.getRuntimeOption("_[R|I][1|2]\\.fastq\\.gz"))
+
+        // needed because the bidirectionality of samples.files got changed to fileRepository.findAllBySample()
+        var findAllBySampleCallCount = 0
+        `when`(fileRepository.findAllBySample(anySample())).thenAnswer { invocation ->
+            val sampleArg = invocation.getArgument<Sample>(0)
+            if (sampleArg == sample && findAllBySampleCallCount++ == 0) {
+                // On the first call, return both file1 and file2
+                listOf(file1, file2)
+            } else {
+                // Afterward, the sample of file2 has been changed and therefore fileRepository.findAllBySample(file2.sample) should only return file2
+                listOf(file2)
+            }
+        }
+
+        var resultSample = Sample()
+        `when`(sampleRepository.save(anySample())).then { i -> (i.arguments[0] as Sample).also { resultSample = it } }
+        var resultTechnicalSample = TechnicalSample()
+        `when`(technicalSampleRepository.save(anyTechnicalSample())).then { i -> (i.arguments[0] as TechnicalSample).also { resultTechnicalSample = it } }
+
+        sampleServiceMock.mergeFastqFilePairs(listOf(file1, file2), submission)
+
+        assertThat(file1.sample === sample).isTrue
+        assertThat(file2.sample === resultSample).isTrue
+        assertThat(file1.sample === file2.sample).isFalse
+        assertThat(sample == resultSample).isTrue
+        assertThat(file1.sample.technicalSample?.id).isEqualTo(technicalSample.id)
+        assertThat(resultSample.technicalSample).isNotNull
+        assertThat(file2.sample.technicalSample == resultTechnicalSample).isTrue
+        assertThat(technicalSample == resultTechnicalSample).isTrue
     }
 }

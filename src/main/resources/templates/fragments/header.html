@@ -88,9 +88,16 @@
                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="fas fa-user-circle fa-lg"></i>
                     </a>
-                    <div class="dropdown-menu" aria-labelledby="userLogIn">
+                    <div class="dropdown-menu" aria-labelledby="userLogIn" onClick="event.stopPropagation();">
                         <a th:if="${#httpServletRequest.remoteUser}" th:text="${@thymeleafService.getCurrentUser().fullName}"
                            class="dropdown-item text-light disabled"></a>
+
+                        <span class="dropdown-item text-light pt-0 disabled" th:if="${#httpServletRequest.remoteUser}">
+                            <small class="dropdown-item text-light pb-0 pl-0">API Token:</small>
+                            <span id="apiToken" th:text="${@thymeleafService.getCurrentUser().apiToken}" ></span>
+                            <button class="fa-regular fa-clipboard btn btn-light ml-1" id="copyTokenBtn" onClick="copyTokenToClipboard()" title="Copy to Clipboard"></button>
+                        </span>
+
                         <a th:if="${#httpServletRequest.remoteUser}" href="/logout" class="dropdown-item">Logout</a>
                         <a th:unless="${#httpServletRequest.remoteUser}" href="/login" class="dropdown-item">Login</a>
                     </div>

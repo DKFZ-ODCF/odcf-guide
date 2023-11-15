@@ -1,6 +1,7 @@
 package de.dkfz.odcf.guide.entity.submissionData
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import de.dkfz.odcf.guide.annotation.ExcludeFromComparison
 import de.dkfz.odcf.guide.annotation.PrivateSetter
 import de.dkfz.odcf.guide.annotation.ReflectionDelimiter
 import de.dkfz.odcf.guide.entity.basic.GuideEntity
@@ -9,6 +10,8 @@ import de.dkfz.odcf.guide.helperObjects.SampleTsvMapping
 import de.dkfz.odcf.guide.helperObjects.toBool
 import de.dkfz.odcf.guide.helperObjects.valueOf
 import javax.persistence.*
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.hasAnnotation
 
 @Entity
 class Sample() : GuideEntity() {
@@ -32,6 +35,7 @@ class Sample() : GuideEntity() {
     }
 
     @Id
+    @ExcludeFromComparison
     @GeneratedValue(strategy = GenerationType.AUTO)
     var id: Int = 0
 
@@ -139,6 +143,7 @@ class Sample() : GuideEntity() {
     var libraryLayout: LibraryLayout? = null
         private set
 
+    @ExcludeFromComparison
     @ElementCollection
     var unknownValues: Map<String, String>? = null
 
@@ -186,6 +191,7 @@ class Sample() : GuideEntity() {
     val xenograftDisplayText: String
         get() = if (!isMergeSample) xenograft.toString() else ""
 
+    @ExcludeFromComparison
     @get:JsonIgnore
     val getMergingFieldData: Map<String, String>
         get() = mapOf(
@@ -286,5 +292,15 @@ class Sample() : GuideEntity() {
         CONTROL,
         IGNORED,
         UNDEFINED
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Sample) return false
+
+        return this::class.declaredMemberProperties
+            .filterNot { it.hasAnnotation<ExcludeFromComparison>() }
+            .map { field -> field.call(this) == field.call(other) }
+            .all { it }
     }
 }

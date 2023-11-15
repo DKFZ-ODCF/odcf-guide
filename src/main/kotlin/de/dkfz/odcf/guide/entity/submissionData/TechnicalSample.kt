@@ -1,15 +1,19 @@
 package de.dkfz.odcf.guide.entity.submissionData
 
+import de.dkfz.odcf.guide.annotation.ExcludeFromComparison
 import de.dkfz.odcf.guide.entity.basic.GuideEntity
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.hasAnnotation
 
 @Entity
 class TechnicalSample : GuideEntity() {
 
     @Id
+    @ExcludeFromComparison
     @GeneratedValue(strategy = GenerationType.AUTO)
     var id = 0
 
@@ -45,4 +49,16 @@ class TechnicalSample : GuideEntity() {
     var runDate: String = ""
 
     var runId: String = ""
+
+    /*================================================================================================================*/
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is TechnicalSample) return false
+
+        return this::class.declaredMemberProperties
+            .filterNot { it.hasAnnotation<ExcludeFromComparison>() }
+            .map { field -> field.call(this) == field.call(other) }
+            .all { it }
+    }
 }

@@ -54,6 +54,8 @@ interface ImportService {
     @Throws(RelationException::class)
     fun findSampleByFileName(filename: String, submission: Submission): Sample?
 
+    fun findFastqFilePairs(filename: String, submission: Submission): List<File>
+
     /**
      * Creates a ticket in the ticketing system using JSON API calls.
      *

@@ -129,6 +129,11 @@ footer {
     justify-content: space-between;
 }
 
+#copyTokenBtn {
+    pointer-events: all;
+    width: 2.5rem
+}
+
 /* Styles for Accordion */
 .toggle:last-child {
     border-bottom: 1px solid #dddddd;

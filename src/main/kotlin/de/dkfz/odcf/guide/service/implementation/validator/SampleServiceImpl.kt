@@ -8,6 +8,7 @@ import de.dkfz.odcf.guide.entity.metadata.SeqType
 import de.dkfz.odcf.guide.entity.submissionData.File
 import de.dkfz.odcf.guide.entity.submissionData.Sample
 import de.dkfz.odcf.guide.entity.submissionData.Submission
+import de.dkfz.odcf.guide.entity.submissionData.TechnicalSample
 import de.dkfz.odcf.guide.entity.validation.ValidationLevel
 import de.dkfz.odcf.guide.helperObjects.SampleForm
 import de.dkfz.odcf.guide.service.interfaces.FileService
@@ -15,18 +16,24 @@ import de.dkfz.odcf.guide.service.interfaces.RequestedValueService
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.security.LdapService
 import de.dkfz.odcf.guide.service.interfaces.validator.*
+import org.springframework.beans.BeanUtils
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.text.ParseException
 import java.util.*
 import kotlin.jvm.internal.CallableReference
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KMutableProperty0
+import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.functions
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.isAccessible
+import kotlin.reflect.jvm.javaSetter
 
 @Service
-class SampleServiceImpl(
+open class SampleServiceImpl(
     private val sampleRepository: SampleRepository,
     private val technicalSampleRepository: TechnicalSampleRepository,
     private val fileRepository: FileRepository,
@@ -35,6 +42,7 @@ class SampleServiceImpl(
     private val seqTypeRepository: SeqTypeRepository,
     private val seqTypeRequestedValuesRepository: SeqTypeRequestedValuesRepository,
     private val collectorService: CollectorService,
+    private val runtimeOptionsRepository: RuntimeOptionsRepository,
     private val modificationService: ModificationService,
     private val fileService: FileService,
     private val externalMetadataSourceService: ExternalMetadataSourceService,
@@ -224,10 +232,71 @@ class SampleServiceImpl(
             sampleRepository.save(sample)
             fileRepository.saveAll(files)
         }
+        mergeFastqFilePairs(fileRepository.findAllBySampleIn(samples), submission)
         deletedFilesAndSamples(submission)
         deleteNotNeededSeqTypeRequests()
         submission.startTerminationPeriod = Date()
         submissionRepository.saveAndFlush(submission)
+    }
+
+    @Transactional(rollbackFor = [Exception::class])
+    override fun mergeFastqFilePairs(sampleFiles: List<File>, submission: Submission) {
+        val regexSuffix = runtimeOptionsRepository.findByName("fastqFileSuffix")!!.value
+        val regex = ("$regexSuffix\$".toRegex())
+
+        val similarFilesGroup = sampleFiles.groupBy { it.fileName.replace(regex, "") }
+
+        similarFilesGroup.forEach { (_, similarFiles) ->
+            val samples = similarFiles.map { it.sample }.distinct().toMutableList()
+
+            if (samples.size == 1) {
+                val sample = samples.first()
+                val splitFiles = fileRepository.findAllBySample(sample).minus(similarFiles.toSet())
+                if (splitFiles.isNotEmpty()) {
+                    val splitSample = cloneSample(sample)
+                    fileRepository.saveAll(splitFiles.map { it.sample = splitSample; it })
+                }
+            } else if (samples.size > 1) {
+                val mergeSample = samples.removeFirst()
+                samples.forEach { redundantSample ->
+                    if (mergeSample == redundantSample) {
+                        val files = fileRepository.findAllBySample(redundantSample)
+                        files.forEach { it.sample = mergeSample }
+                        fileRepository.saveAll(files)
+                        sampleRepository.delete(redundantSample)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Clones a given sample with all its properties into a new object and saves the new Sample as well as its TechnicalSample
+     *
+     * @param sample Sample to be cloned
+     * @return New cloned sample
+     */
+    fun cloneSample(sample: Sample): Sample {
+        val newSample = Sample()
+        BeanUtils.copyProperties(sample, newSample, "id", "uuid", "technicalSample")
+
+        /* copy properties with dedicated setters */
+        val propertiesWithPrivateSetters = Sample::class.declaredMemberProperties.filterIsInstance<KMutableProperty1<out Any, Any?>>().filter { it.javaSetter == null }
+        for (property in propertiesWithPrivateSetters) {
+            property.isAccessible = true
+            property.setter.call(newSample, property.getter.call(sample))
+            property.isAccessible = false
+        }
+        newSample.unknownValues = sample.unknownValues?.toMap()
+
+        sample.technicalSample?.let {
+            val newTechnicalSample = TechnicalSample()
+            BeanUtils.copyProperties(it, newTechnicalSample, "id", "uuid")
+            newSample.technicalSample = newTechnicalSample
+            technicalSampleRepository.save(newTechnicalSample)
+        }
+        sampleRepository.save(newSample)
+        return newSample
     }
 
     /**

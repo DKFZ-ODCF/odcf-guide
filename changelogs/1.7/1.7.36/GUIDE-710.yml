@@ -1,0 +1,5 @@
+---
+title: implemented functionality that groups together fastq file pairs within submissions with each save
+issue: GUIDE-710
+author: Oydin Iqbal
+type: improvement

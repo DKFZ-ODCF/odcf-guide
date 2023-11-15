@@ -80,4 +80,31 @@ class SampleTests {
         assertThat(sample2.baseMaterial).isEqualTo("RNA")
         assertThat(sample3.baseMaterial).isEqualTo("")
     }
+
+    @Test
+    fun `check comparison of two samples`() {
+        val submission = entityFactory.getApiSubmission()
+        val sample = entityFactory.getSample(submission)
+        val sample2 = entityFactory.getSample(submission)
+        sample2.seqType = sample.seqType
+        val sample3 = entityFactory.getSample(submission)
+        sample3.name = "otherSample"
+        val sample4 = entityFactory.getSample()
+
+        assertThat(sample == sample2).isEqualTo(true)
+        assertThat(sample == sample3).isEqualTo(false)
+        assertThat(sample == sample4).isEqualTo(false)
+    }
+
+    @Test
+    fun `check comparison of two samples with difference in property excluded from comparison`() {
+        val submission = entityFactory.getApiSubmission()
+        val sample = entityFactory.getSample(submission)
+        sample.unknownValues = mapOf("unknown" to "sample")
+        val sample2 = entityFactory.getSample(submission)
+        sample2.seqType = sample.seqType
+        sample2.unknownValues = mapOf("unknown2" to "sample2")
+
+        assertThat(sample == sample2).isEqualTo(true)
+    }
 }

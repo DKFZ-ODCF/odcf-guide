@@ -1,6 +1,7 @@
 package de.dkfz.odcf.guide.service.validator
 
 import de.dkfz.odcf.guide.*
+import de.dkfz.odcf.guide.entity.submissionData.Sample
 import de.dkfz.odcf.guide.helper.EntityFactory
 import de.dkfz.odcf.guide.service.implementation.validator.SampleServiceImpl
 import de.dkfz.odcf.guide.service.interfaces.FileService
@@ -51,6 +52,9 @@ class SampleServiceTests {
 
     @Mock
     lateinit var collectorService: CollectorService
+
+    @Mock
+    lateinit var runtimeOptionsRepository: RuntimeOptionsRepository
 
     @Mock
     lateinit var modificationService: ModificationService
@@ -445,5 +449,55 @@ class SampleServiceTests {
         sampleServiceMock.deleteNotNeededSeqTypeRequests()
 
         verify(seqTypeRepository, times(1)).deleteAll(setOf(seqType))
+    }
+
+    @Test
+    fun `check deletedFilesAndSamples functionality`() {
+        val submission = entityFactory.getApiSubmission()
+        val sample = entityFactory.getSample(submission)
+        sample.deletionFlag = false
+        val file = entityFactory.getFile(sample)
+        file.deletionFlag = false
+        val fileToDelete = entityFactory.getFile(sample)
+        val sampleToDelete = entityFactory.getSample(submission)
+
+        `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample, sampleToDelete))
+        `when`(fileRepository.findAllBySampleIn(listOf(sample, sampleToDelete))).thenReturn(listOf(file, fileToDelete))
+
+        sampleServiceMock.deletedFilesAndSamples(submission)
+
+        verify(fileRepository, times(1)).deleteAll(listOf(fileToDelete))
+        verify(sampleRepository, times(1)).deleteAll(listOf(sampleToDelete))
+    }
+
+    @Test
+    fun `check cloneSample functionality`() {
+        val sample = entityFactory.getSample()
+        sample.unknownValues = mapOf("unknown" to "sample unknown")
+
+        val newSample = sampleServiceMock.cloneSample(sample)
+
+        assertThat(sample == newSample).isTrue
+        assertThat(sample === newSample).isFalse
+        assertThat(sample.libraryLayout).isEqualTo(newSample.libraryLayout).isEqualTo(Sample.LibraryLayout.PAIRED)
+        assertThat(sample.unknownValues).isEqualTo(newSample.unknownValues)
+        assertThat(sample.unknownValues === newSample.unknownValues).isFalse()
+        verify(sampleRepository, times(1)).save(newSample)
+    }
+
+    @Test
+    fun `check cloneSample functionality with technicalSample`() {
+        val sample = entityFactory.getSample()
+        val technicalSample = entityFactory.getTechnicalSample(sample)
+
+        val newSample = sampleServiceMock.cloneSample(sample)
+
+        assertThat(sample == newSample).isTrue
+        assertThat(sample === newSample).isFalse
+        assertThat(sample.libraryLayout).isEqualTo(newSample.libraryLayout).isEqualTo(Sample.LibraryLayout.PAIRED)
+        assertThat(technicalSample == newSample.technicalSample).isTrue
+        assertThat(technicalSample === newSample.technicalSample).isFalse
+        verify(sampleRepository, times(1)).save(newSample)
+        verify(technicalSampleRepository, times(1)).save(newSample.technicalSample!!)
     }
 }
