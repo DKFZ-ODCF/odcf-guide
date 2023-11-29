@@ -1,6 +1,27 @@
 # CHANGELOG
 
 
+## 1.7.37
+
+
+### New Features
+
+- GUIDE-746: added pid suggestion to edit page (Timo Wiese)
+
+### Changes and Improvements
+
+- GUIDE-706: show adapter sequences for library preparation kit (Oydin Iqbal)
+- GUIDE-727: Adapted library preperation kit column for nanopore submissions (Tim Lorbacher)
+- GUIDE-728: made tests faster by using the ExtendWith annotation (Oydin Iqbal)
+- GUIDE-741: Adapted the Feedback Overview Page (Tim Lorbacher)
+- GUIDE-744: Restructured the SeqType overview page to show all options (Oydin Iqbal @iqbalo)
+- GUIDE-747: refactored and improved table import (Timo Wiese)
+
+### Bugfixes
+
+- GUIDE-734: run all validation on page load (Tim Lorbacher)
+- GUIDE-745: added send mail check to ticket creation method (Timo Wiese)
+
 ## 1.7.36
 
 

@@ -14,21 +14,20 @@ import de.dkfz.odcf.guide.service.implementation.projectOverview.ProjectServiceI
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.external.RemoteCommandsService
 import de.dkfz.odcf.guide.service.interfaces.external.SqlService
-import de.dkfz.odcf.guide.service.interfaces.projectOverview.ProjectService
 import de.dkfz.odcf.guide.service.interfaces.security.LdapService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.anyOrNull
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@SpringBootTest
-class ProjectServiceTests @Autowired constructor(private val projectService: ProjectService) : AnyObject {
+@ExtendWith(SpringExtension::class)
+class ProjectServiceTests : AnyObject {
 
     private val entityFactory = EntityFactory()
 
@@ -88,10 +87,10 @@ class ProjectServiceTests @Autowired constructor(private val projectService: Pro
         val pi2 = entityFactory.getPerson()
         pi2.username = "pi2"
 
-        `when`(externalMetadataSourceService.getSetOfMapOfValues("projectInfos")).thenReturn(setOf(map))
-        `when`(externalMetadataSourceService.getSetOfValues("seqTypesByProject", mapOf("project" to "project"))).thenReturn(setOf("WGS", "RNA"))
+        `when`(externalMetadataSourceService.getValuesAsSetMap("projectInfos")).thenReturn(setOf(map))
+        `when`(externalMetadataSourceService.getValuesAsSet("seqTypesByProject", mapOf("project" to "project"))).thenReturn(setOf("WGS", "RNA"))
         `when`(externalMetadataSourceService.getSingleValue("lastDataRecdByProject", mapOf("project" to "project"))).thenReturn("last")
-        `when`(externalMetadataSourceService.getSetOfValues("pisByProject", mapOf("project" to "project"))).thenReturn(setOf("pi1", "pi2"))
+        `when`(externalMetadataSourceService.getValuesAsSet("pisByProject", mapOf("project" to "project"))).thenReturn(setOf("pi1", "pi2"))
         `when`(ldapService.getPersonByUsername("pi1")).thenReturn(pi1)
         `when`(ldapService.getPersonByUsername("pi2")).thenReturn(pi2)
         `when`(runtimeOptionsRepository.findByName("projectPathPrefix")).thenReturn(entityFactory.getRuntimeOption("/prefix/"))
@@ -127,7 +126,7 @@ class ProjectServiceTests @Autowired constructor(private val projectService: Pro
         )
         var counter = 0
 
-        `when`(externalMetadataSourceService.getSetOfMapOfValues("projectInfos")).thenReturn(setOf(map))
+        `when`(externalMetadataSourceService.getValuesAsSetMap("projectInfos")).thenReturn(setOf(map))
         `when`(runtimeOptionsRepository.findByName("projectPathPrefix")).thenReturn(entityFactory.getRuntimeOption())
         `when`(projectRepository.save(anyOtpCachedProject())).then {
             counter++
@@ -149,10 +148,10 @@ class ProjectServiceTests @Autowired constructor(private val projectService: Pro
         pi2.username = "pi2"
         val listAppender = initListAppender()
 
-        `when`(externalMetadataSourceService.getSetOfMapOfValues("projectInfos")).thenReturn(setOf(map))
-        `when`(externalMetadataSourceService.getSetOfValues("seqTypesByProject", mapOf("project" to "project"))).thenReturn(setOf("WGS", "RNA"))
+        `when`(externalMetadataSourceService.getValuesAsSetMap("projectInfos")).thenReturn(setOf(map))
+        `when`(externalMetadataSourceService.getValuesAsSet("seqTypesByProject", mapOf("project" to "project"))).thenReturn(setOf("WGS", "RNA"))
         `when`(externalMetadataSourceService.getSingleValue("lastDataRecdByProject", mapOf("project" to "project"))).thenReturn("last")
-        `when`(externalMetadataSourceService.getSetOfValues("pisByProject", mapOf("project" to "project"))).thenReturn(setOf("pi1", "pi2"))
+        `when`(externalMetadataSourceService.getValuesAsSet("pisByProject", mapOf("project" to "project"))).thenReturn(setOf("pi1", "pi2"))
         `when`(ldapService.getPersonByUsername("pi1")).thenReturn(pi1)
         `when`(ldapService.getPersonByUsername("pi2")).thenThrow(UserNotFoundException("not found"))
         `when`(runtimeOptionsRepository.findByName("projectPathPrefix")).thenReturn(entityFactory.getRuntimeOption("/prefix/"))

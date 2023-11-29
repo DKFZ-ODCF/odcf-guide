@@ -11,7 +11,7 @@
     <script src="/js/dropdownManipulation/requestNewValues.js"></script>
     <script src="/js/dropdownManipulation/antibodyTarget.js"></script>
     <script src="/js/dropdownManipulation/seqCenter.js"></script>
-    <script src="/js/dropdownManipulation/prefix.js"></script>
+    <script src="/js/dropdownManipulation/individual.js"></script>
     <script src="/js/dropdownManipulation/sampleType.js"></script>
     <script src="/js/dropdownManipulation/seqType.js"></script>
     <script src="/js/dropdownManipulation/singleCell.js"></script>
@@ -139,10 +139,12 @@
                                     th:class="|align-middle ${column.hideClass}|"
                                     th:classappend="|${stat.index == 0 ? 'fixed-col' : ''} ${column.displayName}|">
                                     <span th:text="#{${column.displayName}}"></span>
-                                    <a th:if="${column.hasExplanation}" tabindex="0" class="text-light" data-toggle="popover"
+                                    <a th:if="${column.hasExplanation}" tabindex="0" class="text-light"
+                                       data-toggle="popover" data-html="true"
                                        data-trigger="focus" data-placement="top" th:title="#{${column.displayName}}"
-                                       th:data-content="#{'validator.table.title.' + ${column.displayName}}"><i
-                                            class="far fa-sm fa-question-circle"></i></a>
+                                       th:data-content="#{'validator.table.title.' + ${column.displayName}}">
+                                        <i class="far fa-sm fa-question-circle"></i>
+                                    </a>
                                 </th>
                             </tr>
                         </thead>

@@ -4,6 +4,8 @@ import de.dkfz.odcf.guide.SeqTypeRepository
 import de.dkfz.odcf.guide.SequencingTechnologyRepository
 import de.dkfz.odcf.guide.ValidationLevelRepository
 import de.dkfz.odcf.guide.ValidationRepository
+import de.dkfz.odcf.guide.annotation.SeqTypeOptions
+import de.dkfz.odcf.guide.entity.metadata.SeqType
 import de.dkfz.odcf.guide.entity.metadata.SequencingTechnology
 import de.dkfz.odcf.guide.entity.validation.Validation
 import de.dkfz.odcf.guide.entity.validation.ValidationLevel
@@ -22,6 +24,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.hasAnnotation
 
 @Controller
 @RequestMapping("/metadata-input")
@@ -48,6 +52,7 @@ class InputController(
         val seqTypes = seqTypeRepository.findAllByIsRequestedIsFalseOrderByNameAsc()
         model["basicSeqTypes"] = seqTypes.map { it.basicSeqType }.toSet()
         model["seqTypes"] = seqTypes
+        model["seqTypeOptions"] = SeqType::class.declaredMemberProperties.filter { it.hasAnnotation<SeqTypeOptions>() }.map { it.name }
         return pageHelper(model, "seqType")
     }
 
@@ -71,12 +76,7 @@ class InputController(
         @RequestParam basicSeqType: String,
         @RequestParam(required = false) seqTypeId: Int?,
         @RequestParam(required = false) ilseNames: String?,
-        @RequestParam(required = false) needAntibodyTarget: Boolean?,
-        @RequestParam(required = false) needLibPrepKit: Boolean?,
-        @RequestParam(required = false) singleCell: Boolean?,
-        @RequestParam(required = false) tagmentation: Boolean?,
-        @RequestParam(required = false) lowCoverageRequestable: Boolean?,
-        @RequestParam(required = false) isDisplayedForUser: Boolean?,
+        @RequestParam(required = false) seqTypeOptions: String?,
     ): String {
         try {
             seqTypeMappingService.saveSeqType(
@@ -84,13 +84,7 @@ class InputController(
                 seqTypeId = seqTypeId,
                 basicSeqType = basicSeqType,
                 ilseNames = ilseNames,
-                needAntibodyTarget = needAntibodyTarget != null,
-                needLibPrepKit = needLibPrepKit != null,
-                singleCell = singleCell != null,
-                tagmentation = tagmentation != null,
-                lowCoverageRequestable = lowCoverageRequestable != null,
-                isDisplayedForUser = isDisplayedForUser != null,
-                newSeqTypeRequest = false,
+                seqTypeOptions
             )
         } catch (e: DuplicatedImportAliasException) {
             redirectAttributes.addFlashAttribute("errorMessage", e.message!!)

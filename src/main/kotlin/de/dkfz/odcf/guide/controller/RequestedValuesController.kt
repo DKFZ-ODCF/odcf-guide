@@ -68,9 +68,7 @@ class RequestedValuesController(
                 "seqTypeName" to it.requestedValue,
                 "seqTypeId" to reqSeqType.id,
                 "basicSeqType" to reqSeqType.basicSeqType,
-                "singleCell" to reqSeqType.singleCell,
-                "needAntibodyTarget" to reqSeqType.needAntibodyTarget,
-                "needLibPrepKit" to reqSeqType.needLibPrepKit,
+                "seqTypeOptions" to reqSeqType.seqTypeOptions,
                 "requester" to "${it.requester.fullName} (${it.requester.username})",
                 "originSubmission" to it.originSubmission.identifier,
                 "usedSubmissions" to it.usedSubmissions
@@ -151,18 +149,15 @@ class RequestedValuesController(
         @RequestParam(required = false) needAntibodyTarget: Boolean?,
         @RequestParam(required = false) singleCell: Boolean?,
     ): String {
+        val seqTypeOptions = listOf("needAntibodyTarget" to needAntibodyTarget, "singleCell" to singleCell)
+            .filter { it.second ?: false }
+            .joinToString(",") { it.first }
         val savedSeqType = seqTypeMappingService.saveSeqType(
             name = name,
             seqTypeId = null,
             basicSeqType = basicSeqType,
             ilseNames = null,
-            needAntibodyTarget = needAntibodyTarget ?: false,
-            needLibPrepKit = false,
-            singleCell = singleCell ?: false,
-            tagmentation = false,
-            lowCoverageRequestable = false,
-            isDisplayedForUser = true,
-            newSeqTypeRequest = true,
+            seqTypeOptions = "isRequested,$seqTypeOptions"
         )
         return savedSeqType.id.toString()
     }

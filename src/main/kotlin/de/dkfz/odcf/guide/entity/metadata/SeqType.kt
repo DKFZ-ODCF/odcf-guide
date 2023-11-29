@@ -1,6 +1,12 @@
 package de.dkfz.odcf.guide.entity.metadata
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.google.gson.Gson
+import de.dkfz.odcf.guide.annotation.SeqTypeOptions
+import de.dkfz.odcf.guide.helperObjects.toBool
 import javax.persistence.*
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.hasAnnotation
 
 @Entity
 class SeqType {
@@ -13,18 +19,25 @@ class SeqType {
 
     lateinit var basicSeqType: String
 
+    @SeqTypeOptions
     var singleCell: Boolean = false
 
+    @SeqTypeOptions
     var tagmentation: Boolean = false
 
+    @SeqTypeOptions
     var needAntibodyTarget: Boolean = false
 
+    @SeqTypeOptions
     var needLibPrepKit: Boolean = false
 
+    @SeqTypeOptions
     var needSampleTypeCategory: Boolean = false
 
-    var isDisplayedForUser: Boolean = true
+    @SeqTypeOptions
+    var isHiddenForUser: Boolean = false
 
+    @SeqTypeOptions
     var lowCoverageRequestable: Boolean = false
 
     var isRequested: Boolean = false
@@ -46,13 +59,16 @@ class SeqType {
     }
 
     val json: String
-        get() = "{" +
-            "\"singleCell\":$singleCell," +
-            "\"tagmentation\":$tagmentation," +
-            "\"needAntibodyTarget\":$needAntibodyTarget," +
-            "\"needLibPrepKit\":$needLibPrepKit," +
-            "\"needSampleTypeCategory\":$needSampleTypeCategory," +
-            "\"lowCoverageRequestable\":$lowCoverageRequestable," +
-            "\"isRequested\":$isRequested" +
-            "}"
+        get() {
+            val seqTypeOptions = this::class.declaredMemberProperties.filter { it.hasAnnotation<SeqTypeOptions>() }.associate {
+                it.name to it.call(this) as Boolean
+            } + mapOf("isRequested" to this.isRequested)
+            return Gson().toJson(seqTypeOptions)
+        }
+
+    @get:JsonIgnore
+    val seqTypeOptions: Map<String, Boolean>
+        get() = this::class.declaredMemberProperties.filter { it.hasAnnotation<SeqTypeOptions>() }.associate {
+            it.name to it.call(this).toString().toBool()
+        }
 }

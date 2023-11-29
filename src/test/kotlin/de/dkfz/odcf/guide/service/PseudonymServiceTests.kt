@@ -12,12 +12,13 @@ import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.*
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@SpringBootTest
+@ExtendWith(SpringExtension::class)
 class PseudonymServiceTests {
 
     private val entityFactory = EntityFactory()
@@ -53,7 +54,7 @@ class PseudonymServiceTests {
         `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
         `when`(sampleRepository.findAllByPidEndsWithAndProjectNotAndSeqType_Name(anyString(), anyString(), anyString())).thenReturn(listOf(sample1, sample2))
         `when`(externalMetadataSourceService.getSingleValue(matches("projectPrefixByProject"), anyMap())).thenReturn("")
-        `when`(externalMetadataSourceService.getSetOfMapOfValues(matches("pidsByPseudonym"), anyMap())).thenReturn(
+        `when`(externalMetadataSourceService.getValuesAsSetMap(matches("pidsByPseudonym"), anyMap())).thenReturn(
             setOf(
                 mapOf(
                     "pid" to sample1.pid,
@@ -115,7 +116,7 @@ class PseudonymServiceTests {
         `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
         `when`(sampleRepository.findAllByPidEndsWithAndProjectNotAndSeqType_Name(anyString(), anyString(), anyString())).thenReturn(listOf(sample1))
         `when`(externalMetadataSourceService.getSingleValue(matches("projectPrefixByProject"), anyMap())).thenReturn("")
-        `when`(externalMetadataSourceService.getSetOfMapOfValues(matches("pidsByPseudonym"), anyMap())).thenReturn(
+        `when`(externalMetadataSourceService.getValuesAsSetMap(matches("pidsByPseudonym"), anyMap())).thenReturn(
             setOf(
                 mapOf(
                     "pid" to sample2.pid,
@@ -159,7 +160,7 @@ class PseudonymServiceTests {
         val submission = sample.submission
 
         `when`(sampleRepository.findAllByPidEndsWithAndProjectNotAndSeqType_Name(anyString(), anyString(), anyString())).thenReturn(listOf(sample))
-        `when`(externalMetadataSourceService.getSetOfMapOfValues(matches("pidsByPseudonym"), anyMap())).thenReturn(setOf(mapOf()))
+        `when`(externalMetadataSourceService.getValuesAsSetMap(matches("pidsByPseudonym"), anyMap())).thenReturn(setOf(mapOf()))
 
         val result = pseudonymServiceMock.getSimilarPids(submission)
 

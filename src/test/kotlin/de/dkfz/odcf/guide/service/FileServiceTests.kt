@@ -18,12 +18,13 @@ import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
 import org.springframework.mock.web.MockMultipartFile
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.File
 import java.io.FileInputStream
 import java.text.SimpleDateFormat
@@ -31,7 +32,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-@SpringBootTest
+@ExtendWith(SpringExtension::class)
 class FileServiceTests {
 
     private val entityFactory = EntityFactory()

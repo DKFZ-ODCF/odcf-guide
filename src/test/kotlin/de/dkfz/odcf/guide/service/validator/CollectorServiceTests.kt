@@ -9,19 +9,18 @@ import de.dkfz.odcf.guide.service.implementation.validator.CollectorServiceImpl
 import de.dkfz.odcf.guide.service.interfaces.SeqTypeMappingService
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.security.LdapService
-import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.*
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.anyOrNull
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@SpringBootTest
-class CollectorServiceTests @Autowired constructor(private val collectorService: CollectorService) {
+@ExtendWith(SpringExtension::class)
+class CollectorServiceTests {
 
     private val entityFactory = EntityFactory()
 
@@ -123,7 +122,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         val submission = entityFactory.getApiSubmission()
         submission.identifier = "i12345"
 
-        val formattedIdentifier = collectorService.getFormattedIdentifier(submission.identifier)
+        val formattedIdentifier = collectorServiceMock.getFormattedIdentifier(submission.identifier)
 
         assertThat(formattedIdentifier).isEqualTo("S#12345")
     }
@@ -132,7 +131,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
     fun `check formatted external identifier`() {
         val id = "o000001"
 
-        val formattedIdentifier = collectorService.getFormattedIdentifier(id)
+        val formattedIdentifier = collectorServiceMock.getFormattedIdentifier(id)
 
         assertThat(formattedIdentifier).isEqualTo(id)
     }
@@ -144,7 +143,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         val submission2 = entityFactory.getApiSubmission()
         submission2.originProjects = "project2;project3"
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("projectsByPerson"), anyMap())).thenReturn(setOf("project1", "project3"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("projectsByPerson"), anyMap())).thenReturn(setOf("project1", "project3"))
         `when`(submissionRepository.findAllByOriginProjectsContains("project1")).thenReturn(listOf(submission1))
         `when`(submissionRepository.findAllByOriginProjectsContains("project2")).thenReturn(listOf(submission2))
         `when`(submissionRepository.findAllByOriginProjectsContains("project3")).thenReturn(listOf(submission2))
@@ -164,7 +163,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         val submission2 = entityFactory.getUploadSubmission()
         submission2.originProjects = "project2;project3"
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("projectsByPerson"), anyMap())).thenReturn(setOf("project1", "project3"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("projectsByPerson"), anyMap())).thenReturn(setOf("project1", "project3"))
         `when`(submissionRepository.findAllByOriginProjectsContains("project1")).thenReturn(listOf(submission1))
         `when`(submissionRepository.findAllByOriginProjectsContains("project2")).thenReturn(listOf(submission2))
         `when`(submissionRepository.findAllByOriginProjectsContains("project3")).thenReturn(listOf(submission2))
@@ -183,7 +182,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         val sample2 = entityFactory.getSample(sample1.submission)
         val samples = setOf(sample1, sample2)
 
-        `when`(externalMetadataSourceService.getSetOfMapOfValues(matches("mergingCandidatesData"), anyMap()))
+        `when`(externalMetadataSourceService.getValuesAsSetMap(matches("mergingCandidatesData"), anyMap()))
             .thenReturn(setOf(mapOf("file_withdrawn" to "false")))
 
         val result = collectorServiceMock.getSampleListEnrichedByMergingSamples(samples)
@@ -199,7 +198,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         val samples = setOf(sample1, sample2)
         val otherSample = entityFactory.getSample()
 
-        `when`(externalMetadataSourceService.getSetOfMapOfValues(matches("mergingCandidatesData"), anyMap())).thenReturn(emptySet())
+        `when`(externalMetadataSourceService.getValuesAsSetMap(matches("mergingCandidatesData"), anyMap())).thenReturn(emptySet())
         `when`(
             sampleRepository.findAllByProjectAndPidAndSampleTypeAndSeqTypeAndLibraryLayoutAndAntibodyTargetAndSubmissionNotAndSubmission_ImportedExternalIsFalse(
                 anyString(), anyString(), anyString(), anyOrNull(), anyOrNull(), anyString(), anyOrNull()
@@ -219,7 +218,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         val samples = setOf(sample1, sample2)
         val otherSample = entityFactory.getSample()
 
-        `when`(externalMetadataSourceService.getSetOfMapOfValues("mergingCandidatesData", sample1.getMergingFieldData))
+        `when`(externalMetadataSourceService.getValuesAsSetMap("mergingCandidatesData", sample1.getMergingFieldData))
             .thenReturn(setOf(mapOf("file_withdrawn" to "false")))
         `when`(
             sampleRepository.findAllByProjectAndPidAndSampleTypeAndSeqTypeAndLibraryLayoutAndAntibodyTargetAndSubmissionNotAndSubmission_ImportedExternalIsFalse(
@@ -258,7 +257,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         val otherSample2 = entityFactory.getSample(otherSample1.submission)
 
         `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(samples)
-        `when`(externalMetadataSourceService.getSetOfMapOfValues(matches("mergingCandidatesData"), anyMap()))
+        `when`(externalMetadataSourceService.getValuesAsSetMap(matches("mergingCandidatesData"), anyMap()))
             .thenReturn(setOf(mapOf("file_withdrawn" to "true")))
         `when`(
             sampleRepository.findAllByProjectAndPidAndSampleTypeAndSeqTypeAndLibraryLayoutAndAntibodyTargetAndSubmissionNotAndSubmission_ImportedExternalIsFalse(
@@ -307,7 +306,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         val submissionFinishedExternally = entityFactory.getUploadSubmission(Submission.Status.FINISHED_EXTERNALLY)
         val allSubmissions = listOf(submissionActive, submissionClosed, submissionTerminated, submissionAutoClosed, submissionFinishedExternally, submissionExported)
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("projectsByPerson"), anyMap())).thenReturn(setOf("project1"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("projectsByPerson"), anyMap())).thenReturn(setOf("project1"))
         `when`(submissionRepository.findAllByOriginProjectsContains("project1")).thenReturn(allSubmissions)
         `when`(ldapService.getPerson()).thenReturn(entityFactory.getPerson())
 
@@ -321,7 +320,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
 
     @Test
     fun `check getProjectsForAdmins`() {
-        `when`(externalMetadataSourceService.getSetOfValues("projectsWithClosed")).thenReturn(setOf("projectA(f)", "projectB(t)"))
+        `when`(externalMetadataSourceService.getValuesAsSet("projectsWithClosed")).thenReturn(setOf("projectA(f)", "projectB(t)"))
 
         val projects = collectorServiceMock.getProjectsForAdmins()
 
@@ -336,7 +335,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         submission.originProjects = "originProject"
         val sample = entityFactory.getSample(submission)
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("projects-by-person-or-organizational-unit"), anyMap())).thenReturn(setOf("projectA(f)", "projectB(t)"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("projects-by-person-or-organizational-unit"), anyMap())).thenReturn(setOf("projectA(f)", "projectB(t)"))
         `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         val projects = collectorServiceMock.getProjectsForSubmissionAndUser(submission, entityFactory.getPerson())
@@ -352,7 +351,7 @@ class CollectorServiceTests @Autowired constructor(private val collectorService:
         submission.submitter = entityFactory.getPerson()
         val sample = entityFactory.getSample(submission)
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("projects-by-person-or-organizational-unit"), anyMap())).thenReturn(setOf("projectA(f)", "projectB(t)"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("projects-by-person-or-organizational-unit"), anyMap())).thenReturn(setOf("projectA(f)", "projectB(t)"))
         `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         val result = collectorServiceMock.getImportableProjects(submission)

@@ -9,7 +9,6 @@ import de.dkfz.odcf.guide.entity.submissionData.Submission
 import de.dkfz.odcf.guide.helper.EntityFactory
 import de.dkfz.odcf.guide.service.implementation.TerminationServiceImpl
 import de.dkfz.odcf.guide.service.interfaces.FileService
-import de.dkfz.odcf.guide.service.interfaces.TerminationService
 import de.dkfz.odcf.guide.service.interfaces.mail.MailContentGeneratorService
 import de.dkfz.odcf.guide.service.interfaces.mail.MailSenderService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
@@ -17,6 +16,7 @@ import de.dkfz.odcf.guide.service.interfaces.validator.DeletionService
 import de.dkfz.odcf.guide.service.interfaces.validator.SubmissionService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito
@@ -26,14 +26,13 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.IOException
 import java.util.*
 
-@SpringBootTest
-class TerminationServiceTests @Autowired constructor(private val terminationService: TerminationService) {
+@ExtendWith(SpringExtension::class)
+class TerminationServiceTests {
 
     private val entityFactory = EntityFactory()
 

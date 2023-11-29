@@ -11,7 +11,6 @@ import de.dkfz.odcf.guide.exceptions.JsonExtractorException
 import de.dkfz.odcf.guide.exceptions.SubmissionNotFinishedException
 import de.dkfz.odcf.guide.helper.EntityFactory
 import de.dkfz.odcf.guide.service.implementation.MergingServiceImpl
-import de.dkfz.odcf.guide.service.interfaces.MergingService
 import de.dkfz.odcf.guide.service.interfaces.external.RemoteCommandsService
 import de.dkfz.odcf.guide.service.interfaces.mail.MailContentGeneratorService
 import de.dkfz.odcf.guide.service.interfaces.mail.MailSenderService
@@ -19,19 +18,19 @@ import de.dkfz.odcf.guide.service.interfaces.security.LdapService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.startsWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Spy
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.IOException
 
-@SpringBootTest
-class MergingServiceTests @Autowired constructor(private val mergingService: MergingService) {
+@ExtendWith(SpringExtension::class)
+class MergingServiceTests {
 
     private val entityFactory = EntityFactory()
 

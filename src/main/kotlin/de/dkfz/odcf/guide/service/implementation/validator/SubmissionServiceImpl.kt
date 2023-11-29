@@ -6,6 +6,7 @@ import de.dkfz.odcf.guide.SubmissionRepository
 import de.dkfz.odcf.guide.controller.metadataValidation.MetaValController
 import de.dkfz.odcf.guide.entity.submissionData.ApiSubmission
 import de.dkfz.odcf.guide.entity.submissionData.Submission
+import de.dkfz.odcf.guide.entity.submissionData.Submission.Status.*
 import de.dkfz.odcf.guide.exceptions.GuideRuntimeException
 import de.dkfz.odcf.guide.exceptions.JobAlreadySubmittedException
 import de.dkfz.odcf.guide.helperObjects.toBool
@@ -42,38 +43,38 @@ open class SubmissionServiceImpl(
         )
         submission.status = status
         when (status) {
-            Submission.Status.RESET -> {
+            RESET -> {
                 submission.lockDate = null
                 submission.lockUser = null
                 submission.closedDate = null
                 submission.closedUser = null
                 submission.removalDate = null
             }
-            Submission.Status.LOCKED -> {
+            LOCKED -> {
                 submission.lockDate = Date()
                 submission.lockUser = processedUsername
             }
-            Submission.Status.ON_HOLD -> {
+            ON_HOLD, IMPORTING -> {
                 submission.onHoldComment = stateComment ?: "no comment"
             }
-            Submission.Status.CLOSED -> {
+            CLOSED -> {
                 submission.closedDate = Date()
                 submission.closedUser = processedUsername
             }
-            Submission.Status.REMOVED_BY_ADMIN -> {
+            REMOVED_BY_ADMIN -> {
                 submission.removalDate = Date()
                 submission.removalUser = processedUsername
             }
-            Submission.Status.EXPORTED -> submission.exportDate = Date()
-            Submission.Status.TERMINATED -> submission.terminateDate = Date()
-            Submission.Status.FINISHED_EXTERNALLY -> submission.finishedExternallyDate = Date()
+            EXPORTED -> submission.exportDate = Date()
+            TERMINATED -> submission.terminateDate = Date()
+            FINISHED_EXTERNALLY -> submission.finishedExternallyDate = Date()
             else -> logger.debug("state '{}' has no further processing.", status)
         }
         submissionRepository.saveAndFlush(submission)
     }
 
     override fun finishSubmissionExternally(submission: Submission) {
-        changeSubmissionState(submission, Submission.Status.FINISHED_EXTERNALLY, null)
+        changeSubmissionState(submission, FINISHED_EXTERNALLY, null)
     }
 
     override fun setExternalDataAvailableForMerging(submission: Submission, available: Boolean, date: Date?) {
@@ -104,10 +105,10 @@ open class SubmissionServiceImpl(
     @Scheduled(fixedDelay = 1 * 60 * 1000)
     open fun setUnlockState() {
         val timeout = env.getProperty("application.timeout", "${MetaValController.LOCKED_TIMEOUT_IN_MIN}").toInt()
-        submissionRepository.findAllByStatus(Submission.Status.LOCKED).forEach {
+        submissionRepository.findAllByStatus(LOCKED).forEach {
             val diffTime = (Date().time - it.lockDate!!.time) / (60 * 1000)
             if (diffTime > timeout) {
-                changeSubmissionState(it, Submission.Status.UNLOCKED, stateComment = "lock timeout")
+                changeSubmissionState(it, UNLOCKED, stateComment = "lock timeout")
             }
         }
     }

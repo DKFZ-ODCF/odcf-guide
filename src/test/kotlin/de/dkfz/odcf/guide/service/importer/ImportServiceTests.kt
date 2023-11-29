@@ -20,6 +20,7 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.times
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.core.env.Environment
 import org.springframework.test.context.jdbc.Sql
 import javax.management.relation.RelationException
 import javax.persistence.EntityManager
@@ -44,6 +45,9 @@ class ImportServiceTests @Autowired constructor(private val importService: Impor
     @Mock
     lateinit var entityManager: EntityManager
 
+    @Mock
+    lateinit var env: Environment
+
     @Test
     @Sql("/db/migration/V1.5/V1.5.19__createSequence.sql")
     fun `When generateInternalIdentifier then return Identifier`() {
@@ -56,7 +60,7 @@ class ImportServiceTests @Autowired constructor(private val importService: Impor
     fun `When generateIlseIdentifier then return Identifier`() {
         val ilse = 123456
 
-        val identifier = importService.generateIlseIdentifier(ilse)
+        val identifier = importServiceMock.generateIlseIdentifier(ilse)
 
         assertThat(identifier).startsWith("i")
         assertThat(identifier).isEqualTo("i0$ilse")
@@ -66,7 +70,7 @@ class ImportServiceTests @Autowired constructor(private val importService: Impor
     fun `When extractTagmentationLibraryFromSampleIdentifierIfNecessary without tagmentationLibrary is string null`() {
         val sampleIdentifier = "sampleIdentifier_lib3"
 
-        val tagmentationLibrary = importService.extractTagmentationLibraryFromSampleIdentifierIfNecessary(sampleIdentifier, "null")
+        val tagmentationLibrary = importServiceMock.extractTagmentationLibraryFromSampleIdentifierIfNecessary(sampleIdentifier, "null")
 
         assertThat(tagmentationLibrary).isEqualTo("3")
     }
@@ -75,7 +79,7 @@ class ImportServiceTests @Autowired constructor(private val importService: Impor
     fun `When extractTagmentationLibraryFromSampleIdentifierIfNecessary without tagmentationLibrary is empty string`() {
         val sampleIdentifier = "sampleIdentifier_lib3"
 
-        val tagmentationLibrary = importService.extractTagmentationLibraryFromSampleIdentifierIfNecessary(sampleIdentifier, "")
+        val tagmentationLibrary = importServiceMock.extractTagmentationLibraryFromSampleIdentifierIfNecessary(sampleIdentifier, "")
 
         assertThat(tagmentationLibrary).isEqualTo("3")
     }
@@ -84,7 +88,7 @@ class ImportServiceTests @Autowired constructor(private val importService: Impor
     fun `When extractTagmentationLibraryFromSampleIdentifierIfNecessary with given tagmentationLibrary`() {
         val sampleIdentifier = "sampleIdentifier_lib3"
 
-        val tagmentationLibrary = importService.extractTagmentationLibraryFromSampleIdentifierIfNecessary(sampleIdentifier, "33")
+        val tagmentationLibrary = importServiceMock.extractTagmentationLibraryFromSampleIdentifierIfNecessary(sampleIdentifier, "33")
 
         assertThat(tagmentationLibrary).isEqualTo("33")
     }
@@ -93,7 +97,7 @@ class ImportServiceTests @Autowired constructor(private val importService: Impor
     fun `When extractTagmentationLibraryFromSampleIdentifierIfNecessary with no parsable sampleIdentifier`() {
         val sampleIdentifier = "sampleIdentifier"
 
-        val tagmentationLibrary = importService.extractTagmentationLibraryFromSampleIdentifierIfNecessary(sampleIdentifier)
+        val tagmentationLibrary = importServiceMock.extractTagmentationLibraryFromSampleIdentifierIfNecessary(sampleIdentifier)
 
         assertThat(tagmentationLibrary).isEqualTo("")
     }
@@ -188,6 +192,7 @@ class ImportServiceTests @Autowired constructor(private val importService: Impor
         val jsonReplaced = json.replace("<IDENTIFIER>", identifier).replace("<PROJECTS>", projects.sorted().joinToString())
         val ticketNumber = "123"
 
+        `when`(env.getRequiredProperty("application.mails.sendmail")).thenReturn("true")
         `when`(runtimeOptionsRepository.findByName("ticketSystemPath")).thenReturn(entityFactory.getRuntimeOption("PATH"))
         `when`(runtimeOptionsRepository.findByName("createTicketJson")).thenReturn(entityFactory.getRuntimeOption(json))
         `when`(jsonApiService.postJsonToApi("PATH", emptyMap(), jsonReplaced, ApiType.OTRS)).thenReturn("{\"TicketNumber\":\"$ticketNumber\"}")
@@ -198,12 +203,25 @@ class ImportServiceTests @Autowired constructor(private val importService: Impor
     }
 
     @Test
+    fun `Test createTicket with send mail false`() {
+        val identifier = "identifier"
+        val projects = listOf("p1", "p2")
+
+        `when`(env.getRequiredProperty("application.mails.sendmail")).thenReturn("false")
+
+        val result = importServiceMock.createTicket(identifier, projects)
+
+        assertThat(result).isEmpty()
+    }
+
+    @Test
     fun `Test createTicket with valid response json but empty project`() {
         val identifier = "identifier"
         val json = "{\"projects\":\"<PROJECTS>\",\"identifier\":\"<IDENTIFIER>\"}"
         val jsonReplaced = json.replace("<IDENTIFIER>", identifier).replace("<PROJECTS>", "No project")
         val ticketNumber = "123"
 
+        `when`(env.getRequiredProperty("application.mails.sendmail")).thenReturn("true")
         `when`(runtimeOptionsRepository.findByName("ticketSystemPath")).thenReturn(entityFactory.getRuntimeOption("PATH"))
         `when`(runtimeOptionsRepository.findByName("createTicketJson")).thenReturn(entityFactory.getRuntimeOption(json))
         `when`(jsonApiService.postJsonToApi("PATH", emptyMap(), jsonReplaced, ApiType.OTRS)).thenReturn("{\"TicketNumber\":\"$ticketNumber\"}")

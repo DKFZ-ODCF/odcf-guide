@@ -6,23 +6,22 @@ import de.dkfz.odcf.guide.entity.Feedback
 import de.dkfz.odcf.guide.helper.EntityFactory
 import de.dkfz.odcf.guide.service.implementation.FeedbackServiceImpl
 import de.dkfz.odcf.guide.service.implementation.security.LdapServiceImpl
-import de.dkfz.odcf.guide.service.interfaces.FeedbackService
 import de.dkfz.odcf.guide.service.interfaces.mail.MailSenderService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.kotlin.any
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@SpringBootTest
-class FeedbackServiceTests @Autowired constructor(private val feedbackService: FeedbackService) {
+@ExtendWith(SpringExtension::class)
+class FeedbackServiceTests {
 
     private val entityFactory = EntityFactory()
 
@@ -31,14 +30,19 @@ class FeedbackServiceTests @Autowired constructor(private val feedbackService: F
 
     @Mock
     lateinit var feedbackRepository: FeedbackRepository
+
     @Mock
     lateinit var mailService: MailSenderService
+
     @Mock
     lateinit var collectorService: CollectorService
+
     @Mock
     lateinit var ldapServiceImpl: LdapServiceImpl
+
     @Mock
     lateinit var submissionRepository: SubmissionRepository
+
     @Mock
     lateinit var env: Environment
 

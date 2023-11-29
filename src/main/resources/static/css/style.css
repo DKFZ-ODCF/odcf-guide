@@ -76,6 +76,11 @@ footer {
     margin-left: 10px;
 }
 
+.bg-guide {
+    background-color: var(--global-guide-color) !important;
+    color: white !important;
+}
+
 .nav-item {
     padding-left: 10px;
     padding-right: 10px;
@@ -355,6 +360,14 @@ footer {
     text-align: center;
 }
 
+#ratingsTable {
+    width: fit-content;
+}
+
+#ratingsTable td {
+    padding: 0.45rem 1rem;
+}
+
 input[name="smiley"] {
     -webkit-appearance: none;
     border: none;
@@ -460,7 +473,7 @@ input[type=number] {
     white-space: break-spaces;
 }
 
-.libraryPreparationKit-dropdown.selectize-dropdown, .libraryPreparationKit-dropdown.selectize-dropdown.form-control {
+.selectize-libPrepKit.selectize-dropdown, .selectize-libPrepKit.selectize-dropdown.form-control {
     max-width: 500px;
 }
 
@@ -518,4 +531,40 @@ input[type=number] {
     -ms-transform:     rotate(90deg);
     -o-transform:      rotate(90deg);
     transform:         rotate(90deg);
+}
+
+.badge.big-badge {
+    font-size: 90%;
+}
+
+.pid-suggestions,.pid-suggestions-label {
+    display: none;
+    width: 100%;
+    border: 1px solid #ccc;
+    font-size: 95%;
+}
+
+.pid-suggestions {
+    max-height: 80px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.pid-suggestions ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pid-suggestions li {
+    padding: 2px 5px 2px;
+    cursor: pointer;
+}
+
+.pid-suggestions li:nth-of-type(even) {
+    background-color: rgba(0,0,0,.05);
+}
+
+.pid-suggestions li:hover {
+    background-color: rgba(0,0,0,.1);
 }

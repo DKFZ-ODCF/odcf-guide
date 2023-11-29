@@ -1,35 +1,139 @@
-function changeSeqTypeData(seqTypeId, seqType, basicSeqType, isSingleCell, needAntibodyTarget, needLibPrepKit, tagmentation, isDisplayedForUser, importAlias) {
-    $('#seqTypeName').val(seqType);
-    $('#seqTypeId').val(seqTypeId);
-    $('#basicSeqType').val(basicSeqType);
-    $('#singleCell').attr('checked', (isSingleCell === "true"));
-    $('#needAntibodyTarget').attr('checked', (needAntibodyTarget === "true"));
-    $('#needLibPrepKit').attr('checked', (needLibPrepKit === "true"));
-    $('#tagmentation').attr('checked', (tagmentation === "true"));
-    $('#isDisplayedForUser').attr('checked', (isDisplayedForUser === "true"));
+document.addEventListener("DOMContentLoaded", function() {
+    initializeSeqTypeChangesDropdown();
+    convertAllSeqTypesTable();
+    convertRequestedSeqTypesTable();
+});
 
-    if (importAlias !== '[]') {
-        var importAliases = importAlias.replace(/[\[\]]+/g,'').split(", ");
-        for (let elem in importAliases) {
-            $('.ilseNames').eq( elem ).val(importAliases[elem]);
-            addImportAliases($('.btn-add'));
+function changeSeqTypeData(seqTypeId) {
+    $.getJSON("/get-seq-type-data", {
+        seqTypeId : seqTypeId,
+        ajax : 'true'
+    }, function(seqType) {
+        if (seqType != null) {
+            document.getElementById("seqTypeData").reset();
+            $('#seqTypeName').val(seqType.name);
+            $('#seqTypeId').val(seqType.id);
+            $('#basicSeqType').val(seqType.basicSeqType);
+
+            let ilseNamesSelectize = document.querySelector('select#ilseNames.selectized').selectize;
+            ilseNamesSelectize.clear(true);
+            seqType.importAliases.forEach(elem => ilseNamesSelectize.createItem(elem, false));
+
+            let seqTypeOptionsSelectize = document.querySelector('select#seqTypeOptions.selectized').selectize;
+            seqTypeOptionsSelectize.clear(true);
+            let seqTypeOptions = new Map(Object.entries(JSON.parse(seqType.json)));
+            seqTypeOptions.forEach((value, key) => {
+                if (value) seqTypeOptionsSelectize.addItem(key, true);
+            });
         }
-    } else {
-        $('#ilseNames').val('');
+        document.getElementById('deleteSeqType').setAttribute("onclick", `return confirm_seq_type_deletion('${seqType.name}');`);
+    });
+
+    document.getElementById('deleteSeqType').href = `/metadata-input/delete-seq-type?id=${seqTypeId}`;
+    $("#seqTypeData").get(0).scrollIntoView();
+}
+
+function initializeSeqTypeChangesDropdown() {
+    let ilseNamesDropdown = document.querySelector("select.selectize-ilseNames");
+    if (ilseNamesDropdown.selectize === undefined) {
+        $(ilseNamesDropdown).selectize({
+            plugins: ["remove_button"],
+            delimiter: ",",
+            create: true,
+            persist: false,
+            openOnFocus: false,
+            closeAfterSelect: true,
+        });
     }
 
-    $('#submitSeqType').text("Save");
-    document.getElementById('deleteSeqType').href = `/metadata-input/delete-seq-type?id=${seqTypeId}`;
-    document.getElementById('deleteSeqType').setAttribute("onclick", `return confirm_seq_type_deletion('${seqType}');`);
+    let seqTypeOptionsDropdown = document.querySelector("select.selectize-seqTypeOptions");
+    if (seqTypeOptionsDropdown.selectize === undefined) {
+        $(seqTypeOptionsDropdown).selectize({
+            plugins: ["remove_button"],
+            delimiter: ",",
+            create: false,
+            persist: false,
+            closeAfterSelect: false,
+            onInitialize: function () {
+                this.clear(true);
+                let items = this.$input.data("items")?.split(',');
+                if (items !== undefined) {
+                    if (items[0] !== "" || items[0] !== "empty") {
+                        for (let i = 0; i < items.length; i++) {
+                            this.addItem(items[i], true);
+                        }
+                    }
+                }
+            },
+        });
+    }
+}
 
-    $("#seqTypeData").get(0).scrollIntoView();
+function convertAllSeqTypesTable() {
+    $("#allSeqTypes-table").DataTable({
+        "dom": '<"row justify-content align-items-end"<"col text-right"iPf>>t',
+        "paging": false,
+        "ordering": true,
+        "order": [0, 'asc'],
+        "info": true,
+        "searching": true,
+        "ajax": "/admin/sequencing-type/get-seq-types",
+        "columns": [
+            { data: "name" },
+            {
+                data: "importAliases",
+                render: function (data) {
+                    let render = "";
+                    data.forEach( elem => render += `<span class="badge badge-dark mr-1 big-badge">${elem}</span>` );
+                    return render;
+                }
+            },
+            { data: "basicSeqType" },
+            {
+                data: "seqTypeOptions",
+                render: function (data) {
+                    let render = "";
+                    const seqTypeOptions = new Map(Object.entries(data));
+                    seqTypeOptions.forEach((value, key) => {
+                        key = key.replace("!", '<i class="fas fa-times"></i> ');
+                        if (value) render += `<span class="badge badge-info mr-1 big-badge">${key}</span>`;
+                    });
+                    return render;
+                }
+            },
+            {
+                data: "id",
+                render: function (data) {
+                    return `<a class="far fa-edit cursor-pointer" onclick="changeSeqTypeData(${data})"></a>`;
+                }
+            },
+        ],
+        "columnDefs": [
+            {
+                searchable: false,
+                orderable: false,
+                targets: 'not-sortable'
+            },
+            {
+                className: "text-center",
+                targets: [2, 4]
+            }
+        ],
+        "language": {
+            "emptyTable": "No data available in table",
+            "infoFiltered": "(from _MAX_ total seqTypes)",
+            "info": "_TOTAL_ seqType(s) found",
+            "infoEmpty": "No seqTypes found",
+            "thousands": "."
+        },
+    });
 }
 
 function confirm_seq_type_deletion(name) {
     return confirm("DELETE seq type '"+name+"'?");
 }
 
-document.addEventListener("DOMContentLoaded", function(event) {
+function convertRequestedSeqTypesTable() {
     $('#requested-seq-types').DataTable({
         "paging": false,
         "ordering": true,
@@ -41,24 +145,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
             { data: "seqTypeName" },
             { data: "basicSeqType" },
             {
-                data: "singleCell",
+                data: "seqTypeOptions",
                 render: function (data) {
-                    if (data) return `<i class="fas fa-check text-success"></i>`;
-                    return `<i class="fas fa-times text-danger"></i>`;
-                }
-            },
-            {
-                data: "needAntibodyTarget",
-                render: function (data) {
-                    if (data) return `<i class="fas fa-check text-success"></i>`;
-                    return `<i class="fas fa-times text-danger"></i>`;
-                }
-            },
-            {
-                data: "needLibPrepKit",
-                render: function (data) {
-                    if (data) return `<i class="fas fa-check text-success"></i>`;
-                    return `<i class="fas fa-times text-danger"></i>`;
+                    let render = "";
+                    const seqTypeOptions = new Map(Object.entries(data));
+                    seqTypeOptions.forEach((value, key) => {
+                        if (value) render += `<span class="badge badge-info mr-1 big-badge">${key}</span>`;
+                    });
+                    return render;
                 }
             },
             { data: "requester" },
@@ -88,4 +182,4 @@ document.addEventListener("DOMContentLoaded", function(event) {
             }
         ],
     });
-});
+}

@@ -1,11 +1,15 @@
 package de.dkfz.odcf.guide.service.implementation
 
 import de.dkfz.odcf.guide.SeqTypeRepository
+import de.dkfz.odcf.guide.annotation.SeqTypeOptions
 import de.dkfz.odcf.guide.entity.metadata.SeqType
 import de.dkfz.odcf.guide.exceptions.DuplicatedImportAliasException
 import de.dkfz.odcf.guide.service.interfaces.SeqTypeMappingService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.hasAnnotation
 
 @Service
 open class SeqTypeMappingServiceImpl(
@@ -23,23 +27,17 @@ open class SeqTypeMappingServiceImpl(
         seqTypeId: Int?,
         basicSeqType: String,
         ilseNames: String?,
-        needAntibodyTarget: Boolean,
-        needLibPrepKit: Boolean,
-        singleCell: Boolean,
-        tagmentation: Boolean,
-        lowCoverageRequestable: Boolean,
-        isDisplayedForUser: Boolean,
-        newSeqTypeRequest: Boolean,
+        seqTypeOptions: String?
     ): SeqType {
         val seqType = seqTypeId?.let { seqTypeRepository.getOne(it) } ?: SeqType()
 
         seqType.name = name
         seqType.basicSeqType = basicSeqType
-        seqType.needAntibodyTarget = needAntibodyTarget
-        seqType.needLibPrepKit = needLibPrepKit
-        seqType.lowCoverageRequestable = lowCoverageRequestable
-        seqType.isDisplayedForUser = isDisplayedForUser
-        seqType.isRequested = newSeqTypeRequest
+
+        SeqType::class.declaredMemberProperties.filterIsInstance<KMutableProperty<*>>()
+            .filter { it.hasAnnotation<SeqTypeOptions>() }.forEach {
+                it.setter.call(seqType, seqTypeOptions?.contains(it.name))
+            }
 
         val importAliases = ilseNames?.trim(',')
         if (!importAliases.isNullOrBlank()) {
@@ -51,9 +49,6 @@ open class SeqTypeMappingServiceImpl(
             }
             seqType.setImportAliases(importAliases)
         } else seqType.importAliases = null
-
-        seqType.singleCell = singleCell
-        seqType.tagmentation = tagmentation
 
         seqTypeRepository.save(seqType)
         return seqType

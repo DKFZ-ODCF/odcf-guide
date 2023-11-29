@@ -1,21 +1,20 @@
 package de.dkfz.odcf.guide.service
 
+import com.fasterxml.jackson.core.type.TypeReference
 import de.dkfz.odcf.guide.service.implementation.external.ExternalMetadataSourceServiceImpl
-import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.external.JsonApiService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.doReturn
 import org.mockito.Spy
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@SpringBootTest
-class ExternalMetadataSourceServiceTests @Autowired constructor(private val externalMetadataSourceService: ExternalMetadataSourceService) {
+@ExtendWith(SpringExtension::class)
+class ExternalMetadataSourceServiceTests {
 
     @InjectMocks
     @Spy
@@ -55,7 +54,7 @@ class ExternalMetadataSourceServiceTests @Autowired constructor(private val exte
 
         doReturn(value).`when`(externalMetadataSourceServiceMock).getJsonFromApi("method-name")
 
-        val result = externalMetadataSourceServiceMock.getSetOfValues("methodName")
+        val result = externalMetadataSourceServiceMock.getValuesAsSet("methodName")
 
         assertThat(result).hasSize(3)
         assertThat(result).contains("a")
@@ -75,7 +74,7 @@ class ExternalMetadataSourceServiceTests @Autowired constructor(private val exte
 
         doReturn(value).`when`(externalMetadataSourceServiceMock).getJsonFromApi("method-name")
 
-        val result = externalMetadataSourceServiceMock.getSetOfMapOfValues("methodName")
+        val result = externalMetadataSourceServiceMock.getValuesAsSetMap("methodName")
 
         assertThat(result).hasSize(1)
         assertThat(result.first()).hasSize(3)
@@ -83,5 +82,25 @@ class ExternalMetadataSourceServiceTests @Autowired constructor(private val exte
         assertThat(result.first().entries.first().value).contains("a1")
         assertThat(result.first().entries.last().key).contains("c")
         assertThat(result.first().entries.last().value).contains("c1")
+    }
+
+    @Test
+    fun `test get values`() {
+        val value = """{
+            "a":"a1",
+            "b":"b1",
+            "c":"c1"
+        }"""
+
+        doReturn(value).`when`(externalMetadataSourceServiceMock).getJsonFromApi("method-name")
+
+        val result = externalMetadataSourceServiceMock.getValues("methodName", typeReference = object : TypeReference<Map<String, String>>() {})
+
+        assertThat(result).hasSize(3)
+        assertThat(result::class.java).isEqualTo(LinkedHashMap::class.java)
+        assertThat(result.entries.first().key).contains("a")
+        assertThat(result.entries.first().value).contains("a1")
+        assertThat(result.entries.last().key).contains("c")
+        assertThat(result.entries.last().value).contains("c1")
     }
 }

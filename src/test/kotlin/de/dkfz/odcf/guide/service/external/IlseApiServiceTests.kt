@@ -6,24 +6,25 @@ import de.dkfz.odcf.guide.entity.submissionData.ImportSourceData
 import de.dkfz.odcf.guide.exceptions.ExternalApiReadException
 import de.dkfz.odcf.guide.helper.EntityFactory
 import de.dkfz.odcf.guide.service.implementation.external.IlseApiServiceImpl
-import de.dkfz.odcf.guide.service.interfaces.external.IlseApiService
 import de.dkfz.odcf.guide.service.interfaces.external.JsonApiService
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.any
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.doReturn
 import org.mockito.Spy
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.File
 
-@SpringBootTest
-class IlseApiServiceTests @Autowired constructor(val ilseService: IlseApiService) {
+@ExtendWith(SpringExtension::class)
+class IlseApiServiceTests {
 
     private val entityFactory = EntityFactory()
 

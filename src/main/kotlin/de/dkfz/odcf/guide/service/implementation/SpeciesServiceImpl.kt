@@ -10,12 +10,12 @@ class SpeciesServiceImpl(
 ) : SpeciesService {
 
     override fun getSpeciesForImport(): List<String> {
-        return externalMetadataSourceService.getSetOfMapOfValues("speciesInfos").filter { hasNoStrain(it) }.mapNotNull { it["species"] }
+        return externalMetadataSourceService.getValuesAsSetMap("speciesInfos").filter { hasNoStrain(it) }.mapNotNull { it["species"] }
     }
 
     override fun getSpeciesWithStrainForSpecies(species: String): String {
         val speciesList = species.split("+").map { it.trim() }
-        val speciesFromOtp = externalMetadataSourceService.getSetOfMapOfValues("speciesInfos")
+        val speciesFromOtp = externalMetadataSourceService.getValuesAsSetMap("speciesInfos")
         val mappedSpecies = speciesList.mapNotNull { speciesElement ->
             speciesFromOtp.find {
                 it["species_with_strain"] == speciesElement || (it["species"] == speciesElement && hasNoStrain(it))

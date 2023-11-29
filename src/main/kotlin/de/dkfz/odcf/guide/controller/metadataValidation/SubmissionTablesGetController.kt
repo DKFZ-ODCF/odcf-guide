@@ -1,5 +1,6 @@
 package de.dkfz.odcf.guide.controller.metadataValidation
 
+import com.fasterxml.jackson.core.type.TypeReference
 import de.dkfz.odcf.guide.*
 import de.dkfz.odcf.guide.controller.metadataValidation.MetaValController.Companion.EXTENDED_READ_ONLY
 import de.dkfz.odcf.guide.controller.metadataValidation.MetaValController.Companion.SIMPLE_READ_ONLY
@@ -107,14 +108,11 @@ class SubmissionTablesGetController(
         if (submission.isFinished) {
             val additional = mapOf("header" to "Finally submitted.")
             return redirectReadOnlyPage(submission, redirectAttributes, additional, extendedPage)
-        } else if (submission.isOnHold) {
+        } else if (submission.isPaused) {
             val additional = mapOf(
                 "header" to "Submission is in status " + submission.status +
                     (" with the comment: ['${submission.onHoldComment}']".takeUnless { submission.onHoldComment.isBlank() } ?: "") + "."
             )
-            return redirectReadOnlyPage(submission, redirectAttributes, additional, extendedPage)
-        } else if (submission.isOnHold) {
-            val additional = mapOf("header" to "Submission is on hold with comment: ['${submission.onHoldComment}']")
             return redirectReadOnlyPage(submission, redirectAttributes, additional, extendedPage)
         } else if (backAndEdit) {
             submissionService.changeSubmissionState(submission, Submission.Status.EDITED, ldapService.getPerson().username)
@@ -267,11 +265,11 @@ class SubmissionTablesGetController(
         model["columns"] = ExtendedPage.values()
         model["readNumbers"] = listOf("1", "2", "i1", "i2", "I1", "I2")
         model["libLayouts"] = listOf("PAIRED", "SINGLE")
-        model["centers"] = externalMetadataSourceService.getSetOfValues("centers")
+        model["centers"] = externalMetadataSourceService.getValuesAsSet("centers")
             .plus(requestedValueService.getRequestedValuesForUserAndFieldNameAndSubmission("center", submission))
-        model["pipelines"] = externalMetadataSourceService.getSetOfValues("pipelines")
+        model["pipelines"] = externalMetadataSourceService.getValuesAsSet("pipelines")
             .plus(requestedValueService.getRequestedValuesForUserAndFieldNameAndSubmission("pipelineVersion", submission))
-        val seqKitInfos = externalMetadataSourceService.getSetOfValues("instrument-model-with-sequencing-kits")
+        val seqKitInfos = externalMetadataSourceService.getValuesAsSet("instrument-model-with-sequencing-kits")
         model["instrumentModels"] = seqKitInfos.map { it.replace("[]", "").trim() }.toSet().sorted()
             .plus(requestedValueService.getRequestedValuesForUserAndFieldNameAndSubmission("instrumentModelWithSequencingKit", submission))
         model["files"] = sampleRepository.findAllBySubmissionOrderById(submission)
@@ -303,20 +301,26 @@ class SubmissionTablesGetController(
         model["projects"] = availableProjects.sorted()
         model["projectPrefixes"] = projectPrefixMapping
         val seqTypes = seqTypeRepository.findAllByIsRequestedIsFalseOrderByNameAsc().toMutableList()
+        if (submission.ownTransfer) {
+            seqTypes.forEach {
+                it.needLibPrepKit = false
+                it.needSampleTypeCategory = false
+            }
+        }
         val requestedSeqTypes = requestedValueService.getRequestedSeqTypesForUserAndSubmission(submission)
         seqTypes.addAll(requestedSeqTypes)
-        model["groupedSeqTypes"] = seqTypes.filter { it.isDisplayedForUser }
+        model["groupedSeqTypes"] = seqTypes.filterNot { it.isHiddenForUser }
             .groupBy { seqType -> "${seqType.basicSeqType} ${"single cell".takeIf { seqType.singleCell }.orEmpty()}".trim() }
             .toSortedMap()
         model["basicSeqTypes"] = seqTypes.map { it.basicSeqType }.toSet()
         model["sexTypes"] = Sample.Sex.values()
-        model["speciesMap"] = externalMetadataSourceService.getSetOfMapOfValues("speciesInfos").sortedBy { it["species_with_strain"] }.groupBy({ it["species"] }, { it["species_with_strain"] })
+        model["speciesMap"] = externalMetadataSourceService.getValuesAsSetMap("speciesInfos").sortedBy { it["species_with_strain"] }.groupBy({ it["species"] }, { it["species_with_strain"] })
             .plus(("Approval pending" to requestedValueService.getRequestedValuesForUserAndFieldNameAndSubmission("speciesWithStrain", submission)))
-        model["strainList"] = externalMetadataSourceService.getSetOfValues("strains")
-        model["antibodyTargets"] = externalMetadataSourceService.getSetOfValues("antibodyTargets")
+        model["strainList"] = externalMetadataSourceService.getValuesAsSet("strains")
+        model["antibodyTargets"] = externalMetadataSourceService.getValuesAsSet("antibodyTargets")
             .plus(requestedValueService.getRequestedValuesForUserAndFieldNameAndSubmission("antibodyTarget", submission))
-        model["libraryPreparationKits"] = externalMetadataSourceService.getSetOfValues("libraryPreparationKits")
-            .plus(requestedValueService.getRequestedValuesForUserAndFieldNameAndSubmission("libraryPreparationKit", submission))
+        model["libPrepKitsWithAdapterSequences"] = externalMetadataSourceService.getValues("lib-prep-kits-with-adapter-sequences", typeReference = object : TypeReference<Map<String, String>>() {})
+            .plus(requestedValueService.getRequestedValuesForUserAndFieldNameAndSubmission("libraryPreparationKit", submission).associateWith { "" }.toList())
         model["submission"] = submission
         model["identifier"] = collectorService.getFormattedIdentifier(submission.identifier)
         model["seqTypesWithAntibodyTarget"] = seqTypeRepository.findAllByNeedAntibodyTargetIsTrue()

@@ -82,6 +82,9 @@ function initSelectizeWithRequestOption() {
  */
 function processNewValueSimilarity(newValue, fieldName, selectizeObject) {
     let selector = 'select.selectize-request.selectized[data-fieldName = ' + fieldName + ']';
+    if (fieldName === "libraryPreparationKit") {
+        selector = 'select.selectize-libPrepKit.selectized';
+    }
 
     $.getJSON("/new-value-similarity-check", {
         newValue: newValue,

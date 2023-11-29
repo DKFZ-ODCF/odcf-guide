@@ -8,27 +8,26 @@ import de.dkfz.odcf.guide.helper.AnyObject
 import de.dkfz.odcf.guide.helper.EntityFactory
 import de.dkfz.odcf.guide.service.implementation.mail.MailContentGeneratorServiceImpl
 import de.dkfz.odcf.guide.service.interfaces.UrlGeneratorService
-import de.dkfz.odcf.guide.service.interfaces.mail.MailContentGeneratorService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-@SpringBootTest
-class MailContentGeneratorServiceTests @Autowired constructor(private val mailContentGeneratorService: MailContentGeneratorService) : AnyObject {
+@ExtendWith(SpringExtension::class)
+class MailContentGeneratorServiceTests : AnyObject {
 
     private val entityFactory = EntityFactory()
 

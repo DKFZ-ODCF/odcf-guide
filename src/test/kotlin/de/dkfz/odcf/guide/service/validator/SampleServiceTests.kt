@@ -15,13 +15,14 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.*
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@SpringBootTest
+@ExtendWith(SpringExtension::class)
 class SampleServiceTests {
 
     private val entityFactory = EntityFactory()
@@ -95,7 +96,7 @@ class SampleServiceTests {
             )
         )
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
         `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
 
         val errors = sampleServiceMock.validateSample(sample, validationLevel)
@@ -109,7 +110,7 @@ class SampleServiceTests {
         sample.pid += "$$$"
         val validationLevel = entityFactory.getValidationLevel("pid")
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
         `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
 
         val errors = sampleServiceMock.validateSample(sample, validationLevel)
@@ -124,7 +125,7 @@ class SampleServiceTests {
         sample.pid = ""
         val validationLevel = entityFactory.getValidationLevel("pid")
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
         `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
 
         val errors = sampleServiceMock.validateSample(sample, validationLevel)
@@ -139,7 +140,7 @@ class SampleServiceTests {
         sample.sampleType = "sampleType"
         val validationLevel = entityFactory.getValidationLevel("sampleType")
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
         `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
         `when`(validationRepository.findByField("sampleType")).thenReturn(entityFactory.getValidation(regex = "^[a-z0-9+-]*[0-9]+$"))
         `when`(validationRepository.findByField("oldSampleType")).thenReturn(entityFactory.getValidation(regex = "^[a-z0-9+-]+$"))
@@ -156,7 +157,7 @@ class SampleServiceTests {
         sample.sampleType = "sample-type"
         val validationLevel = entityFactory.getValidationLevel("sampleType")
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType", "sampleType"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType", "sampleType"))
         `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
         `when`(validationRepository.findByField("sampleType")).thenReturn(entityFactory.getValidation(regex = "^[a-z0-9+-]*[0-9]+$"))
 
@@ -171,7 +172,7 @@ class SampleServiceTests {
         sample.seqType = null
         val validationLevel = entityFactory.getValidationLevel("seqType")
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
         `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
 
         val errors = sampleServiceMock.validateSample(sample, validationLevel)
@@ -186,7 +187,7 @@ class SampleServiceTests {
         sample.seqType = entityFactory.getSingleCellSeqType()
         val validationLevel = entityFactory.getValidationLevel("seqType")
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
         `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
 
         val errors = sampleServiceMock.validateSample(sample, validationLevel)
@@ -200,7 +201,7 @@ class SampleServiceTests {
         sample.seqType = entityFactory.getTagmentationCellSeqType()
         val validationLevel = entityFactory.getValidationLevel("seqType")
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
         `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
 
         val errors = sampleServiceMock.validateSample(sample, validationLevel)
@@ -214,7 +215,7 @@ class SampleServiceTests {
         val sample1 = entityFactory.getSampleGuiDto()
         val validationLevel = entityFactory.getValidationLevel()
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
         `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
 
         val errors = sampleServiceMock.validateSamples(listOf(sample, sample1), validationLevel)
@@ -229,7 +230,7 @@ class SampleServiceTests {
         sample.pid += "$$$"
         val validationLevel = entityFactory.getValidationLevel("pid")
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
         `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
 
         val errors = sampleServiceMock.validateSamples(listOf(sample, sample1), validationLevel)
@@ -246,7 +247,7 @@ class SampleServiceTests {
         sample.id = 0 // samples with proceed=false have id=0
         val validationLevel = entityFactory.getValidationLevel("pid")
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
         `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
 
         val errors = sampleServiceMock.validateSamples(listOf(sample, sample1), validationLevel)
@@ -260,7 +261,7 @@ class SampleServiceTests {
         sample.technicalSample = entityFactory.getTechnicalSample()
         val validationLevel = entityFactory.getValidationLevel(listOf("readCount", "barcode", "externalSubmissionId", "lane"))
 
-        `when`(externalMetadataSourceService.getSetOfValues(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("sampleTypesByProject"), anyMap())).thenReturn(setOf("sampleType01", "sampleType02"))
         `when`(validationRepository.findByField(ArgumentMatchers.anyString())).thenReturn(entityFactory.getValidation())
 
         val errors = sampleServiceMock.validateSample(sample, validationLevel)

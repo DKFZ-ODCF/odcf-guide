@@ -78,6 +78,8 @@ function generateTable(tableName, data) {
 
 function getStateIcon(state) {
     switch(state) {
+        case 'IMPORTING':
+            return '<i title="' + state + '" class="fa-solid fa-cloud-arrow-up"></i>';
         case 'IMPORTED':
             return '<i title="' + state + '" class="fas fa-file-import"></i>';
         case 'RESET':

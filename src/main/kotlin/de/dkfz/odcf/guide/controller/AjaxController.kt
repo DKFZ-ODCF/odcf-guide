@@ -1,6 +1,7 @@
 package de.dkfz.odcf.guide.controller
 
 import de.dkfz.odcf.guide.*
+import de.dkfz.odcf.guide.entity.metadata.SeqType
 import de.dkfz.odcf.guide.entity.submissionData.ApiSubmission
 import de.dkfz.odcf.guide.exceptions.UserNotFoundException
 import de.dkfz.odcf.guide.service.interfaces.*
@@ -68,8 +69,8 @@ class AjaxController(
         @RequestParam requestedField: String
     ): Set<String> {
         when (requestedField) {
-            "sample-types" -> return externalMetadataSourceService.getSetOfValues("sampleTypesByProject", mapOf("project" to projectName))
-            "seq-types" -> return externalMetadataSourceService.getSetOfValues("seqTypesByProject", mapOf("project" to projectName))
+            "sample-types" -> return externalMetadataSourceService.getValuesAsSet("sampleTypesByProject", mapOf("project" to projectName))
+            "seq-types" -> return externalMetadataSourceService.getValuesAsSet("seqTypesByProject", mapOf("project" to projectName))
             "project-prefix" -> return setOf(externalMetadataSourceService.getSingleValue("projectPrefixByProject", mapOf("project" to projectName)))
         }
         throw InvalidParameterException("Parameter 'requestedField' must be either sampletypes or seqtypes")
@@ -81,6 +82,14 @@ class AjaxController(
         @RequestParam("projectName") projectName: String,
     ): Boolean {
         return parserRepository.findByProject(projectName) != null
+    }
+
+    @GetMapping("/get-seq-type-data")
+    @ResponseBody
+    fun getSeqTypeData(
+        @RequestParam("seqTypeId") seqTypeId: Int,
+    ): SeqType? {
+        return seqTypeRepository.findById(seqTypeId).orElse(null)
     }
 
     @GetMapping("/get-species-otp-validity")
@@ -95,7 +104,7 @@ class AjaxController(
             return true
         }
         val speciesFromPidOtp = externalMetadataSourceService.getSingleValue("speciesFromPid", mapOf("pid" to pid))
-        val speciesListFromSampleOtp = externalMetadataSourceService.getSetOfValues(
+        val speciesListFromSampleOtp = externalMetadataSourceService.getValuesAsSet(
             "speciesListFromSample", mapOf("pid" to pid, "sampleType" to sampleType)
         ).plus(speciesFromPidOtp).filter { it.isNotBlank() }.toSet()
         val speciesOfProject = externalMetadataSourceService.getSingleValue("speciesForProject", mapOf("project" to project))
@@ -107,7 +116,7 @@ class AjaxController(
     @GetMapping("/new-species-similarity-check")
     @ResponseBody
     fun newSpeciesSimilarityCheck(@RequestParam newSpecies: String): Map<String, String> {
-        val speciesFromOtp = externalMetadataSourceService.getSetOfMapOfValues("speciesInfos").mapNotNull { it["species_with_strain"] }.toSet()
+        val speciesFromOtp = externalMetadataSourceService.getValuesAsSetMap("speciesInfos").mapNotNull { it["species_with_strain"] }.toSet()
             .plus(fieldRequestedValuesRepository.findByFieldName("speciesWithStrain").filter { !it.isFinished }.map { it.requestedValue + " (Approval pending)" }.toSet())
         return checkSimilarity(speciesFromOtp, newSpecies.removeSuffix("(ReqVal)"), true)
     }
@@ -127,7 +136,7 @@ class AjaxController(
     ): Map<String, String> {
         val lookupName = if (fieldName == "pipelineVersion") "pipelines" else fieldName + "s"
 
-        val alreadyExistingValues = externalMetadataSourceService.getSetOfValues(lookupName)
+        val alreadyExistingValues = externalMetadataSourceService.getValuesAsSet(lookupName)
             .map { if (fieldName == "instrumentModelWithSequencingKit") it.replace("[]", "").trim() else it }.toSet()
             .plus(fieldRequestedValuesRepository.findByFieldName(fieldName).filter { !it.isFinished }.map { it.requestedValue + " (Approval pending)" }.toSet())
 
@@ -283,5 +292,23 @@ class AjaxController(
         @RequestParam methodParams: Map<String, String>,
     ): String {
         return externalMetadataSourceService.getSingleValue(methodName, methodParams)
+    }
+
+    @GetMapping("/get-similar-pids")
+    @ResponseBody
+    fun getSimilarPids(
+        @RequestParam pid: String,
+        @RequestParam project: String,
+    ): String {
+        val similarPids = externalMetadataSourceService.getValuesAsSetMap(
+            "similar-pids",
+            mapOf(
+                "project" to project,
+                "pid" to pid,
+                "threshold" to "0.3",
+                "limit" to "10",
+            )
+        )
+        return similarPids.sortedByDescending { it["similarity_num"] }.map { it["pid"] }.joinToString(",")
     }
 }

@@ -17,6 +17,24 @@
         <h2 class="mt-3" th:text="#{feedback.overview}"></h2>
         <span th:text="#{feedback.average}" th:title="#{feedback.averageToolTip}" class="mr-1"></span>
         <span th:class="${ratingStyle}" th:text="#{'feedback.'+${averageRating}}"></span>
+        <table class="table table-sm table-bordered table-striped text-center mt-3" id="ratingsTable">
+            <tr>
+                <th></th>
+                <th th:each="year: ${ratingMap}" th:text="${year.key}"></th>
+            </tr>
+            <tr>
+                <td th:text="#{feedback.happy}"></td>
+                <td th:each="year: ${ratingMap}" th:text="${year.value['HAPPY']}"></td>
+            </tr>
+            <tr>
+                <td th:text="#{feedback.neutral}"></td>
+                <td th:each="year: ${ratingMap}" th:text="${year.value['NEUTRAL']}"></td>
+            </tr>
+            <tr>
+                <td th:text="#{feedback.sad}"></td>
+                <td th:each="year: ${ratingMap}" th:text="${year.value['SAD']}"></td>
+            </tr>
+        </table>
         <table class="table table-sm table-striped" style="width:100%" id="feedbackTable">
             <thead class="thead-blue">
                 <tr>

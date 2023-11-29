@@ -14,6 +14,7 @@ function newRow() {
     initSelectizeProject();
     initSelectizeWithRequestOption();
     initSelectizeGeneral();
+    initSelectizeLibPrepKit();
     initSelectizeSeqType();
     initSelectizeSpecies();
 }

@@ -2,20 +2,19 @@ package de.dkfz.odcf.guide.service
 
 import de.dkfz.odcf.guide.helper.AnyObject
 import de.dkfz.odcf.guide.service.implementation.SpeciesServiceImpl
-import de.dkfz.odcf.guide.service.interfaces.SpeciesService
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@SpringBootTest
-class SpeciesServiceTests @Autowired constructor(private val speciesService: SpeciesService) : AnyObject {
+@ExtendWith(SpringExtension::class)
+class SpeciesServiceTests : AnyObject {
 
     @InjectMocks
     lateinit var speciesServiceMock: SpeciesServiceImpl
@@ -25,7 +24,7 @@ class SpeciesServiceTests @Autowired constructor(private val speciesService: Spe
 
     @Test
     fun `check getSpeciesForImport`() {
-        `when`(externalMetadataSourceService.getSetOfMapOfValues("speciesInfos")).thenReturn(
+        `when`(externalMetadataSourceService.getValuesAsSetMap("speciesInfos")).thenReturn(
             setOf(
                 mapOf(
                     "species" to "Human (Homo sapiens)",
@@ -62,7 +61,7 @@ class SpeciesServiceTests @Autowired constructor(private val speciesService: Spe
         "Rat (Rattus norvegicus)" to "Rat (Rattus norvegicus)",
     ).map { (input, expected) ->
         DynamicTest.dynamicTest("when getSpeciesWithStrainForSpecies with $input then return $expected") {
-            `when`(externalMetadataSourceService.getSetOfMapOfValues("speciesInfos")).thenReturn(
+            `when`(externalMetadataSourceService.getValuesAsSetMap("speciesInfos")).thenReturn(
                 setOf(
                     mapOf(
                         "species" to "Human (Homo sapiens)",

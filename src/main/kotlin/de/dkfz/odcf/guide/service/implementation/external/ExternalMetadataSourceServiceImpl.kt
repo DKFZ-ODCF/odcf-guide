@@ -17,11 +17,13 @@ class ExternalMetadataSourceServiceImpl(
 ) : ExternalMetadataSourceService {
 
     /**
-     * Get the metadata from an external source. The URL is defined in the application.properties file.
+     * This method sends a GET request to an external API endpoint to retrieve JSON content.
+     * The URL and headers are constructed using the properties defined in the application.properties file and the specified `urlSuffix`.
      * The maximum file size is 10MB.
+     * If an exception occurs during the retrieval, including when the response content is empty, an empty string is returned.
      *
-     * @param urlSuffix the name of the metadata to be retrieved
-     * @return The metadata as a JSON string
+     * @param urlSuffix the name of the metadata to be retrieved.
+     * @return The metadata as a JSON string.
      */
     fun getJsonFromApi(urlSuffix: String): String {
         val url = "${env.getRequiredProperty("externalMetadataSourceService.adapter.url")}/rest/otp/$urlSuffix"
@@ -40,15 +42,17 @@ class ExternalMetadataSourceServiceImpl(
         return getJsonFromApi(methodName.toKebabCase() + "?$paramString".takeIf { paramString.isNotBlank() }.orEmpty())
     }
 
-    override fun getSetOfValues(methodName: String, params: Map<String, String>): Set<String> {
-        val json = getSingleValue(methodName.toKebabCase(), params)
-        val objectMapper = ObjectMapper()
-        return objectMapper.readValue(json, object : TypeReference<Set<String>>() {}).sorted().toSet()
+    override fun getValuesAsSet(methodName: String, params: Map<String, String>): Set<String> {
+        return getValues(methodName, params, object : TypeReference<List<String>>() {}).sorted().toSet()
     }
 
-    override fun getSetOfMapOfValues(methodName: String, params: Map<String, String>): Set<Map<String, String>> {
+    override fun getValuesAsSetMap(methodName: String, params: Map<String, String>): Set<Map<String, String>> {
+        return getValues(methodName, params, object : TypeReference<Set<Map<String, String>>>() {})
+    }
+
+    override fun <R> getValues(methodName: String, params: Map<String, String>, typeReference: TypeReference<R>): R {
         val json = getSingleValue(methodName.toKebabCase(), params)
         val objectMapper = ObjectMapper()
-        return objectMapper.readValue(json, object : TypeReference<Set<Map<String, String>>>() {})
+        return objectMapper.readValue(json, typeReference)
     }
 }

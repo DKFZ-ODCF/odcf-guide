@@ -6,18 +6,18 @@ import de.dkfz.odcf.guide.service.interfaces.security.LdapService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
 /* NOTE:
- * only gui getter so test is not that much important (only for coverage)
+ * only gui getter so test is not that important (only for coverage)
  * also we have to lookup if the whole service can be removed
  */
-@SpringBootTest
-class ThymeleafServiceTests @Autowired constructor(private val thymeleafService: ThymeleafService) {
+@ExtendWith(SpringExtension::class)
+class ThymeleafServiceTests {
 
     private val entityFactory = EntityFactory()
 

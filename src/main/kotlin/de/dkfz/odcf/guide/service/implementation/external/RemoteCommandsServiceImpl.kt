@@ -1,5 +1,6 @@
 package de.dkfz.odcf.guide.service.implementation.external
 
+import de.dkfz.odcf.guide.annotation.ExcludeFromJacocoGeneratedReport
 import de.dkfz.odcf.guide.service.interfaces.external.RemoteCommandsService
 import net.schmizz.sshj.SSHClient
 import net.schmizz.sshj.common.IOUtils
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit
 class RemoteCommandsServiceImpl(private val env: Environment) : RemoteCommandsService {
 
     @Throws(IOException::class)
+    @ExcludeFromJacocoGeneratedReport
     override fun getSshClient(): SSHClient {
         val client = SSHClient()
         client.addHostKeyVerifier(env.getRequiredProperty("application.ssh.fingerprint"))
@@ -21,6 +23,7 @@ class RemoteCommandsServiceImpl(private val env: Environment) : RemoteCommandsSe
     }
 
     @Throws(IOException::class)
+    @ExcludeFromJacocoGeneratedReport
     override fun runCmd(sshClient: SSHClient, command: String): String {
         var response: String
 
@@ -33,6 +36,7 @@ class RemoteCommandsServiceImpl(private val env: Environment) : RemoteCommandsSe
     }
 
     @Throws(IOException::class)
+    @ExcludeFromJacocoGeneratedReport
     override fun getFromRemote(command: String): String {
         val client = getSshClient()
         val response = runCmd(client, command)

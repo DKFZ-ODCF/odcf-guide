@@ -16,7 +16,6 @@ import de.dkfz.odcf.guide.service.interfaces.SequencingTechnologyService
 import de.dkfz.odcf.guide.service.interfaces.SpeciesService
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.external.IlseApiService
-import de.dkfz.odcf.guide.service.interfaces.importer.IlseImportService
 import de.dkfz.odcf.guide.service.interfaces.importer.ImportService
 import de.dkfz.odcf.guide.service.interfaces.mail.MailContentGeneratorService
 import de.dkfz.odcf.guide.service.interfaces.mail.MailSenderService
@@ -31,6 +30,7 @@ import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.*
 import org.mockito.InjectMocks
 import org.mockito.Mock
@@ -39,12 +39,11 @@ import org.mockito.Mockito.times
 import org.mockito.Spy
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.verify
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.util.*
 
-@SpringBootTest
-class IlseImportServiceTests @Autowired constructor(val ilseImportService: IlseImportService) : AnyObject {
+@ExtendWith(SpringExtension::class)
+class IlseImportServiceTests : AnyObject {
 
     @InjectMocks
     @Spy
@@ -126,7 +125,7 @@ class IlseImportServiceTests @Autowired constructor(val ilseImportService: IlseI
             ilseObject.species = input
 
             `when`(seqTypeMappingService.getSeqType(ilseObject.type)).thenReturn(seqType)
-            `when`(externalMetadataSourceService.getSetOfValues("projectsWithAliases")).thenReturn(setOf(ilseObject.odcf_project))
+            `when`(externalMetadataSourceService.getValuesAsSet("projectsWithAliases")).thenReturn(setOf(ilseObject.odcf_project))
             `when`(runtimeOptionsRepository.findByName("unregisteredButAcceptedForImportSpecies")).thenReturn(entityFactory.getRuntimeOption("unregisteredButAcceptedForImportSpecies", "Other Species (please use remarks)"))
             `when`(speciesService.getSpeciesForImport()).thenReturn(listOf("Human (Homo sapiens) [No strain available]"))
 
@@ -147,7 +146,7 @@ class IlseImportServiceTests @Autowired constructor(val ilseImportService: IlseI
             ilseObject.type = input
 
             `when`(seqTypeMappingService.getSeqType(ilseObject.type)).thenReturn(null)
-            `when`(externalMetadataSourceService.getSetOfValues("projectsWithAliases")).thenReturn(setOf("project"))
+            `when`(externalMetadataSourceService.getValuesAsSet("projectsWithAliases")).thenReturn(setOf("project"))
             `when`(runtimeOptionsRepository.findByName("unregisteredButAcceptedForImportSpecies")).thenReturn(entityFactory.getRuntimeOption("unregisteredButAcceptedForImportSpecies", "Other Species (please use remarks)"))
             `when`(speciesService.getSpeciesForImport()).thenReturn(listOf("Human (Homo sapiens) [No strain available]"))
 
@@ -249,7 +248,7 @@ class IlseImportServiceTests @Autowired constructor(val ilseImportService: IlseI
             val seqType = entityFactory.getSeqType()
 
             `when`(seqTypeMappingService.getSeqType(ilseObject.samples!!.first().type)).thenReturn(seqType)
-            `when`(externalMetadataSourceService.getSetOfValues("projectsWithAliases")).thenReturn(setOf(ilseObject.samples!!.first().odcf_project))
+            `when`(externalMetadataSourceService.getValuesAsSet("projectsWithAliases")).thenReturn(setOf(ilseObject.samples!!.first().odcf_project))
             `when`(runtimeOptionsRepository.findByName("unregisteredButAcceptedForImportSpecies")).thenReturn(entityFactory.getRuntimeOption("unregisteredButAcceptedForImportSpecies", "Other Species (please use remarks)"))
             `when`(speciesService.getSpeciesForImport()).thenReturn(listOf("Human (Homo sapiens) [No strain available]"))
             `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
@@ -320,7 +319,7 @@ class IlseImportServiceTests @Autowired constructor(val ilseImportService: IlseI
             `when`(seqTypeMappingService.getSeqType(sampleImportObject.type)).thenReturn(seqType)
             `when`(importService.extractTagmentationLibraryFromSampleIdentifierIfNecessary(sampleImportObject.sampleName)).thenReturn("tagmentationLibrary")
             `when`(speciesService.getSpeciesWithStrainForSpecies(sampleImportObject.species)).thenReturn("Human (Homo sapiens)[No strain available]")
-            `when`(externalMetadataSourceService.getSetOfValues("projectsWithAliases")).thenReturn(setOf("PROJECT_IN_OTP"))
+            `when`(externalMetadataSourceService.getValuesAsSet("projectsWithAliases")).thenReturn(setOf("PROJECT_IN_OTP"))
 
             val sample = ilseImportServiceMock.saveSample(submission, sampleImportObject)
 
@@ -369,7 +368,7 @@ class IlseImportServiceTests @Autowired constructor(val ilseImportService: IlseI
             it
         }
         `when`(speciesService.getSpeciesWithStrainForSpecies(sampleImportObject.species)).thenReturn("species")
-        `when`(externalMetadataSourceService.getSetOfValues("projectsWithAliases")).thenReturn(setOf("project_after_reset"))
+        `when`(externalMetadataSourceService.getValuesAsSet("projectsWithAliases")).thenReturn(setOf("project_after_reset"))
 
         ilseImportServiceMock.reimport(submission)
 

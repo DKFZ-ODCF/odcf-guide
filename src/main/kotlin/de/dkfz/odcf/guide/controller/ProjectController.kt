@@ -45,12 +45,12 @@ class ProjectController(
         val infosByPerson = emptyList<Any>().toMutableList()
         val user = ldapService.getPerson()
 
-        externalMetadataSourceService.getSetOfMapOfValues("InfosByPerson", mapOf("username" to user.username)).forEach {
+        externalMetadataSourceService.getValuesAsSetMap("InfosByPerson", mapOf("username" to user.username)).forEach {
             infosByPerson.add(projectService.prepareMap(it))
         }
 
         val (infosByPublic, infosByGroup) = projectRepository.findAllByNameIn(
-            externalMetadataSourceService.getSetOfValues(
+            externalMetadataSourceService.getValuesAsSet(
                 "projects-by-person-or-organizational-unit",
                 mapOf("username" to user.username, "organizationalUnit" to user.organizationalUnit)
             ).map { it.removeSuffix("(f)").removeSuffix("(t)") }.toSet()

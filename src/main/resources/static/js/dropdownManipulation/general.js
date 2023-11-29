@@ -52,6 +52,7 @@ function initialize() {
     initSelectizeProject();
     initSelectizeWithRequestOption();
     initSelectizeGeneral();
+    initSelectizeLibPrepKit();
     initSelectizeSeqType();
     $('select.project-dropdown').each(function() {
         performSampleTypesUpdateForCurrentProject($(this));
@@ -59,6 +60,7 @@ function initialize() {
     });
     initSelectizeSpecies();
     decideToShowSeqTypeRelatedColumns();
+    checkLaneNo();
 }
 
 /**

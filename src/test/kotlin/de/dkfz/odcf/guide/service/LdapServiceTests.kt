@@ -11,25 +11,24 @@ import de.dkfz.odcf.guide.exceptions.UserNotFoundException
 import de.dkfz.odcf.guide.helper.EntityFactory
 import de.dkfz.odcf.guide.service.implementation.security.LdapServiceImpl
 import de.dkfz.odcf.guide.service.interfaces.external.JsonApiService
-import de.dkfz.odcf.guide.service.interfaces.security.LdapService
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
 import org.springframework.ldap.core.AttributesMapper
 import org.springframework.ldap.core.LdapTemplate
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@SpringBootTest
+@ExtendWith(SpringExtension::class)
 @WithMockUser("mocki")
-class LdapServiceTests @Autowired constructor(private val ldapService: LdapService) {
+class LdapServiceTests {
 
     private val USERNAME = "mocki"
     private val MAIL = "mocki@mail.de"

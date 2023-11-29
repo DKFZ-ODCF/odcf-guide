@@ -183,7 +183,7 @@ class MailSenderServiceImpl(
 
     override fun sendMailToAllSubmissionMembers(subject: String, body: String, submission: Submission) {
         val mailAddresses = sampleRepository.findAllBySubmission(submission).mapDistinctAndNotNullOrBlank { it.project }.flatMap { projectName ->
-            externalMetadataSourceService.getSetOfValues("usersToBeNotifiedByProject", mapOf("project" to projectName))
+            externalMetadataSourceService.getValuesAsSet("usersToBeNotifiedByProject", mapOf("project" to projectName))
         }.toSet().minus(submission.submitter.mail).plus(env.getRequiredProperty("application.mails.ticketSystemAddress"))
 
         if (env.getRequiredProperty("application.mails.submitterMails").toBoolean()) {

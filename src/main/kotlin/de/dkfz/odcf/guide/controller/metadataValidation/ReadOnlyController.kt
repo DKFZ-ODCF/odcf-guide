@@ -1,5 +1,6 @@
 package de.dkfz.odcf.guide.controller.metadataValidation
 
+import com.fasterxml.jackson.core.type.TypeReference
 import de.dkfz.odcf.guide.FileRepository
 import de.dkfz.odcf.guide.RuntimeOptionsRepository
 import de.dkfz.odcf.guide.SampleRepository
@@ -9,6 +10,7 @@ import de.dkfz.odcf.guide.entity.submissionData.Sample
 import de.dkfz.odcf.guide.entity.submissionData.Submission
 import de.dkfz.odcf.guide.helperObjects.mapDistinctAndNotNullOrBlank
 import de.dkfz.odcf.guide.service.implementation.RequestedValueServiceImpl
+import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.external.LSFCommandService
 import de.dkfz.odcf.guide.service.interfaces.security.LdapService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
@@ -33,6 +35,7 @@ class ReadOnlyController(
     private val lsfCommandService: LSFCommandService,
     private val requestedValueServiceImpl: RequestedValueServiceImpl,
     private val sampleRepository: SampleRepository,
+    private val externalMetadataSourceService: ExternalMetadataSourceService,
 ) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -93,6 +96,11 @@ class ReadOnlyController(
         model["numberOfWithdrawn"] = samplesWithMergeCandidates.values.flatten().count { it.isExternalWithdrawnSample }
         model["clusterJobs"] = lsfCommandService.collectJobs(submission)
         model["usedRequestedValues"] = requestedValueServiceImpl.getSubmissionUsesRequestedValues(submission)
+        model["libPrepKitAdapterSequence"] = samples.map { it.libraryPreparationKit }.distinct().associateWith {
+            val adapterSequence = externalMetadataSourceService.getValues("adapter-sequence-for-lib-prep-kit", mapOf("libPrepKit" to it), typeReference = object : TypeReference<Map<String, String>>() {})[it]
+            val shortenedSequence = getShortAdapterSequence(adapterSequence.orEmpty())
+            adapterSequence to "[$shortenedSequence...]".takeIf { shortenedSequence.isNotBlank() }.orEmpty()
+        }
 
         return if (isExtended) {
             var allFilesReadable = true
@@ -146,5 +154,11 @@ class ReadOnlyController(
         }
         process.waitFor()
         return false
+    }
+
+    private fun getShortAdapterSequence(adapterSequence: String): String {
+        val regex = """^.*\n([ATGCN]+)[\s\S]*$""".toRegex()
+        val slice = regex.matchEntire(adapterSequence)?.groups?.get(1)?.value?.slice(0..3)
+        return slice.orEmpty()
     }
 }

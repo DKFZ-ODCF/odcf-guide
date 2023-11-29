@@ -1,10 +1,11 @@
 $(document).ready(function () {
     var feedbackTable = $('#feedbackTable').DataTable({
-        "paging": false,
+        "paging": true,
+        "pageLength": 40,
         "ordering": true,
         "info": true,
         "searching": true,
-        "order": [[2, 'asc']],
+        "order": [[2, 'desc']],
         "columnDefs": [
             {
                 searchable: false,
@@ -47,7 +48,7 @@ $(document).ready(function () {
             "infoEmpty": "No feedback found",
             "thousands": "."
         },
-        dom: '<"row justify-content align-items-end"<"col"B><"col text-right"iPf>>t'
+        dom: '<"row justify-content align-items-end"<"col"B><"col text-right"iPf>>tp'
     });
 
     feedbackTable.on('order.dt search.dt', function () {

@@ -58,7 +58,7 @@ open class ProjectServiceImpl(
     /** Regularly caches project infos from OTP in the GUIDE. */
     @Scheduled(cron = "\${application.projectOverview.cron.otp}")
     open fun storeProjectInfosFromOtp() {
-        val otpProjects = externalMetadataSourceService.getSetOfMapOfValues("projectInfos")
+        val otpProjects = externalMetadataSourceService.getValuesAsSetMap("projectInfos")
         val projectPathPrefix = runtimeOptionsRepository.findByName("projectPathPrefix")!!.value
         otpProjects.forEach {
             val projectName = it["project"]
@@ -67,7 +67,7 @@ open class ProjectServiceImpl(
                 project.name = projectName
                 project.latestUpdate = Date()
                 project.unixGroup = it["unix"].orEmpty()
-                project.pis = externalMetadataSourceService.getSetOfValues("pisByProject", mapOf("project" to projectName))
+                project.pis = externalMetadataSourceService.getValuesAsSet("pisByProject", mapOf("project" to projectName))
                     .mapNotNull { username ->
                         try {
                             ldapService.getPersonByUsername(username)
@@ -79,7 +79,7 @@ open class ProjectServiceImpl(
                 project.closed = it["closed"]?.equals("t") ?: false
                 project.pathProjectFolder = if (it["dir_project"] != null) "${projectPathPrefix}${it["dir_project"]}" else ""
                 project.pathAnalysisFolder = it["dir_analysis"].orEmpty()
-                project.seqTypes = externalMetadataSourceService.getSetOfValues("seqTypesByProject", mapOf("project" to projectName)).joinToString()
+                project.seqTypes = externalMetadataSourceService.getValuesAsSet("seqTypesByProject", mapOf("project" to projectName)).joinToString()
                 project.lastDataReceived = externalMetadataSourceService.getSingleValue("lastDataRecdByProject", mapOf("project" to projectName))
                 projectRepository.save(project)
             }

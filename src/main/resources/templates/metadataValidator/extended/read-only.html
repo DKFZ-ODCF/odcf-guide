@@ -26,7 +26,7 @@
     <h2 th:inline="text">[[${header}]] Submission [[${identifier}]]</h2>
     <span id="identifier" th:text="${identifier}" hidden></span>
 
-    <div th:if="${!submission.finished && !submission.onHold}"
+    <div th:if="${!submission.finished && !submission.isPaused}"
          class="alert alert-dismissible fade show"
          th:classappend="${merging} ? 'alert-warning' : 'alert-success'">
         <h4 class="alert-heading">Thank you!</h4>
@@ -230,6 +230,10 @@
                         <td class="h-sample align-middle"
                             th:hidden="${hasSubmissionTypeSamples}">
                             <span th:text="${sample.libraryPreparationKit}" th:style="${index.index == 1} ? 'visibility: hidden;' : ''"></span>
+                            <small class="text-muted align-text-top"
+                                   th:with="adapterSequence=${libPrepKitAdapterSequence.get(sample.libraryPreparationKit)}"
+                                   th:text="${adapterSequence?.second}" th:title="${adapterSequence?.first}"
+                                   th:style="${index.index == 1} ? 'visibility: hidden;' : ''"></small>
                         </td>
                         <td class="h-sample align-middle"
                             th:hidden="${hasSubmissionTypeSamples}">

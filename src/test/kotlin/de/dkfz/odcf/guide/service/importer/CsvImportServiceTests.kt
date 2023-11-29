@@ -1,7 +1,10 @@
 package de.dkfz.odcf.guide.service.importer
 
 import de.dkfz.odcf.guide.*
-import de.dkfz.odcf.guide.entity.submissionData.*
+import de.dkfz.odcf.guide.entity.submissionData.File
+import de.dkfz.odcf.guide.entity.submissionData.Sample
+import de.dkfz.odcf.guide.entity.submissionData.TechnicalSample
+import de.dkfz.odcf.guide.entity.submissionData.UploadSubmission
 import de.dkfz.odcf.guide.exceptions.ColumnNotFoundException
 import de.dkfz.odcf.guide.exceptions.FastQFileNameRejectedException
 import de.dkfz.odcf.guide.exceptions.Md5SumFoundInDifferentSubmission
@@ -29,21 +32,21 @@ import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.mock.web.MockMultipartFile
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.FileInputStream
 import java.util.*
 import javax.persistence.EntityManager
 
-@SpringBootTest
-class CsvImportServiceTests @Autowired constructor(private val csvImportServiceImpl: CsvImportServiceImpl) : AnyObject {
+@ExtendWith(SpringExtension::class)
+class CsvImportServiceTests : AnyObject {
 
     private val entityFactory = EntityFactory()
 
@@ -214,13 +217,14 @@ class CsvImportServiceTests @Autowired constructor(private val csvImportServiceI
             `when`(ldapService.getPersonByMail("email")).thenReturn(person)
             `when`(importService.generateInternalIdentifier()).thenReturn(submission.identifier)
             `when`(validationLevelRepository.findByDefaultObjectIsTrue()).thenReturn(setOf(entityFactory.getValidationLevel()))
-            `when`(mailContentGeneratorService.getMailBody(anyString(), anyMap())).thenReturn("")
+            `when`(mailContentGeneratorService.getTicketSubject(anySubmission(), anyString())).thenReturn("subject")
+            `when`(mailContentGeneratorService.getMailBody(anyString(), anyMap())).thenReturn("body")
 
             csvImportServiceImplMock.import(multipartFile, "ticket", "email", ignoreMd5Check = true)
             delay(200)
 
-            verify(mailService, times(1)).sendMailToSubmitter(anyString(), anyString(), anyString())
-            verify(deletionService, times(1)).deleteSubmission(anySubmission(), anyBoolean())
+            verify(mailService, times(1)).sendMailToSubmitter("subject", "body", person.mail)
+            verify(deletionService, times(1)).deleteSubmission(anySubmission(), eq(false))
             val identifier = submission.identifier.filter { it.isDigit() }.toInt()
             verify(entityManager, times(1)).createNativeQuery("select setval('internal_submission_id', $identifier, false)")
         }

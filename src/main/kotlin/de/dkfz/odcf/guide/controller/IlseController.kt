@@ -1,13 +1,10 @@
 package de.dkfz.odcf.guide.controller
 
-import de.dkfz.odcf.guide.ClusterJobRepository
 import de.dkfz.odcf.guide.SubmissionRepository
 import de.dkfz.odcf.guide.helperObjects.JsonSeqTypeTranslationRequestObject
-import de.dkfz.odcf.guide.service.interfaces.MergingService
 import de.dkfz.odcf.guide.service.interfaces.ReminderService
 import de.dkfz.odcf.guide.service.interfaces.SeqTypeMappingService
 import de.dkfz.odcf.guide.service.interfaces.TerminationService
-import de.dkfz.odcf.guide.service.interfaces.external.LSFCommandService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
 import de.dkfz.odcf.guide.service.interfaces.validator.SubmissionService
 import org.slf4j.LoggerFactory
@@ -17,20 +14,16 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
-import java.util.*
 
 @Controller
 @RequestMapping("/ilse")
 class IlseController(
     private val submissionRepository: SubmissionRepository,
-    private val clusterJobRepository: ClusterJobRepository,
     private val collectorService: CollectorService,
     private val submissionService: SubmissionService,
     private val terminationService: TerminationService,
     private val seqTypeMappingService: SeqTypeMappingService,
     private val reminderService: ReminderService,
-    private val mergingService: MergingService,
-    private val lsfCommandService: LSFCommandService,
     private val env: Environment
 ) {
 
@@ -62,7 +55,7 @@ class IlseController(
             if (submission.isFinished && !submission.isAutoClosed) {
                 submissionService.postProceedWithSubmission(submission)
             } else {
-                if (submission.isActive && !submission.isOnHold) {
+                if (submission.isActive && !submission.isPaused) {
                     reminderService.sendDataReceivedReminderMail(submission)
                 } else {
                     logger.info("Did not trigger merging for submission ${collectorService.getFormattedIdentifier(submission.identifier)} since submission has status ${submission.status}. [trigger event was: set-data-is-available]")

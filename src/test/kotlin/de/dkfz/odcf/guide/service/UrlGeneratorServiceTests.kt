@@ -2,18 +2,17 @@ package de.dkfz.odcf.guide.service
 
 import de.dkfz.odcf.guide.helper.EntityFactory
 import de.dkfz.odcf.guide.service.implementation.UrlGeneratorServiceImpl
-import de.dkfz.odcf.guide.service.interfaces.UrlGeneratorService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@SpringBootTest
-class UrlGeneratorServiceTests @Autowired constructor(private val urlGeneratorService: UrlGeneratorService) {
+@ExtendWith(SpringExtension::class)
+class UrlGeneratorServiceTests {
 
     private val entityFactory = EntityFactory()
 

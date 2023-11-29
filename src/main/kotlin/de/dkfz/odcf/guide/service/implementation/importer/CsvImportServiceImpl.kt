@@ -78,24 +78,19 @@ open class CsvImportServiceImpl(
         } else {
             fileService.readFromCsv(file.inputStream)
         }
+        if (!ignoreMd5Check) checkMd5Sums(rows)
         val submission = saveSubmission(ticket, email, customName, comment)
-        try {
-            if (!ignoreMd5Check) checkMd5Sums(rows)
-        } catch (e: Exception) {
-            resetSubmissionNumber(submission, e)
-        }
         thread(start = true) {
+            submissionService.changeSubmissionState(
+                submission,
+                Submission.Status.IMPORTING,
+                stateComment = bundle.getString("csvImport.importing"),
+                logComment = "async submission import started"
+            )
             try {
-                submissionService.changeSubmissionState(
-                    submission,
-                    Submission.Status.ON_HOLD,
-                    stateComment = "Submission is importing",
-                    logComment = "async submission import started"
-                )
                 saveFilesAndSamples(submission, rows, override = false, initialUpload = true)
-                submissionService.changeSubmissionState(submission, Submission.Status.IMPORTED, logComment = "async submission import finished")
             } catch (e: Exception) {
-                val subject = "Failed to transfer metadata table to ODCF validation service"
+                val subject = mailContentGeneratorService.getTicketSubject(submission, "mailService.uploadedSubmissionFailedMailSubject")
                 val body = mailContentGeneratorService.getMailBody(
                     "mailService.uploadedSubmissionFailedMailBody",
                     mapOf(
@@ -108,6 +103,7 @@ open class CsvImportServiceImpl(
                 deletionService.deleteSubmission(submission, sendMail = false)
                 resetSubmissionNumber(submission, e)
             }
+            submissionService.changeSubmissionState(submission, Submission.Status.IMPORTED, logComment = "async submission import finished")
             mailService.sendReceivedSubmissionMail(submission, sendToUser = submission.submitter.isAdmin.not())
         }
         return submission
@@ -118,22 +114,6 @@ open class CsvImportServiceImpl(
         entityManager.createNativeQuery("select setval('internal_submission_id', $identifier, false)").singleResult
         throw e
     }
-
-    /*@Throws(GuideRuntimeException::class)
-    @Transactional(rollbackFor = [Exception::class])
-    override fun importAdditional(ilse: Int): Pair<Submission, Set<String>> {
-        val pathToMidterm = env.getRequiredProperty("application.midterm").replace("<ILSE>", ilse.toString(), false)
-        val rows = fileService.readTsvFile(pathToMidterm)
-        var submission = submissionRepository.findByIdentifier(importService.generateIlseIdentifier(ilse))
-        if (submission == null) {
-            submission = saveSubmission("", ldapService.getPerson().mail)
-        }
-        if (rows.isEmpty()) {
-            throw GuideMergerException("No rows given in the tsv file from midterm")
-        }
-        val warnings = rows.map { saveFileToSample(submission, it.toMutableMap()) }.flatten().toSet()
-        return Pair(submission, warnings)
-    }*/
 
     override fun saveSubmission(ticketNumber: String, email: String, customName: String, comment: String): Submission {
         val identifier = importService.generateInternalIdentifier()

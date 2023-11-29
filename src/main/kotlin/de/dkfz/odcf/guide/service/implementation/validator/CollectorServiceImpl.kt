@@ -41,7 +41,7 @@ class CollectorServiceImpl(
     override fun getAllSubmissionsPerUser(): Set<Submission> {
         val person = ldapService.getPerson()
         val submissions: MutableList<Submission> = submissionRepository.findAllBySubmitter(person).toMutableList()
-        externalMetadataSourceService.getSetOfValues("projectsByPerson", mapOf("username" to person.username)).forEach {
+        externalMetadataSourceService.getValuesAsSet("projectsByPerson", mapOf("username" to person.username)).forEach {
             submissions.addAll(submissionRepository.findAllByOriginProjectsContains(it))
         }
         return submissions.toSortedSet(compareBy { it.identifier })
@@ -54,7 +54,7 @@ class CollectorServiceImpl(
     fun getUploadedSubmissionsPerUser(): Set<Submission> {
         val person = ldapService.getPerson()
         val submissions: MutableList<Submission> = uploadSubmissionRepository.findAllBySubmitter(person).toMutableList()
-        externalMetadataSourceService.getSetOfValues("projectsByPerson", mapOf("username" to person.username)).forEach {
+        externalMetadataSourceService.getValuesAsSet("projectsByPerson", mapOf("username" to person.username)).forEach {
             submissions.addAll(submissionRepository.findAllByOriginProjectsContains(it))
         }
         return submissions.toSortedSet(compareBy { it.identifier })
@@ -87,7 +87,7 @@ class CollectorServiceImpl(
     }
 
     override fun getProjectsForSubmissionAndUser(submission: Submission, user: Person): Set<String> {
-        val projects = externalMetadataSourceService.getSetOfValues(
+        val projects = externalMetadataSourceService.getValuesAsSet(
             "projects-by-person-or-organizational-unit",
             mapOf("username" to user.username, "organizationalUnit" to user.organizationalUnit)
         ).map {
@@ -108,7 +108,7 @@ class CollectorServiceImpl(
     override fun getProjectsForAdmins(): Set<String> {
         val sortedProjects = emptySet<String>().toMutableSet()
         sortedProjects.addAll(
-            externalMetadataSourceService.getSetOfValues("projectsWithClosed").map {
+            externalMetadataSourceService.getValuesAsSet("projectsWithClosed").map {
                 it.removeSuffix("(f)").replace("(t)", " (closed)")
             }
         )
@@ -143,7 +143,7 @@ class CollectorServiceImpl(
         if (!findMergingSamples) return filteredSamples.sortedBy { if (it.id > 0) it.id else Int.MAX_VALUE }
         val mergingSamples = runBlocking(Dispatchers.Default) {
             samples.mapParallel { sample ->
-                val otpMergingSamples = externalMetadataSourceService.getSetOfMapOfValues("mergingCandidatesData", sample.getMergingFieldData).map {
+                val otpMergingSamples = externalMetadataSourceService.getValuesAsSetMap("mergingCandidatesData", sample.getMergingFieldData).map {
                     Sample(if (it["file_withdrawn"]!!.toBool()) Sample.WITHDRAWN_SAMPLE_FROM_OTP else Sample.SAMPLE_FROM_OTP, sample)
                 }
                 val guideMergingSamples = getGuideMergingSamples(sample).map {

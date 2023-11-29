@@ -143,7 +143,7 @@ open class SampleServiceImpl(
             // if at least one of these already existing sample types does not match our (new, more stringent) regex,
             // we apply the old (less stringent) regex and allow more such sample types to be added (in this submission)
             objectToBeValidated as SampleGuiDto
-            externalMetadataSourceService.getSetOfValues("sampleTypesByProject", mapOf("project" to objectToBeValidated.project)).forEach {
+            externalMetadataSourceService.getValuesAsSet("sampleTypesByProject", mapOf("project" to objectToBeValidated.project)).forEach {
                 if (!regex.matches(it)) {
                     regex = Regex(validationRepository.findByField("oldSampleType").regex)
                     return@forEach

@@ -10,6 +10,7 @@ import de.dkfz.odcf.guide.service.interfaces.external.JsonApiService
 import de.dkfz.odcf.guide.service.interfaces.importer.ImportService
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 import javax.management.relation.RelationException
 import javax.persistence.EntityManager
@@ -19,7 +20,8 @@ class ImportServiceImpl(
     private val fileRepository: FileRepository,
     private val runtimeOptionsRepository: RuntimeOptionsRepository,
     private val jsonApiService: JsonApiService,
-    private val entityManager: EntityManager
+    private val entityManager: EntityManager,
+    private val env: Environment,
 ) : ImportService {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -78,6 +80,8 @@ class ImportServiceImpl(
     }
 
     override fun createTicket(identifier: String, projects: List<String>): String {
+        if (env.getRequiredProperty("application.mails.sendmail").toBoolean().not()) return ""
+
         val ticketSystemPath = runtimeOptionsRepository.findByName("ticketSystemPath")?.value ?: return ""
         val createTicketJson = runtimeOptionsRepository.findByName("createTicketJson")?.value ?: return ""
 

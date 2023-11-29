@@ -14,7 +14,6 @@ import de.dkfz.odcf.guide.service.implementation.mail.MailContentGeneratorServic
 import de.dkfz.odcf.guide.service.implementation.mail.MailSenderServiceImpl
 import de.dkfz.odcf.guide.service.interfaces.UrlGeneratorService
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
-import de.dkfz.odcf.guide.service.interfaces.mail.MailSenderService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -23,6 +22,7 @@ import org.apache.commons.mail.util.MimeMessageParser
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.InjectMocks
@@ -31,12 +31,11 @@ import org.mockito.Mockito.*
 import org.mockito.Spy
 import org.mockito.kotlin.times
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
 import org.springframework.mail.MailSendException
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.File
 import java.util.*
 import javax.mail.Multipart
@@ -46,8 +45,8 @@ import javax.mail.Session
 import javax.mail.internet.InternetAddress
 import javax.mail.internet.MimeMessage
 
-@SpringBootTest
-class MailSenderServiceTests @Autowired constructor(private val mailSenderService: MailSenderService) : AnyObject {
+@ExtendWith(SpringExtension::class)
+class MailSenderServiceTests : AnyObject {
 
     private val entityFactory = EntityFactory()
 

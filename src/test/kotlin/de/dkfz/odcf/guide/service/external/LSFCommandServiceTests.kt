@@ -18,6 +18,7 @@ import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
@@ -26,13 +27,12 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.IOException
 import java.util.*
 
-@SpringBootTest
-class LSFCommandServiceTests @Autowired constructor() {
+@ExtendWith(SpringExtension::class)
+class LSFCommandServiceTests {
 
     @InjectMocks
     lateinit var lsfCommandServiceMock: LSFCommandServiceImpl

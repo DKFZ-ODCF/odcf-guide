@@ -1,16 +1,15 @@
 package de.dkfz.odcf.guide.service
 
 import de.dkfz.odcf.guide.service.implementation.BrowserServiceImpl
-import de.dkfz.odcf.guide.service.interfaces.BrowserService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@SpringBootTest
-class BrowserServiceTests @Autowired constructor(private val browserService: BrowserService) {
+@ExtendWith(SpringExtension::class)
+class BrowserServiceTests {
 
     @InjectMocks
     lateinit var browserServiceMock: BrowserServiceImpl

@@ -53,7 +53,7 @@ class ExternalServicesController(
     ): ResponseEntity<*> {
         authorizationService.checkAuthorization(token)?.let { return it }
 
-        val mailAdresses = externalMetadataSourceService.getSetOfValues("usersToBeNotifiedByProject", mapOf("project" to projectName)).joinToString("\n")
+        val mailAdresses = externalMetadataSourceService.getValuesAsSet("usersToBeNotifiedByProject", mapOf("project" to projectName)).joinToString("\n")
         val headers = HttpHeaders()
         headers.add("Content-Type", TEXT_PLAIN_VALUE)
         val payload = StringBuilder()

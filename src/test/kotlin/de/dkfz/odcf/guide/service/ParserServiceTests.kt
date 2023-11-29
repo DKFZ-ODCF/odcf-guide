@@ -24,12 +24,16 @@ class ParserServiceTests {
 
     @Mock
     lateinit var parserRepository: ParserRepository
+
     @Mock
     lateinit var parserFieldRepository: ParserFieldRepository
+
     @Mock
     lateinit var parserComponentRepository: ParserComponentRepository
+
     @Mock
     lateinit var sampleRepository: SampleRepository
+
     @Mock
     lateinit var submissionRepository: SubmissionRepository
 

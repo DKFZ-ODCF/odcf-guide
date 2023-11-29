@@ -7,12 +7,13 @@ import de.dkfz.odcf.guide.service.implementation.SeqTypeMappingServiceImpl
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@SpringBootTest
+@ExtendWith(SpringExtension::class)
 class SeqTypeMappingServiceTests {
 
     @InjectMocks
@@ -47,39 +48,26 @@ class SeqTypeMappingServiceTests {
         val name = "seqType"
         val basicSeqType = "RNA"
         val importAliases = "ilseName1,ilseName2"
-        val needAntibodyTarget = true
-        val needLibPrepKit = true
-        val singleCell = true
-        val tagmentation = true
-        val lowCoverageRequestable = false
-        val isDisplayedForUser = false
-        val newSeqTypeRequest = false
 
         val seqType = seqTypeMappingServiceMock.saveSeqType(
             name,
             null,
             basicSeqType,
             importAliases,
-            needAntibodyTarget,
-            needLibPrepKit,
-            singleCell,
-            tagmentation,
-            lowCoverageRequestable,
-            isDisplayedForUser,
-            newSeqTypeRequest
+            "needAntibodyTarget, needLibPrepKit, singleCell, tagmentation"
         )
 
         assertThat(seqType.name).isEqualTo("seqType")
         assertThat(seqType.basicSeqType).isEqualTo(basicSeqType)
         assertThat(seqType.importAliases).isEqualTo(importAliases.split(",").toSet())
-        assertThat(seqType.needAntibodyTarget).isEqualTo(needAntibodyTarget)
-        assertThat(seqType.needLibPrepKit).isEqualTo(needLibPrepKit)
+        assertThat(seqType.needAntibodyTarget).isEqualTo(true)
+        assertThat(seqType.needLibPrepKit).isEqualTo(true)
         assertThat(seqType.needSampleTypeCategory).isEqualTo(false)
-        assertThat(seqType.singleCell).isEqualTo(singleCell)
-        assertThat(seqType.tagmentation).isEqualTo(tagmentation)
-        assertThat(seqType.lowCoverageRequestable).isEqualTo(lowCoverageRequestable)
-        assertThat(seqType.isDisplayedForUser).isEqualTo(isDisplayedForUser)
-        assertThat(seqType.isRequested).isEqualTo(newSeqTypeRequest)
+        assertThat(seqType.singleCell).isEqualTo(true)
+        assertThat(seqType.tagmentation).isEqualTo(true)
+        assertThat(seqType.lowCoverageRequestable).isEqualTo(false)
+        assertThat(seqType.isHiddenForUser).isEqualTo(false)
+        assertThat(seqType.isRequested).isEqualTo(false)
     }
 
     @Test
@@ -88,12 +76,6 @@ class SeqTypeMappingServiceTests {
         val name = "newSeqTypeName"
         val basicSeqType = "RNA"
         val importAlias = ""
-        val needAntibodyTarget = true
-        val needLibPrepKit = true
-        val singleCell = true
-        val tagmentation = true
-        val lowCoverageRequestable = false
-        val isDisplayedForUser = false
 
         `when`(seqTypeRepository.getOne(1)).thenReturn(seqType)
 
@@ -102,24 +84,18 @@ class SeqTypeMappingServiceTests {
             1,
             basicSeqType,
             importAlias,
-            needAntibodyTarget,
-            needLibPrepKit,
-            singleCell,
-            tagmentation,
-            lowCoverageRequestable,
-            isDisplayedForUser,
-            false
+            "needAntibodyTarget, needLibPrepKit, singleCell, tagmentation"
         )
 
         assertThat(seqType.name).isEqualTo("newSeqTypeName")
         assertThat(seqType.basicSeqType).isEqualTo(basicSeqType)
         assertThat(seqType.importAliases).isEqualTo(null)
-        assertThat(seqType.needAntibodyTarget).isEqualTo(needAntibodyTarget)
-        assertThat(seqType.needLibPrepKit).isEqualTo(needLibPrepKit)
-        assertThat(seqType.singleCell).isEqualTo(singleCell)
-        assertThat(seqType.tagmentation).isEqualTo(tagmentation)
-        assertThat(seqType.lowCoverageRequestable).isEqualTo(lowCoverageRequestable)
-        assertThat(seqType.isDisplayedForUser).isEqualTo(isDisplayedForUser)
+        assertThat(seqType.needAntibodyTarget).isEqualTo(true)
+        assertThat(seqType.needLibPrepKit).isEqualTo(true)
+        assertThat(seqType.singleCell).isEqualTo(true)
+        assertThat(seqType.tagmentation).isEqualTo(true)
+        assertThat(seqType.lowCoverageRequestable).isEqualTo(false)
+        assertThat(seqType.isHiddenForUser).isEqualTo(false)
     }
 
     @Test
@@ -128,13 +104,6 @@ class SeqTypeMappingServiceTests {
         val basicSeqType = "RNA"
         val name = "seqType"
         val importAlias = "ilseName1"
-        val needAntibodyTarget = true
-        val needLibPrepKit = true
-        val singleCell = true
-        val tagmentation = true
-        val lowCoverageRequestable = false
-        val isDisplayedForUser = false
-        val newSeqTypeRequest = false
 
         `when`(seqTypeRepository.findAll()).thenReturn(listOf(seqType1))
 
@@ -144,13 +113,7 @@ class SeqTypeMappingServiceTests {
                 null,
                 basicSeqType,
                 importAlias,
-                needAntibodyTarget,
-                needLibPrepKit,
-                singleCell,
-                tagmentation,
-                lowCoverageRequestable,
-                isDisplayedForUser,
-                newSeqTypeRequest
+                "needAntibodyTarget, needLibPrepKit, singleCell, tagmentation"
             )
         }.withMessage("This ILSe Name already exists for a different Seq Type, please choose something else.")
     }

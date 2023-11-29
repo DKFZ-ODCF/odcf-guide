@@ -84,6 +84,9 @@ abstract class Submission() : GuideEntity() {
     val isActive: Boolean
         get() = Status.filterByGroup("active").contains(status)
 
+    val isPaused: Boolean
+        get() = Status.filterByGroup("paused").contains(status)
+
     val isFinished: Boolean
         get() = Status.filterByGroup("finished").contains(status)
 
@@ -168,6 +171,7 @@ abstract class Submission() : GuideEntity() {
     }
 
     enum class Status(val group: String?, val samplesCorrectable: Boolean) {
+        IMPORTING("paused", true),
         IMPORTED("active", true),
         RESET("active", true),
         ON_HOLD("paused", true),

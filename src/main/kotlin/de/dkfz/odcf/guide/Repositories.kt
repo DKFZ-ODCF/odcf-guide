@@ -130,6 +130,9 @@ interface SeqTypeRepository : JpaRepository<SeqType, Int> {
 
 interface FeedbackRepository : JpaRepository<Feedback, Int> {
     fun findAllByOrderByDateDesc(): List<Feedback>
+    fun findByMessageNotAndDateBetween(message: String, dateStart: Date, dateEnd: Date): List<Feedback>
+    fun countByRatingAndDateBetween(rating: Feedback.Rating, dateStart: Date, dateEnd: Date): Int
+    fun findFirstByOrderByDateAsc(): Feedback
 }
 
 interface ValidationRepository : JpaRepository<Validation, Int> {

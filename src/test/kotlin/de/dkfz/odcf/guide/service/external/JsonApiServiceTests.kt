@@ -2,17 +2,16 @@ package de.dkfz.odcf.guide.service.external
 
 import de.dkfz.odcf.guide.exceptions.ApiType
 import de.dkfz.odcf.guide.service.implementation.external.JsonApiServiceImpl
-import de.dkfz.odcf.guide.service.interfaces.external.JsonApiService
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Spy
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.web.reactive.function.client.WebClientRequestException
 
-@SpringBootTest
-class JsonApiServiceTests @Autowired constructor(val jsonApiService: JsonApiService) {
+@ExtendWith(SpringExtension::class)
+class JsonApiServiceTests {
 
     @InjectMocks
     @Spy

@@ -192,7 +192,7 @@ open class IlseImportServiceImpl(
         sample.abstractSampleId = sampleImportObject.asid
         sample.setSex(sampleImportObject.sex)
         sample.name = sampleImportObject.sampleName
-        sample.project = sampleImportObject.odcf_project.takeIf { it != otherProject && externalMetadataSourceService.getSetOfValues("projectsWithAliases").contains(it) }.orEmpty()
+        sample.project = sampleImportObject.odcf_project.takeIf { it != otherProject && externalMetadataSourceService.getValuesAsSet("projectsWithAliases").contains(it) }.orEmpty()
         sample.parseIdentifier = sampleImportObject.sampleName
         sample.seqType = seqType
         sample.read1Length = sampleImportObject.read_1_length
@@ -257,7 +257,7 @@ open class IlseImportServiceImpl(
                 unknown["seqType"]!!.add(sampleImportObject.type)
             }
         }
-        if (!externalMetadataSourceService.getSetOfValues("projectsWithAliases").contains(sampleImportObject.odcf_project)) {
+        if (!externalMetadataSourceService.getValuesAsSet("projectsWithAliases").contains(sampleImportObject.odcf_project)) {
             unknown["project"] = mutableSetOf(sampleImportObject.odcf_project)
         }
         val acceptedSpecies = runtimeOptionsRepository.findByName("unregisteredButAcceptedForImportSpecies")?.value.orEmpty().split("+")

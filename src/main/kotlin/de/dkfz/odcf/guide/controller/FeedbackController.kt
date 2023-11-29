@@ -15,6 +15,10 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import java.sql.Date
+import java.time.LocalDate
+import java.time.Month
+import java.time.ZoneId
 
 @Controller
 @RequestMapping("/feedback")
@@ -32,8 +36,22 @@ class FeedbackController(
         val person = ldapService.getPerson()
 
         return if (person.isAdmin) {
-            val feedbacks = feedbackRepository.findAll()
+            val now = LocalDate.now()
+
+            val feedbacks = feedbackRepository.findByMessageNotAndDateBetween("", Date.valueOf(now.minusYears(1)), Date.valueOf(now))
             model["feedbacks"] = feedbacks
+
+            val oldestYear = feedbackRepository.findFirstByOrderByDateAsc().date.toInstant().atZone(ZoneId.systemDefault()).year
+            val ratingMap = (oldestYear..now.year).associateWith { year ->
+                val firstDay = Date.valueOf(LocalDate.of(year, Month.JANUARY, 1))
+                val lastDay = Date.valueOf(LocalDate.of(year, Month.DECEMBER, 31))
+
+                Feedback.Rating.values().associate { rating ->
+                    rating.name to feedbackRepository.countByRatingAndDateBetween(rating, firstDay, lastDay)
+                }
+            }
+            model["ratingMap"] = ratingMap
+
             model["ticketSystemBase"] = env.getRequiredProperty("application.mails.ticketSystemBaseUrl")
 
             val projects = mutableMapOf<Feedback, String>()

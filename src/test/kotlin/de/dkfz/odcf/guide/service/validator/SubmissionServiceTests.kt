@@ -17,21 +17,20 @@ import de.dkfz.odcf.guide.service.interfaces.external.LSFCommandService
 import de.dkfz.odcf.guide.service.interfaces.mail.MailContentGeneratorService
 import de.dkfz.odcf.guide.service.interfaces.mail.MailSenderService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
-import de.dkfz.odcf.guide.service.interfaces.validator.SubmissionService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-@SpringBootTest
-class SubmissionServiceTests @Autowired constructor(private val submissionService: SubmissionService) {
+@ExtendWith(SpringExtension::class)
+class SubmissionServiceTests {
 
     private val entityFactory = EntityFactory()
 
@@ -89,28 +88,36 @@ class SubmissionServiceTests @Autowired constructor(private val submissionServic
     @Test
     fun `check submission state change to IMPORTED`() {
         val submission = getSubmission()
-        submissionService.changeSubmissionState(submission, Submission.Status.IMPORTED, "testUser")
+
+        submissionServiceMock.changeSubmissionState(submission, Submission.Status.IMPORTED, "testUser")
+
         assertThat(submission.status).isEqualTo(Submission.Status.IMPORTED)
     }
 
     @Test
     fun `check submission state change to ON_HOLD`() {
         val submission = getSubmission()
-        submissionService.changeSubmissionState(submission, Submission.Status.ON_HOLD, "testUser")
+
+        submissionServiceMock.changeSubmissionState(submission, Submission.Status.ON_HOLD, "testUser")
+
         assertThat(submission.status).isEqualTo(Submission.Status.ON_HOLD)
     }
 
     @Test
     fun `check submission state change to EDITED`() {
         val submission = getSubmission()
-        submissionService.changeSubmissionState(submission, Submission.Status.EDITED, "testUser")
+
+        submissionServiceMock.changeSubmissionState(submission, Submission.Status.EDITED, "testUser")
+
         assertThat(submission.status).isEqualTo(Submission.Status.EDITED)
     }
 
     @Test
     fun `check submission state change to CLOSED`() {
         val submission = getSubmission()
-        submissionService.changeSubmissionState(submission, Submission.Status.CLOSED, "testUser")
+
+        submissionServiceMock.changeSubmissionState(submission, Submission.Status.CLOSED, "testUser")
+
         assertThat(submission.status).isEqualTo(Submission.Status.CLOSED)
         assertThat(submission.closedDate).isNotNull
         assertThat(submission.closedUser).isEqualTo("testUser")
@@ -119,14 +126,18 @@ class SubmissionServiceTests @Autowired constructor(private val submissionServic
     @Test
     fun `check submission state change to AUTO_CLOSED`() {
         val submission = getSubmission()
-        submissionService.changeSubmissionState(submission, Submission.Status.AUTO_CLOSED, "testUser")
+
+        submissionServiceMock.changeSubmissionState(submission, Submission.Status.AUTO_CLOSED, "testUser")
+
         assertThat(submission.status).isEqualTo(Submission.Status.AUTO_CLOSED)
     }
 
     @Test
     fun `check submission state change to EXPORTED`() {
         val submission = getSubmission()
-        submissionService.changeSubmissionState(submission, Submission.Status.EXPORTED, "testUser")
+
+        submissionServiceMock.changeSubmissionState(submission, Submission.Status.EXPORTED, "testUser")
+
         assertThat(submission.status).isEqualTo(Submission.Status.EXPORTED)
         assertThat(submission.exportDate).isNotNull
     }
@@ -134,7 +145,9 @@ class SubmissionServiceTests @Autowired constructor(private val submissionServic
     @Test
     fun `check submission state change to LOCKED`() {
         val submission = getSubmission()
-        submissionService.changeSubmissionState(submission, Submission.Status.LOCKED)
+
+        submissionServiceMock.changeSubmissionState(submission, Submission.Status.LOCKED)
+
         assertThat(submission.status).isEqualTo(Submission.Status.LOCKED)
         assertThat(submission.lockDate).isNotNull
         assertThat(submission.lockUser).isEqualTo("automatic")
@@ -143,7 +156,9 @@ class SubmissionServiceTests @Autowired constructor(private val submissionServic
     @Test
     fun `check submission state change to TERMINATED`() {
         val submission = getSubmission()
-        submissionService.changeSubmissionState(submission, Submission.Status.TERMINATED, "testUser")
+
+        submissionServiceMock.changeSubmissionState(submission, Submission.Status.TERMINATED, "testUser")
+
         assertThat(submission.status).isEqualTo(Submission.Status.TERMINATED)
         assertThat(submission.terminateDate).isNotNull
     }
@@ -151,7 +166,9 @@ class SubmissionServiceTests @Autowired constructor(private val submissionServic
     @Test
     fun `check submission state change to REMOVED_BY_ADMIN`() {
         val submission = getSubmission()
-        submissionService.changeSubmissionState(submission, Submission.Status.REMOVED_BY_ADMIN)
+
+        submissionServiceMock.changeSubmissionState(submission, Submission.Status.REMOVED_BY_ADMIN)
+
         assertThat(submission.status).isEqualTo(Submission.Status.REMOVED_BY_ADMIN)
         assertThat(submission.removalUser).isEqualTo("automatic")
     }
@@ -159,7 +176,9 @@ class SubmissionServiceTests @Autowired constructor(private val submissionServic
     @Test
     fun `check submission state change to RESET`() {
         val submission = getSubmission()
-        submissionService.changeSubmissionState(submission, Submission.Status.RESET, "testUser", "fakeComment")
+
+        submissionServiceMock.changeSubmissionState(submission, Submission.Status.RESET, "testUser", "fakeComment")
+
         assertThat(submission.status).isEqualTo(Submission.Status.RESET)
         assertThat(submission.lockDate).isNull()
         assertThat(submission.lockUser).isNull()
@@ -174,8 +193,8 @@ class SubmissionServiceTests @Autowired constructor(private val submissionServic
         val submissionTrue = getSubmission()
         val submissionFalse = getSubmission()
 
-        submissionService.setExternalDataAvailableForMerging(submissionTrue, true, null)
-        submissionService.setExternalDataAvailableForMerging(submissionFalse, false, null)
+        submissionServiceMock.setExternalDataAvailableForMerging(submissionTrue, true, null)
+        submissionServiceMock.setExternalDataAvailableForMerging(submissionFalse, false, null)
 
         assertThat(submissionTrue.externalDataAvailableForMerging).isTrue
         assertThat(submissionTrue.externalDataAvailabilityDate).isNotNull
@@ -187,7 +206,7 @@ class SubmissionServiceTests @Autowired constructor(private val submissionServic
     fun `check finishSubmissionExternally`() {
         val submission = getSubmission()
 
-        submissionService.finishSubmissionExternally(submission)
+        submissionServiceMock.finishSubmissionExternally(submission)
 
         assertThat(submission.status).isEqualTo(Submission.Status.FINISHED_EXTERNALLY)
     }

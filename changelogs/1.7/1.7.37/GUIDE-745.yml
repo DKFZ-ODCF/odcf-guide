@@ -1,0 +1,5 @@
+---
+title: added send mail check to ticket creation method
+issue: GUIDE-745
+author: Timo Wiese
+type: bug

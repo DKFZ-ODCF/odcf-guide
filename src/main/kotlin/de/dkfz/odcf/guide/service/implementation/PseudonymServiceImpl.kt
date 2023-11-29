@@ -81,7 +81,7 @@ class PseudonymServiceImpl(
      * @return The information about the samples for which the criteria apply
      */
     private fun checkAgainstOtp(pseudonym: String, sample: Sample): Set<Map<String, String>> {
-        return externalMetadataSourceService.getSetOfMapOfValues(
+        return externalMetadataSourceService.getValuesAsSetMap(
             "pidsByPseudonym",
             mapOf(
                 "pseudonym" to pseudonym,

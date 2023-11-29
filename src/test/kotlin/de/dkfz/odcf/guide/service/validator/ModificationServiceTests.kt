@@ -4,18 +4,17 @@ import de.dkfz.odcf.guide.SampleRepository
 import de.dkfz.odcf.guide.helper.EntityFactory
 import de.dkfz.odcf.guide.service.implementation.validator.ModificationServiceImpl
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
-import de.dkfz.odcf.guide.service.interfaces.validator.ModificationService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.Mockito.`when`
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@SpringBootTest
-class ModificationServiceTests @Autowired constructor(private val modificationService: ModificationService) {
+@ExtendWith(SpringExtension::class)
+class ModificationServiceTests {
 
     private val entityFactory = EntityFactory()
 

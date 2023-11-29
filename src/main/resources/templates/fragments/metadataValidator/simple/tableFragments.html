@@ -43,13 +43,20 @@
                    th:name="|sampleList[${sampleCounter.index}].pid|"
                    autocomplete="off"
                    th:pattern="${validation['pid']?.regex}"
-                   oninput="validateMetadataTableForm(false)"
+                   oninput="validateMetadataTableForm(false);getSimilarPids(this)"
                    onchange="changeSampleName($(this));triggerOnchangeSpeciesByOtherField(this)"
+                   onfocusin="getSimilarPids(this)"
                    th:required="${validation['pid']?.required}"
                    th:classappend="${validationErrors?.get(sample.id)?.get('pid')} ? is-invalid"/>
             <div class="invalid-feedback">
                 <span th:utext="${validation['pid']?.description}"></span>
             </div>
+        </div>
+        <div class="pid-suggestions-label p-1 bg-guide border-0">
+            <span th:text="#{details.similarPidsHeader}"></span>
+        </div>
+        <div class="pid-suggestions">
+            <ul></ul>
         </div>
     </td>
 
@@ -270,7 +277,7 @@
     <!-- LIBRARY PREPARATION KIT -->
     <td class="align-middle h-sample libraryPreparationKit" th:rowspan="${fileCounter.size}" th:if="${fileCounter.index == 0}">
         <div class="input-group">
-            <select class="selectize-request libraryPreparationKit-dropdown striped-dropdown"
+            <select th:if="${!submission.ownTransfer}" class="selectize-libPrepKit libraryPreparationKit-dropdown striped-dropdown"
                     th:classappend="${sample.seqType?.needLibPrepKit ?: false} ? 'validation-color' : 'validation-color-not-required'"
                     data-fieldName='libraryPreparationKit'
                     th:data-selected-value="${sample.libraryPreparationKit ?: 'empty'}"
@@ -279,12 +286,21 @@
                     th:disabled="${hasSubmissionTypeSamples}"
                     th:placeholder="#{typeIn}">
                 <option value="" th:text="#{typeIn}"></option>
-                <option th:each="libraryPreparationKit : ${libraryPreparationKits}"
+                <option th:each="libPrepKitWithAdapterSequence : ${libPrepKitsWithAdapterSequences}"
+                        th:with="libraryPreparationKit=${libPrepKitWithAdapterSequence.key}, adapterSequence=${libPrepKitWithAdapterSequence.value}"
                         th:value="${libraryPreparationKit}"
+                        th:data-adapter-sequence="${adapterSequence ?: ''}"
                         th:text="${libraryPreparationKit}"
                         th:selected="${libraryPreparationKit.replace('(ReqVal)', '') == sample.libraryPreparationKit}">
                 </option>
             </select>
+            <input th:if="${submission.ownTransfer}" type="text" class="form-control libraryPreparationKit-dropdown miw-200 width-dynamic"
+                   th:classappend="${sample.seqType?.needLibPrepKit ?: false} ? 'validation-color' : 'validation-color-not-required'"
+                   th:value="${sample.libraryPreparationKit}"
+                   th:name="|sampleList[${sampleCounter.index}].libraryPreparationKit|"
+                   th:required="${sample.seqType?.needLibPrepKit ?: false}"
+                   th:disabled="${hasSubmissionTypeSamples}"
+                   />
             <div class="invalid-feedback">
                 <span th:utext="${validation['libraryPreparationKit']?.description}"></span>
             </div>
@@ -487,15 +503,20 @@
     <!-- LIBRARY PREPARATION KIT -->
     <td class="align-middle h-sample libraryPreparationKit">
         <div class="flex-nowrap input-group">
-            <select class="selectize-request" data-fieldName='libraryPreparationKit' data-selected-value=""
+            <select th:if="${!submission.ownTransfer}" class="selectize-libPrepKit striped-dropdown" data-fieldName='libraryPreparationKit' data-selected-value=""
                     onchange="bulk_edit_dropdown_multi('libraryPreparationKit-dropdown', this)"
                     th:placeholder="#{typeIn}">
                 <option value="" th:text="#{typeIn}"></option>
-                <option th:each="libraryPreparationKit : ${libraryPreparationKits}"
+                <option th:each="libPrepKitWithAdapterSequence : ${libPrepKitsWithAdapterSequences}"
+                        th:with="libraryPreparationKit=${libPrepKitWithAdapterSequence.key}, adapterSequence=${libPrepKitWithAdapterSequence.value}"
                         th:value="${libraryPreparationKit}"
-                        th:text="${libraryPreparationKit}">
+                        th:text="${libraryPreparationKit}"
+                        th:data-adapter-sequence="${adapterSequence ?: ''}">
                 </option>
             </select>
+            <input th:if="${submission.ownTransfer}" type="text" class="form-control"
+                   onchange="bulk_edit_textfield('.libraryPreparationKit-dropdown', this.value)"
+                   th:placeholder="#{edit}"/>
             <div class="input-group-append" style="display: none;">
                 <button type="button" class="btn btn-sm btn-primary" disabled>
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
