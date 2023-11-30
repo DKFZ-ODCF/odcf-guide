@@ -224,7 +224,7 @@
                         <span th:text="${sample.libraryPreparationKit}"></span>
                         <small class="text-muted align-text-top"
                                th:with="adapterSequence=${libPrepKitAdapterSequence.get(sample.libraryPreparationKit)}"
-                               th:text="${adapterSequence.second}" th:title="${adapterSequence.first}"></small>
+                               th:text="${adapterSequence?.second}" th:title="${adapterSequence?.first}"></small>
                     </td>
                     <td th:hidden="${hasSubmissionTypeSamples}">
                         <span th:text="${sample.indexType}"></span>
