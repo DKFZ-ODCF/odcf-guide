@@ -683,6 +683,8 @@ class MailSenderServiceTests : AnyObject {
             )
 
             verify(sender, times(1)).send(emailCaptor.capture())
+            verify(mailSenderServiceMock, times(0)).sendMailToTicketSystem(subject, body)
+            verify(mailSenderServiceMock, times(1)).sendMailToAllSubmissionMembers(subject, body, submission)
             assertThat(mimeMessage.allRecipients[0].toString()).isEqualTo(submission.submitter.mail)
             assertThat(mimeMessage.replyTo[0].toString()).isEqualTo("ODCF Service <ticketsystem@h.hh>")
             assertThat(mimeMessage.from[0].toString()).isEqualTo("ODCF Guide <ticketsystem@h.hh>")
@@ -719,6 +721,7 @@ class MailSenderServiceTests : AnyObject {
             val emailCaptor = ArgumentCaptor.forClass(MimeMessage::class.java)
 
             verify(mailSenderServiceMock, times(1)).sendMailToTicketSystem(subject, body)
+            verify(mailSenderServiceMock, times(0)).sendMailToAllSubmissionMembers(subject, body, submission)
             verify(sender, times(1)).send(emailCaptor.capture())
         }
     }
@@ -808,7 +811,7 @@ class MailSenderServiceTests : AnyObject {
 
             mailSenderServiceMock.sendReceivedSubmissionMail(submission, true)
 
-            verify(mailSenderServiceMock, times(1)).sendMailToSubmitter(subject, body, submission.submitter.mail)
+            verify(mailSenderServiceMock, times(1)).sendMailToAllSubmissionMembers(subject, body, submission)
         }
     }
 

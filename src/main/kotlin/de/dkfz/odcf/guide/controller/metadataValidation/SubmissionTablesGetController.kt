@@ -303,6 +303,7 @@ class SubmissionTablesGetController(
         val seqTypes = seqTypeRepository.findAllByIsRequestedIsFalseOrderByNameAsc().toMutableList()
         if (submission.ownTransfer) {
             seqTypes.forEach {
+                entityManager.detach(it)
                 it.needLibPrepKit = false
                 it.needSampleTypeCategory = false
             }

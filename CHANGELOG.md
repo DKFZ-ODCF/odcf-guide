@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## 1.7.38
+
+
+### Changes and Improvements
+
+- GUIDE-740: changed mail sending recipients in submission process (Timo Wiese)
+
 ## 1.7.37
 
 

@@ -201,7 +201,7 @@ class MailSenderServiceImpl(
         val projects = sampleRepository.findAllBySubmission(submission).mapDistinctAndNotNullOrBlank { it.project }.sorted().joinToString()
         val subject = mailContentGeneratorService.getTicketSubjectPrefix(submission) + " Transferred metadata table to ODCF validation service - $projects"
         if (sendToUser) {
-            sendMailToSubmitter(subject, mailContentGeneratorService.mailBodyReceivedSubmission(submission), submission.submitter.mail)
+            sendMailToAllSubmissionMembers(subject, mailContentGeneratorService.mailBodyReceivedSubmission(submission), submission)
         } else {
             sendMailToTicketSystem(subject, mailContentGeneratorService.mailBodyReceivedSubmission(submission))
         }
