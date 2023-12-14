@@ -3,6 +3,7 @@ package de.dkfz.odcf.guide.helperObjects
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import java.net.URLEncoder
 import kotlin.reflect.full.superclasses
 
 fun String.toBool(): Boolean {
@@ -13,8 +14,13 @@ fun String.toBool(): Boolean {
     }
 }
 
-fun String.toKebabCase() = replace(humps, "-").lowercase()
-val humps = "(?<=.)(?=\\p{Upper})".toRegex()
+fun String.encodeUtf8(): String = URLEncoder.encode(this, "utf-8")
+
+fun String.toKebabCase() = replace(humps, "-").replace("_", "-").lowercase()
+// Checks for a position in a String where there's a character (not a hyphen or underscore) followed by an uppercase letter,
+// with no uppercase letters or underscores immediately before it.
+// unfortunately does not work with the edge case "KebaBCAse"
+val humps = "(?<=.)(?<![_-])(?=\\p{Upper})(?<![_\\p{Upper}])".toRegex()
 
 suspend fun <A, B> Iterable<A>.mapParallel(f: suspend (A) -> B): List<B> = coroutineScope {
     map { async { f(it) } }.awaitAll()

@@ -12,35 +12,36 @@ import java.util.concurrent.TimeUnit
 @Service
 class RemoteCommandsServiceImpl(private val env: Environment) : RemoteCommandsService {
 
+    /**
+     * Represents an SSH client used for establishing SSH connections.
+     */
+    val client = SSHClient()
+
+    /**
+     * Initializes the SSH client.
+     *
+     * @throws IOException if an I/O error occurs during the SSH client initialization.
+     */
     @Throws(IOException::class)
     @ExcludeFromJacocoGeneratedReport
-    override fun getSshClient(): SSHClient {
-        val client = SSHClient()
+    fun initClient() {
         client.addHostKeyVerifier(env.getRequiredProperty("application.ssh.fingerprint"))
         client.connect(env.getRequiredProperty("application.ssh.host"))
         client.authPublickey("icgcdata", env.getRequiredProperty("application.ssh.privateKeyFile"))
-        return client
-    }
-
-    @Throws(IOException::class)
-    @ExcludeFromJacocoGeneratedReport
-    override fun runCmd(sshClient: SSHClient, command: String): String {
-        var response: String
-
-        sshClient.startSession().use { session ->
-            val cmd = session.exec("$command 2>&1")
-            response = IOUtils.readFully(cmd.inputStream).toString()
-            cmd.join(5, TimeUnit.SECONDS)
-        }
-        return response
     }
 
     @Throws(IOException::class)
     @ExcludeFromJacocoGeneratedReport
     override fun getFromRemote(command: String): String {
-        val client = getSshClient()
-        val response = runCmd(client, command)
-        client.close()
-        return response
+        if (!client.isConnected) {
+            initClient()
+        }
+
+        return client.startSession().use { session ->
+            val cmd = session.exec("$command 2>&1")
+            val response = IOUtils.readFully(cmd.inputStream).toString()
+            cmd.join(5, TimeUnit.SECONDS)
+            response
+        }
     }
 }

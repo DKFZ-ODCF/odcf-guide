@@ -38,7 +38,7 @@ class FeedbackController(
         return if (person.isAdmin) {
             val now = LocalDate.now()
 
-            val feedbacks = feedbackRepository.findByMessageNotAndDateBetween("", Date.valueOf(now.minusYears(1)), Date.valueOf(now))
+            val feedbacks = feedbackRepository.findAllByMessageNotAndDateGreaterThan("", Date.valueOf(now.minusYears(1)))
             model["feedbacks"] = feedbacks
 
             val oldestYear = feedbackRepository.findFirstByOrderByDateAsc().date.toInstant().atZone(ZoneId.systemDefault()).year

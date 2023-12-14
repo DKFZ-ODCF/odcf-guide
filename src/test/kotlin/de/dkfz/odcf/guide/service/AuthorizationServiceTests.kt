@@ -79,4 +79,38 @@ class AuthorizationServiceTests {
 
         assertThat(result).isNull()
     }
+
+    @TestFactory
+    fun `test functionality of checkIfTokenIsAuthorized for unauthorized users`() = listOf(
+        "tokenUserWithoutRole" to "You are not authorized to use this page",
+        "tokenUnknown" to "Invalid token",
+    ).map { (token, expected) ->
+        DynamicTest.dynamicTest("checkIfTokenIsAuthorized for token: '$token'") {
+            var user: Person? = entityFactory.getPerson()
+            user?.apiToken = token
+            if (token == "tokenUnknown") user = null
+            val role = entityFactory.getRole("admin")
+
+            `when`(personRepository.findByApiToken(token)).thenReturn(user)
+
+            val result = authorizationServiceImpl.checkIfTokenIsAuthorized(token, role)
+
+            assertThat(result).isNotNull
+            assertThat(result!!.body).isEqualTo(expected)
+        }
+    }
+
+    @Test
+    fun `test functionality of checkIfTokenIsAuthorized for valid token`() {
+        val user = entityFactory.getPerson()
+        user.apiToken = "token"
+        val role = entityFactory.getRole("admin")
+        user.roles = setOf(role)
+
+        `when`(personRepository.findByApiToken("token")).thenReturn(user)
+
+        val result = authorizationServiceImpl.checkIfTokenIsAuthorized("token", role)
+
+        assertThat(result).isNull()
+    }
 }

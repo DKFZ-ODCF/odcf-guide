@@ -9,6 +9,7 @@ import de.dkfz.odcf.guide.entity.submissionData.File
 import de.dkfz.odcf.guide.entity.submissionData.Sample
 import de.dkfz.odcf.guide.entity.submissionData.Submission
 import de.dkfz.odcf.guide.entity.submissionData.TechnicalSample
+import de.dkfz.odcf.guide.helperObjects.enums.ApiType
 import de.dkfz.odcf.guide.helperObjects.enums.ExtendedPage
 import de.dkfz.odcf.guide.helperObjects.enums.SimplePage
 import de.dkfz.odcf.guide.helperObjects.mapDistinctAndNotNullOrBlank
@@ -16,6 +17,7 @@ import de.dkfz.odcf.guide.helperObjects.setParallel
 import de.dkfz.odcf.guide.service.interfaces.BrowserService
 import de.dkfz.odcf.guide.service.interfaces.RequestedValueService
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
+import de.dkfz.odcf.guide.service.interfaces.external.JsonApiService
 import de.dkfz.odcf.guide.service.interfaces.security.LdapService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
 import de.dkfz.odcf.guide.service.interfaces.validator.ModificationService
@@ -50,6 +52,7 @@ class SubmissionTablesGetController(
     private val sampleRepository: SampleRepository,
     private val requestedValueService: RequestedValueService,
     private val browserService: BrowserService,
+    private val jsonApiService: JsonApiService,
     private val env: Environment
 ) {
 
@@ -320,7 +323,7 @@ class SubmissionTablesGetController(
         model["strainList"] = externalMetadataSourceService.getValuesAsSet("strains")
         model["antibodyTargets"] = externalMetadataSourceService.getValuesAsSet("antibodyTargets")
             .plus(requestedValueService.getRequestedValuesForUserAndFieldNameAndSubmission("antibodyTarget", submission))
-        model["libPrepKitsWithAdapterSequences"] = externalMetadataSourceService.getValues("lib-prep-kits-with-adapter-sequences", typeReference = object : TypeReference<Map<String, String>>() {})
+        model["libPrepKitsWithAdapterSequences"] = jsonApiService.getValues("lib-prep-kits-with-adapter-sequences", apiType = ApiType.OTP, typeReference = object : TypeReference<Map<String, String>>() {})
             .plus(requestedValueService.getRequestedValuesForUserAndFieldNameAndSubmission("libraryPreparationKit", submission).associateWith { "" }.toList())
         model["submission"] = submission
         model["identifier"] = collectorService.getFormattedIdentifier(submission.identifier)

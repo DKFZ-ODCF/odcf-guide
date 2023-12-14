@@ -335,7 +335,8 @@ class CollectorServiceTests {
         submission.originProjects = "originProject"
         val sample = entityFactory.getSample(submission)
 
-        `when`(externalMetadataSourceService.getValuesAsSet(matches("projects-by-person-or-organizational-unit"), anyMap())).thenReturn(setOf("projectA(f)", "projectB(t)"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("projects-by-person-or-organizational-unit"), anyMap()))
+            .thenReturn(setOf("projectA(f)", "projectB(t)"))
         `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         val projects = collectorServiceMock.getProjectsForSubmissionAndUser(submission, entityFactory.getPerson())
@@ -351,7 +352,8 @@ class CollectorServiceTests {
         submission.submitter = entityFactory.getPerson()
         val sample = entityFactory.getSample(submission)
 
-        `when`(externalMetadataSourceService.getValuesAsSet(matches("projects-by-person-or-organizational-unit"), anyMap())).thenReturn(setOf("projectA(f)", "projectB(t)"))
+        `when`(externalMetadataSourceService.getValuesAsSet(matches("projects-by-person-or-organizational-unit"), anyMap()))
+            .thenReturn(setOf("projectA(f)", "projectB(t)"))
         `when`(sampleRepository.findAllBySubmission(submission)).thenReturn(listOf(sample))
 
         val result = collectorServiceMock.getImportableProjects(submission)

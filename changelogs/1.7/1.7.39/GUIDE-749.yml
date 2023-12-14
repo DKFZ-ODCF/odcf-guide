@@ -1,0 +1,5 @@
+---
+title: fixed file is readable icons and test on read only page
+issue: GUIDE-749
+author: Timo Wiese
+type: bug

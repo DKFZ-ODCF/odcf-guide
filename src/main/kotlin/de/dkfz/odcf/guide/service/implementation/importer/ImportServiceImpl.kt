@@ -5,7 +5,7 @@ import de.dkfz.odcf.guide.RuntimeOptionsRepository
 import de.dkfz.odcf.guide.entity.submissionData.File
 import de.dkfz.odcf.guide.entity.submissionData.Sample
 import de.dkfz.odcf.guide.entity.submissionData.Submission
-import de.dkfz.odcf.guide.exceptions.ApiType
+import de.dkfz.odcf.guide.helperObjects.enums.ApiType
 import de.dkfz.odcf.guide.service.interfaces.external.JsonApiService
 import de.dkfz.odcf.guide.service.interfaces.importer.ImportService
 import org.json.JSONObject

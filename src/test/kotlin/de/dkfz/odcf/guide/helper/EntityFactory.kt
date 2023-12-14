@@ -5,6 +5,7 @@ import de.dkfz.odcf.guide.dtoObjects.SampleGuiDto
 import de.dkfz.odcf.guide.entity.Feedback
 import de.dkfz.odcf.guide.entity.MetaDataColumn
 import de.dkfz.odcf.guide.entity.Person
+import de.dkfz.odcf.guide.entity.Role
 import de.dkfz.odcf.guide.entity.cluster.ClusterJob
 import de.dkfz.odcf.guide.entity.cluster.ClusterJobTemplate
 import de.dkfz.odcf.guide.entity.metadata.SeqType
@@ -223,6 +224,20 @@ class EntityFactory {
         person.organizationalUnit = "organizationalUnit"
         person.accountDisabled = false
         return person
+    }
+
+    fun getPerson(username: String, firstName: String, lastName: String): Person {
+        val person = getPerson()
+        person.username = username
+        person.firstName = firstName
+        person.lastName = lastName
+        return person
+    }
+
+    fun getRole(name: String): Role {
+        val role = Role()
+        role.name = name
+        return role
     }
 
     fun getGuideUser(): Person {

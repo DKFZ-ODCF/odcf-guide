@@ -1,6 +1,6 @@
 package de.dkfz.odcf.guide.service.interfaces.external
 
-import com.fasterxml.jackson.core.type.TypeReference
+import de.dkfz.odcf.guide.entity.Person
 
 interface ExternalMetadataSourceService {
 
@@ -36,13 +36,10 @@ interface ExternalMetadataSourceService {
     fun getValuesAsSetMap(methodName: String, params: Map<String, String> = emptyMap()): Set<Map<String, String>>
 
     /**
-     * Retrieve values from the external source as a JSON String and deserialize the JSON into an object of the specified type.
-     * The method name and parameters are transformed into a URL suffix.
+     * Returns a set of principal investigators for the specified project.
      *
-     * @param methodName      The name of the method to be called on the external API.
-     * @param params          A map of parameters to be passed to the method.
-     * @param typeReference   A TypeReference for deserialization, representing the type of the values to be retrieved.
-     * @return An object of the specified type containing the retrieved values.
+     * @param projectName the name of the project
+     * @return a set of [Person] objects representing the principal investigators of the project
      */
-    fun <R> getValues(methodName: String, params: Map<String, String> = emptyMap(), typeReference: TypeReference<R>): R
+    fun getPrincipalInvestigatorsAsPersonSet(projectName: String): Set<Person>
 }

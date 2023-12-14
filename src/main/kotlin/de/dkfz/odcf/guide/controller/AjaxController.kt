@@ -38,7 +38,6 @@ class AjaxController(
     private val feedbackService: FeedbackService,
     private val lsfCommandService: LSFCommandService,
     private val externalMetadataSourceService: ExternalMetadataSourceService,
-    private val requestedValueService: RequestedValueService,
     private val ldapService: LdapService,
     private val mergingService: MergingService,
     private val speciesService: SpeciesService,

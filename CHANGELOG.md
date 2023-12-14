@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## 1.7.39
+
+
+### New Features
+
+- GUIDE-702: implemented a cron job to add OTP projects to ILSe (Oydin Iqbal)
+
+### Changes and Improvements
+
+- GUIDE-751: refactored feedback form for better user interaction (Timo Wiese)
+
+### Bugfixes
+
+- GUIDE-749: fixed file is readable icons and test on read only page (Timo Wiese)
+
 ## 1.7.38
 
 

@@ -8,7 +8,6 @@ import de.dkfz.odcf.guide.entity.storage.Project
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.external.SqlService
 import de.dkfz.odcf.guide.service.interfaces.projectOverview.ProjectService
-import de.dkfz.odcf.guide.service.interfaces.security.LdapService
 import org.slf4j.LoggerFactory
 import org.springframework.core.env.Environment
 import org.springframework.scheduling.annotation.Scheduled
@@ -22,7 +21,6 @@ import kotlin.math.pow
 open class ProjectServiceImpl(
     private val externalMetadataSourceService: ExternalMetadataSourceService,
     private val sqlService: SqlService,
-    private val ldapService: LdapService,
     private val projectRepository: ProjectRepository,
     private val runtimeOptionsRepository: RuntimeOptionsRepository,
     private val env: Environment
@@ -67,15 +65,7 @@ open class ProjectServiceImpl(
                 project.name = projectName
                 project.latestUpdate = Date()
                 project.unixGroup = it["unix"].orEmpty()
-                project.pis = externalMetadataSourceService.getValuesAsSet("pisByProject", mapOf("project" to projectName))
-                    .mapNotNull { username ->
-                        try {
-                            ldapService.getPersonByUsername(username)
-                        } catch (e: Exception) {
-                            logger.warn("user '$username' not added as PI to project $projectName with reason:\n${e.localizedMessage}")
-                            null
-                        }
-                    }.toSet()
+                project.pis = externalMetadataSourceService.getPrincipalInvestigatorsAsPersonSet(projectName)
                 project.closed = it["closed"]?.equals("t") ?: false
                 project.pathProjectFolder = if (it["dir_project"] != null) "${projectPathPrefix}${it["dir_project"]}" else ""
                 project.pathAnalysisFolder = it["dir_analysis"].orEmpty()

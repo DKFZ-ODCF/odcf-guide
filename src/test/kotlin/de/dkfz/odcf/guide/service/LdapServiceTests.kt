@@ -6,9 +6,9 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import de.dkfz.odcf.guide.PersonRepository
 import de.dkfz.odcf.guide.RuntimeOptionsRepository
-import de.dkfz.odcf.guide.exceptions.ApiType
 import de.dkfz.odcf.guide.exceptions.UserNotFoundException
 import de.dkfz.odcf.guide.helper.EntityFactory
+import de.dkfz.odcf.guide.helperObjects.enums.ApiType
 import de.dkfz.odcf.guide.service.implementation.security.LdapServiceImpl
 import de.dkfz.odcf.guide.service.interfaces.external.JsonApiService
 import org.assertj.core.api.Assertions

@@ -8,13 +8,15 @@ import de.dkfz.odcf.guide.SubmissionRepository
 import de.dkfz.odcf.guide.entity.submissionData.File
 import de.dkfz.odcf.guide.entity.submissionData.Sample
 import de.dkfz.odcf.guide.entity.submissionData.Submission
+import de.dkfz.odcf.guide.helperObjects.enums.ApiType
 import de.dkfz.odcf.guide.helperObjects.mapDistinctAndNotNullOrBlank
+import de.dkfz.odcf.guide.helperObjects.toBool
 import de.dkfz.odcf.guide.service.implementation.RequestedValueServiceImpl
-import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
+import de.dkfz.odcf.guide.service.interfaces.external.JsonApiService
 import de.dkfz.odcf.guide.service.interfaces.external.LSFCommandService
+import de.dkfz.odcf.guide.service.interfaces.external.RemoteCommandsService
 import de.dkfz.odcf.guide.service.interfaces.security.LdapService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.ui.set
@@ -35,10 +37,9 @@ class ReadOnlyController(
     private val lsfCommandService: LSFCommandService,
     private val requestedValueServiceImpl: RequestedValueServiceImpl,
     private val sampleRepository: SampleRepository,
-    private val externalMetadataSourceService: ExternalMetadataSourceService,
+    private val jsonApiService: JsonApiService,
+    private val remoteCommandsService: RemoteCommandsService,
 ) {
-
-    private val logger = LoggerFactory.getLogger(this::class.java)
 
     @GetMapping("/simple/read-only")
     fun getSimpleReadOnlyPage(model: Model, @RequestParam uuid: String, redirectAttributes: RedirectAttributes): String {
@@ -97,7 +98,7 @@ class ReadOnlyController(
         model["clusterJobs"] = lsfCommandService.collectJobs(submission)
         model["usedRequestedValues"] = requestedValueServiceImpl.getSubmissionUsesRequestedValues(submission)
         model["libPrepKitAdapterSequence"] = samples.map { it.libraryPreparationKit }.distinct().associateWith {
-            val adapterSequence = externalMetadataSourceService.getValues("adapter-sequence-for-lib-prep-kit", mapOf("libPrepKit" to it), typeReference = object : TypeReference<Map<String, String>>() {})[it]
+            val adapterSequence = jsonApiService.getValues("adapter-sequence-for-lib-prep-kit", mapOf("libPrepKit" to it), ApiType.OTP, typeReference = object : TypeReference<Map<String, String>>() {})[it]
             val shortenedSequence = getShortAdapterSequence(adapterSequence.orEmpty())
             adapterSequence to "[$shortenedSequence...]".takeIf { shortenedSequence.isNotBlank() }.orEmpty()
         }
@@ -109,7 +110,7 @@ class ReadOnlyController(
                 samplesMap[path] = samples.associateWith { sample ->
                     if (!sample.isMergeSample) {
                         fileRepository.findAllBySample(sample).map { file ->
-                            val fileReadable = fileChecker(file.fileName)
+                            val fileReadable = remoteCommandsService.getFromRemote("test -r ${file.fileName}; echo \$?").trim().toBool().not()
                             if (!fileReadable) { allFilesReadable = false }
                             file.isReadable = fileReadable
                             file
@@ -131,29 +132,6 @@ class ReadOnlyController(
         } else {
             "metadataValidator/simple/read-only"
         }
-    }
-
-    private fun fileChecker(fileName: String): Boolean {
-        val isWindows = System.getProperty("os.name").lowercase(Locale.getDefault()).startsWith("windows")
-        val process = if (isWindows) {
-            logger.info("Windows is not fully supported.")
-            return true
-            // ProcessBuilder("sh.exe", "--login", "-i", "-c", "\"ls -l $fileName\"").start()
-        } else {
-            val commandToCheckExternalFiles = runtimeOptionsRepository.findByName("commandToCheckExternalFiles")!!.value
-            ProcessBuilder("/bin/bash", "-c", "$commandToCheckExternalFiles $fileName").start()
-        }
-        process.inputStream.reader(Charsets.UTF_8).use {
-            val text = it.readText()
-            if (text.isNotBlank()) {
-                val permissions = text.split(" ")[0]
-                val regex = "[bcdlps-][-r][-w][-x]((?<groupR>r)|-)[-w][-x]((?<otherR>r)|-)[-w][-x].*".toRegex()
-                val groups = regex.matchEntire(permissions)?.groups
-                return groups?.get("groupR") != null || groups?.get("otherR") != null
-            }
-        }
-        process.waitFor()
-        return false
     }
 
     private fun getShortAdapterSequence(adapterSequence: String): String {

@@ -7,8 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import de.dkfz.odcf.guide.ImportSourceDataRepository
 import de.dkfz.odcf.guide.RuntimeOptionsRepository
 import de.dkfz.odcf.guide.entity.submissionData.ImportSourceData
-import de.dkfz.odcf.guide.exceptions.ApiType
 import de.dkfz.odcf.guide.exceptions.ExternalApiReadException
+import de.dkfz.odcf.guide.helperObjects.enums.ApiType
 import de.dkfz.odcf.guide.helperObjects.importObjects.ExternalIlseSubmissionImportObject
 import de.dkfz.odcf.guide.service.interfaces.external.IlseApiService
 import de.dkfz.odcf.guide.service.interfaces.external.JsonApiService

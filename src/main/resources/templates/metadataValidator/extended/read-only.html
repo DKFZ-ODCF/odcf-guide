@@ -151,8 +151,8 @@
                         </td>
                         <td>
                             <span th:classappend="${file.readable == false ? 'text-danger' : ''}" th:text="${file.fileName}"></span>
-                            <i th:if="${file.readable}" class="fas fa-file-check text-success"></i>
-                            <i th:if="${file.readable == false}" class="fas fa-file-exclamation text-danger" title="We can not find or access this file"></i>
+                            <i th:if="${file.readable}" class="fa-solid fa-file-circle-check text-success"></i>
+                            <i th:if="${file.readable == false}" class="fa-solid fa-file-circle-exclamation text-danger" title="We can not find or access this file"></i>
                         </td>
                         <td><span th:text="${file.md5}"></span></td>
                         <td><span th:text="${file.readNumber}"></span></td>

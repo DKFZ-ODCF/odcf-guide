@@ -4,10 +4,10 @@ import de.dkfz.odcf.guide.*
 import de.dkfz.odcf.guide.entity.submissionData.ApiSubmission
 import de.dkfz.odcf.guide.entity.submissionData.Sample
 import de.dkfz.odcf.guide.entity.submissionData.Submission
-import de.dkfz.odcf.guide.exceptions.ApiType
 import de.dkfz.odcf.guide.exceptions.ExternalApiReadException
 import de.dkfz.odcf.guide.helper.AnyObject
 import de.dkfz.odcf.guide.helper.EntityFactory
+import de.dkfz.odcf.guide.helperObjects.enums.ApiType
 import de.dkfz.odcf.guide.helperObjects.importObjects.ExternalIlseSubmissionImportObject
 import de.dkfz.odcf.guide.service.implementation.importer.IlseImportServiceImpl
 import de.dkfz.odcf.guide.service.interfaces.PseudonymService

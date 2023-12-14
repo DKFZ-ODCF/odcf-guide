@@ -1,13 +1,7 @@
 package de.dkfz.odcf.guide.exceptions
 
 import de.dkfz.odcf.guide.entity.submissionData.Submission
-
-enum class ApiType {
-    ILSe,
-    OTP,
-    ITCF,
-    OTRS
-}
+import de.dkfz.odcf.guide.helperObjects.enums.ApiType
 
 open class GuideRuntimeException(message: String) : Exception(message)
 
@@ -52,3 +46,5 @@ class SubmissionNotFoundException(message: String) : GuideRuntimeException(messa
 class RuntimeOptionsNotFoundException(optionName: String) : GuideRuntimeException("runtime options '$optionName' was not found in DB")
 
 class JobAlreadySubmittedException(message: String) : GuideRuntimeException(message)
+
+class BlankJsonException(message: String) : GuideRuntimeException(message)

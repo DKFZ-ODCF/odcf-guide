@@ -6,8 +6,8 @@ import de.dkfz.odcf.guide.PersonRepository
 import de.dkfz.odcf.guide.RuntimeOptionsRepository
 import de.dkfz.odcf.guide.annotation.ExcludeFromJacocoGeneratedReport
 import de.dkfz.odcf.guide.entity.Person
-import de.dkfz.odcf.guide.exceptions.ApiType
 import de.dkfz.odcf.guide.exceptions.UserNotFoundException
+import de.dkfz.odcf.guide.helperObjects.enums.ApiType
 import de.dkfz.odcf.guide.service.interfaces.external.JsonApiService
 import de.dkfz.odcf.guide.service.interfaces.security.LdapService
 import org.slf4j.LoggerFactory

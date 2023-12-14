@@ -219,24 +219,27 @@ function loadContactForm() {
 }
 
 function feedbackFormSendMail() {
-    if(!document.getElementById("feedbackFormMessage").validity.valid) {
-        $('#feedbackFormMessage').popover({
-            content: "Please provide a more detailed description of your user experience.",
-            placement: 'bottom'
-        });
-        $('#feedbackFormMessage').popover('show');
-
+    let smiley = document.querySelector('input[name="smiley"]:checked');
+    let messageBox = $('#feedbackFormMessage');
+    if (smiley == null) {
+        let feedbackSmileys = $('#feedbackSmileys');
+        feedbackSmileys
+            .popover({ content: "Please pick a rating.", placement: 'top' })
+            .popover('show');
+    } else if (!document.getElementById("feedbackFormMessage").validity.valid) {
+        messageBox
+            .popover({ content: "Please provide a more detailed description of your user experience.", placement: 'bottom' })
+            .popover('show');
     } else {
-        var name = $('#feedbackFormName').val();
-        var mail = $('#feedbackFormMail').val();
-        var message = $('#feedbackFormMessage').val();
-        var feedback = getCheckedFeedbackSmiley();
-        var submission = $('#submission').val();
+        let message = messageBox.val();
+        let feedback = smiley.value;
+        let submission = $('#submission').val();
 
-        var form_data = "name=" + name + "&mail=" + mail;
+        let form_data = "name=" + $('#feedbackFormName').val()
+            + "&mail=" + $('#feedbackFormMail').val()
+            + "&feedback=" + feedback;
         form_data += (submission !== null) ? "&submission=" + submission : "";
         form_data += (message !== null) ? "&message=" + message : "";
-        form_data += (feedback !== null) ? "&feedback=" + feedback : "";
 
         $.ajax({
             type: "POST",
@@ -248,7 +251,7 @@ function feedbackFormSendMail() {
                 $('#feedbackAlert').show();
                 $('#feedbackModal').modal('toggle');
             },
-            error: function (e) {
+            error: function () {
                 $('#feedbackText').text('failed to send feedback');
                 $('#feedbackAlert').addClass('alert-danger').show();
             }
@@ -286,20 +289,9 @@ function changeSubmissionOnHold(submission, onHoldComment) {
     $('#redirectToOverview').attr("checked", true);
 }
 
-function getCheckedFeedbackSmiley() {
-    var ele = document.getElementsByName('smiley');
-
-    for(i = 0; i < ele.length; i++) {
-        if(ele[i].checked)
-            return ele[i].value;
-    }
-}
-
 function makeMessageRequiredForCheckedFeedbackSmiley(feedbackSmiley) {
-    var feedback = feedbackSmiley.val();
-
-    var textfieldToggle = $('#feedbackFormMessage');
-    if (feedback === "happy") {
+    let textfieldToggle = $('#feedbackFormMessage');
+    if (feedbackSmiley.val() === "happy") {
         textfieldToggle.attr('required', false);
     } else {
         textfieldToggle.attr('required', true);

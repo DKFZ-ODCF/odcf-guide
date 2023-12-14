@@ -1,58 +1,55 @@
 package de.dkfz.odcf.guide.service.implementation.external
 
 import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import de.dkfz.odcf.guide.exceptions.ApiType
-import de.dkfz.odcf.guide.exceptions.ExternalApiReadException
+import de.dkfz.odcf.guide.entity.Person
+import de.dkfz.odcf.guide.exceptions.BlankJsonException
+import de.dkfz.odcf.guide.helperObjects.encodeUtf8
+import de.dkfz.odcf.guide.helperObjects.enums.ApiType
 import de.dkfz.odcf.guide.helperObjects.toKebabCase
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.external.JsonApiService
-import org.springframework.core.env.Environment
+import de.dkfz.odcf.guide.service.interfaces.security.LdapService
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
 class ExternalMetadataSourceServiceImpl(
-    private val env: Environment,
     private val jsonApiService: JsonApiService,
+    private val ldapService: LdapService,
 ) : ExternalMetadataSourceService {
-
-    /**
-     * This method sends a GET request to an external API endpoint to retrieve JSON content.
-     * The URL and headers are constructed using the properties defined in the application.properties file and the specified `urlSuffix`.
-     * The maximum file size is 10MB.
-     * If an exception occurs during the retrieval, including when the response content is empty, an empty string is returned.
-     *
-     * @param urlSuffix the name of the metadata to be retrieved.
-     * @return The metadata as a JSON string.
-     */
-    fun getJsonFromApi(urlSuffix: String): String {
-        val url = "${env.getRequiredProperty("externalMetadataSourceService.adapter.url")}/rest/otp/$urlSuffix"
-        val headers = mapOf(
-            "User-Token" to env.getRequiredProperty("externalMetadataSourceService.adapter.token")
-        )
-        return try {
-            jsonApiService.getJsonFromApi(url, headers, ApiType.OTP)
-        } catch (e: ExternalApiReadException) {
-            ""
-        }
-    }
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun getSingleValue(methodName: String, params: Map<String, String>): String {
-        val paramString = params.map { "${it.key}=${it.value}" }.joinToString("&")
-        return getJsonFromApi(methodName.toKebabCase() + "?$paramString".takeIf { paramString.isNotBlank() }.orEmpty())
+        val paramString = params.map { "${it.key.encodeUtf8()}=${it.value.encodeUtf8()}" }.joinToString("&")
+        return jsonApiService.getJsonFromApi(methodName.toKebabCase() + "?$paramString".takeIf { paramString.isNotBlank() }.orEmpty(), ApiType.OTP)
     }
 
     override fun getValuesAsSet(methodName: String, params: Map<String, String>): Set<String> {
-        return getValues(methodName, params, object : TypeReference<List<String>>() {}).sorted().toSet()
+        return try {
+            return jsonApiService.getValues(methodName, params, ApiType.OTP, object : TypeReference<List<String>>() {}).sorted().toSet()
+        } catch (e: BlankJsonException) {
+            logger.warn(e.message)
+            emptySet()
+        }
     }
 
     override fun getValuesAsSetMap(methodName: String, params: Map<String, String>): Set<Map<String, String>> {
-        return getValues(methodName, params, object : TypeReference<Set<Map<String, String>>>() {})
+        return try {
+            jsonApiService.getValues(methodName, params, ApiType.OTP, object : TypeReference<Set<Map<String, String>>>() {})
+        } catch (e: BlankJsonException) {
+            logger.warn(e.message)
+            emptySet()
+        }
     }
 
-    override fun <R> getValues(methodName: String, params: Map<String, String>, typeReference: TypeReference<R>): R {
-        val json = getSingleValue(methodName.toKebabCase(), params)
-        val objectMapper = ObjectMapper()
-        return objectMapper.readValue(json, typeReference)
+    override fun getPrincipalInvestigatorsAsPersonSet(projectName: String): Set<Person> {
+        return getValuesAsSet("pis-by-project", mapOf("project" to projectName)).mapNotNull { username ->
+            try {
+                ldapService.getPersonByUsername(username)
+            } catch (e: Exception) {
+                logger.warn("user '$username' not added as PI to project '$projectName' with reason:\n${e.localizedMessage}")
+                null
+            }
+        }.toSet()
     }
 }

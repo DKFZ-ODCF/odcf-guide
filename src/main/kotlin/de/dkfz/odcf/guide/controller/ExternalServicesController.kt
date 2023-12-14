@@ -6,7 +6,9 @@ import de.dkfz.odcf.guide.ProjectRepository
 import de.dkfz.odcf.guide.exceptions.ExternalApiReadException
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.external.IlseApiService
+import de.dkfz.odcf.guide.service.interfaces.external.ProjectTargetService
 import de.dkfz.odcf.guide.service.interfaces.security.AuthorizationService
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
@@ -22,8 +24,10 @@ class ExternalServicesController(
     private val projectRepository: ProjectRepository,
     private val ilseService: IlseApiService,
     private val externalMetadataSourceService: ExternalMetadataSourceService,
+    private val projectTargetService: ProjectTargetService,
 ) {
     val bundle = ResourceBundle.getBundle("messages", Locale.getDefault())
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     @GetMapping("/ilse/api")
     @ResponseBody
@@ -73,5 +77,18 @@ class ExternalServicesController(
         val headers = HttpHeaders()
         headers.add("Content-Type", TEXT_PLAIN_VALUE)
         return ResponseEntity(path, headers, HttpStatus.OK)
+    }
+
+    @PostMapping("/refresh-projects")
+    @ResponseBody
+    fun refreshProjects(@RequestHeader(value = "User-Token", required = false) token: String?): ResponseEntity<*> {
+        authorizationService.checkAuthorization(token)?.let { return it }
+
+        return if (projectTargetService.updateProjectsInTarget()) {
+            logger.info("Successfully updated projects in target.")
+            ResponseEntity("Successfully updated projects.\n", HttpHeaders(), HttpStatus.OK)
+        } else {
+            ResponseEntity("Something went wrong during the update, please try again later or check the logs.\n", HttpHeaders(), HttpStatus.OK)
+        }
     }
 }

@@ -13,6 +13,9 @@ application:
       otp: 0 0 1 * * ?
       filesystem: 0 0 3 * * sat
       ldap: 0 0 2 * * ?
+projectTargetService:
+  adapter:
+    cron: 0 0 1 * * *
 ldap:
   base:
     dn: ou=ou,dc=ad,dc=domain,dc=de

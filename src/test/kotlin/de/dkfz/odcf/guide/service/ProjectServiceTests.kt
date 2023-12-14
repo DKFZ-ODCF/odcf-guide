@@ -1,20 +1,17 @@
 package de.dkfz.odcf.guide.service
 
-import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import de.dkfz.odcf.guide.ProjectRepository
 import de.dkfz.odcf.guide.RuntimeOptionsRepository
 import de.dkfz.odcf.guide.entity.storage.Project
-import de.dkfz.odcf.guide.exceptions.UserNotFoundException
 import de.dkfz.odcf.guide.helper.AnyObject
 import de.dkfz.odcf.guide.helper.EntityFactory
 import de.dkfz.odcf.guide.service.implementation.projectOverview.ProjectServiceImpl
 import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceService
 import de.dkfz.odcf.guide.service.interfaces.external.RemoteCommandsService
 import de.dkfz.odcf.guide.service.interfaces.external.SqlService
-import de.dkfz.odcf.guide.service.interfaces.security.LdapService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -42,9 +39,6 @@ class ProjectServiceTests : AnyObject {
 
     @Mock
     lateinit var remoteCommandsService: RemoteCommandsService
-
-    @Mock
-    lateinit var ldapService: LdapService
 
     @Mock
     lateinit var projectRepository: ProjectRepository
@@ -90,9 +84,7 @@ class ProjectServiceTests : AnyObject {
         `when`(externalMetadataSourceService.getValuesAsSetMap("projectInfos")).thenReturn(setOf(map))
         `when`(externalMetadataSourceService.getValuesAsSet("seqTypesByProject", mapOf("project" to "project"))).thenReturn(setOf("WGS", "RNA"))
         `when`(externalMetadataSourceService.getSingleValue("lastDataRecdByProject", mapOf("project" to "project"))).thenReturn("last")
-        `when`(externalMetadataSourceService.getValuesAsSet("pisByProject", mapOf("project" to "project"))).thenReturn(setOf("pi1", "pi2"))
-        `when`(ldapService.getPersonByUsername("pi1")).thenReturn(pi1)
-        `when`(ldapService.getPersonByUsername("pi2")).thenReturn(pi2)
+        `when`(externalMetadataSourceService.getPrincipalInvestigatorsAsPersonSet("project")).thenReturn(setOf(pi1, pi2))
         `when`(runtimeOptionsRepository.findByName("projectPathPrefix")).thenReturn(entityFactory.getRuntimeOption("/prefix/"))
         `when`(projectRepository.save(anyOtpCachedProject())).then {
             val argumentProject = it.arguments[0]
@@ -146,14 +138,11 @@ class ProjectServiceTests : AnyObject {
         pi1.username = "pi1"
         val pi2 = entityFactory.getPerson()
         pi2.username = "pi2"
-        val listAppender = initListAppender()
 
         `when`(externalMetadataSourceService.getValuesAsSetMap("projectInfos")).thenReturn(setOf(map))
         `when`(externalMetadataSourceService.getValuesAsSet("seqTypesByProject", mapOf("project" to "project"))).thenReturn(setOf("WGS", "RNA"))
         `when`(externalMetadataSourceService.getSingleValue("lastDataRecdByProject", mapOf("project" to "project"))).thenReturn("last")
-        `when`(externalMetadataSourceService.getValuesAsSet("pisByProject", mapOf("project" to "project"))).thenReturn(setOf("pi1", "pi2"))
-        `when`(ldapService.getPersonByUsername("pi1")).thenReturn(pi1)
-        `when`(ldapService.getPersonByUsername("pi2")).thenThrow(UserNotFoundException("not found"))
+        `when`(externalMetadataSourceService.getPrincipalInvestigatorsAsPersonSet("project")).thenReturn(setOf(pi1))
         `when`(runtimeOptionsRepository.findByName("projectPathPrefix")).thenReturn(entityFactory.getRuntimeOption("/prefix/"))
         `when`(projectRepository.save(anyOtpCachedProject())).then {
             val argumentProject = it.arguments[0]
@@ -165,10 +154,6 @@ class ProjectServiceTests : AnyObject {
 
         assertThat(project.pis).contains(pi1)
         assertThat(project.pis).doesNotContain(pi2)
-        val logsList = listAppender.list
-        assertThat(logsList).hasSize(1)
-        assertThat(logsList.first().level).isEqualTo(Level.WARN)
-        assertThat(logsList.first().message).startsWith("user '${pi2.username}' not added as PI to project ${project.name} with reason")
     }
 
     @Test

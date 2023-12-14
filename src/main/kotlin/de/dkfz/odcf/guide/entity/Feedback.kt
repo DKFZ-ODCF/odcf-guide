@@ -19,7 +19,7 @@ class Feedback {
     lateinit var submission: Submission
 
     @Enumerated(EnumType.STRING)
-    var rating: Rating = Rating.NEUTRAL
+    var rating: Rating = Rating.HAPPY
         private set
 
     var message: String = ""

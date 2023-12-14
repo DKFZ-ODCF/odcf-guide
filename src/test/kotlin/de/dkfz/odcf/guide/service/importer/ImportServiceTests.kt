@@ -3,9 +3,9 @@ package de.dkfz.odcf.guide.service.importer
 import de.dkfz.odcf.guide.FileRepository
 import de.dkfz.odcf.guide.RuntimeOptionsRepository
 import de.dkfz.odcf.guide.entity.submissionData.File
-import de.dkfz.odcf.guide.exceptions.ApiType
 import de.dkfz.odcf.guide.helper.AnyObject
 import de.dkfz.odcf.guide.helper.EntityFactory
+import de.dkfz.odcf.guide.helperObjects.enums.ApiType
 import de.dkfz.odcf.guide.service.implementation.importer.ImportServiceImpl
 import de.dkfz.odcf.guide.service.interfaces.external.JsonApiService
 import de.dkfz.odcf.guide.service.interfaces.importer.ImportService

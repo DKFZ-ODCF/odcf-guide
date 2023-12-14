@@ -38,6 +38,7 @@ class SqlServiceTests {
         statement.execute("CREATE TABLE IF NOT EXISTS test (id INT PRIMARY KEY, name VARCHAR(255))")
         statement.execute("INSERT INTO test VALUES (1, 'test')")
         statement.execute("INSERT INTO test VALUES (2, 'test2')")
+        statement.execute("INSERT INTO test VALUES (3, null)")
     }
 
     @Test
@@ -69,9 +70,10 @@ class SqlServiceTests {
 
         val result = sqlServiceTestsMock.getMultipleFromRemote(connection, listOf("name"), sql)
 
-        assertThat(result).hasSize(2)
+        assertThat(result).hasSize(3)
         assertThat(result.map { it["name"] }).contains("test")
         assertThat(result.map { it["name"] }).contains("test2")
+        assertThat(result.map { it["name"] }).contains("")
     }
 
     @Test

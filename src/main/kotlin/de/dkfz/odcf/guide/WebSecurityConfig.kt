@@ -60,6 +60,7 @@ open class WebSecurityConfig(private val env: Environment) : WebSecurityConfigur
                             AntPathRequestMatcher("/services/ilse/api"),
                             AntPathRequestMatcher("/services/otp/get-users-to-be-notified"),
                             AntPathRequestMatcher("/services/get-project-path"),
+                            AntPathRequestMatcher("/services/refresh-projects"),
                             AntPathRequestMatcher("/metadata-validator/submission-actions/register-ticket-number"),
                         ),
                         RequestHeaderRequestMatcher("User-Token")
