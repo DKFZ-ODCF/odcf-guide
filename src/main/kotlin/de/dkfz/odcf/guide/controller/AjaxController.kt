@@ -9,6 +9,7 @@ import de.dkfz.odcf.guide.service.interfaces.external.ExternalMetadataSourceServ
 import de.dkfz.odcf.guide.service.interfaces.external.LSFCommandService
 import de.dkfz.odcf.guide.service.interfaces.mail.MailSenderService
 import de.dkfz.odcf.guide.service.interfaces.security.LdapService
+import de.dkfz.odcf.guide.service.interfaces.validator.SampleService
 import org.slf4j.LoggerFactory
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpHeaders
@@ -41,13 +42,13 @@ class AjaxController(
     private val ldapService: LdapService,
     private val mergingService: MergingService,
     private val speciesService: SpeciesService,
+    private val sampleService: SampleService,
     private val env: Environment
 ) {
 
     private val VALUE_ALREADY_EXISTS = "This value already exists!"
 
     private var bundle = ResourceBundle.getBundle("messages", Locale.getDefault())
-    private var mailBundle = ResourceBundle.getBundle("mails", Locale.getDefault())
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -299,15 +300,6 @@ class AjaxController(
         @RequestParam pid: String,
         @RequestParam project: String,
     ): String {
-        val similarPids = externalMetadataSourceService.getValuesAsSetMap(
-            "similar-pids",
-            mapOf(
-                "project" to project,
-                "pid" to pid,
-                "threshold" to "0.3",
-                "limit" to "10",
-            )
-        )
-        return similarPids.sortedByDescending { it["similarity_num"] }.map { it["pid"] }.joinToString(",")
+        return sampleService.getSimilarPids(pid, project).sortedByDescending { it["similarity_num"] }.map { it["pid"] }.joinToString(",")
     }
 }

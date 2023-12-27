@@ -1,0 +1,5 @@
+---
+title: added pid similarity warning and error
+issue: GUIDE-748
+author: Timo Wiese
+type: feature

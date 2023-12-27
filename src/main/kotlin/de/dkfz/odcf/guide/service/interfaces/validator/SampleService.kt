@@ -127,4 +127,26 @@ interface SampleService {
      * @return Sample entity
      */
     fun convertToEntity(sampleGuiDto: SampleGuiDto): Sample
+
+    /**
+     * Retrieves a set of similar PIDs based on the provided PID and project.
+     *
+     * @param pid The original PID.
+     * @param project The project associated with the PID.
+     * @return A set of maps representing similar PIDs with their associated similarity values (0-1).
+     */
+    fun getSimilarPids(pid: String, project: String): Set<Map<String, String>>
+
+    /**
+     * Checks if a nearly identical PID is available for the given PID and project.
+     *
+     * The severity indicates the level of concern based on the similarity of PIDs:
+     * - "danger": High similarity  with another PID, considering case-insensitive and ignoring special characters.
+     * - "warning": Potential similarity with another PID, where the new PID is a subset of an existing one.
+     *
+     * @param pid The original PID.
+     * @param project The project associated with the PID.
+     * @return A Pair indicating the severity and the nearly identical PID if available, or null if none is found.
+     */
+    fun checkIfSamePidIsAvailable(pid: String, project: String): Pair<String, String?>?
 }

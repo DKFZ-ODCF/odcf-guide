@@ -16,60 +16,14 @@
     <div th:replace="fragments/pageMessages :: warning"></div>
     <div th:replace="fragments/pageMessages :: info"></div>
     <div th:replace="fragments/pageMessages :: error"></div>
-    <div id="feedbackAlert" class="alert alert-info alert-dismissible mt-2" style="display: none;">
-        <span id="feedbackText" th:text="#{feedback.thanks}"></span>
-        <button type="button" class="close" onclick="$('#feedbackAlert').hide()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
 
-    <h2 th:inline="text">[[${header}]] Submission [[${identifier}]]</h2>
-    <span id="identifier" th:text="${identifier}" hidden></span>
+    <div th:replace="fragments/metadataValidator/readOnlyElements :: feedback"></div>
 
-    <div th:if="${!submission.finished && !submission.isPaused}"
-         class="alert alert-dismissible fade show"
-         th:classappend="${merging} ? 'alert-warning' : 'alert-success'">
-        <h4 class="alert-heading">Thank you!</h4>
-        <h6 th:if="${addition}" class="text-danger" th:text="${addition}"></h6>
-        <hr>
-        <span th:utext="#{readonly.step1}"></span>
-        <hr th:if="${merging}">
-        <span th:if="${merging}" th:utext="#{readonly.merging}"></span>
-        <hr>
-        <span th:utext="#{readonly.step2}"></span>
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
+    <div th:replace="fragments/metadataValidator/readOnlyElements :: header"></div>
 
-    <div th:if="${submission.onHold}" class="mt-2 alert alert-info">
-        <span th:text="#{readonly.summary.onHold}"></span>
-    </div>
+    <div th:replace="fragments/metadataValidator/readOnlyElements :: summary"></div>
 
-    <div class="mt-2 alert alert-secondary">
-        <span th:text="#{readonly.summary.contains}"></span><br>
-        <ul>
-            <li>
-                <span th:text="#{readonly.summary.projects}"></span>
-                <a class="text-blue" target="_blank"
-                   th:href="${otpProjectPath + project}"
-                   th:each="project, stat : ${projects}"
-                   th:text="!${stat.last} ? ${project} + ', ' : ${project}"></a>
-            </li>
-            <li>
-                <span th:text="#{readonly.summary.seqTypes}"></span> <span class="text-blue" th:text="${seqTypes}"></span>
-            </li>
-            <li>
-                <span th:text="#{readonly.summary.xenograft}"></span> <span class="text-blue" th:text="${numberOfXenograft}"></span>
-            </li>
-            <li th:if="${not #lists.isEmpty(antibodyTargets)}">
-                <span th:text="#{readonly.summary.antibodyTargets}"></span> <span class="text-blue" th:text="${antibodyTargets}"></span>
-            </li>
-            <li th:if="${not #lists.isEmpty(additionalHeaders) && showAdditionalHeaders}">
-                <span th:text="#{readonly.summary.additionalHeaders}"></span> <span class="text-blue" th:text="${#strings.listJoin(additionalHeaders, ', ')}"></span>
-            </li>
-        </ul>
-    </div>
+    <div th:replace="fragments/metadataValidator/readOnlyElements :: merging"></div>
 
     <div class="btn-group flex-wrap mb-2">
         <button id="hideSample" class="btn btn-outline-dark" onclick="hideSampleColumn('.h-sample', '#hideSample')">
@@ -99,23 +53,7 @@
                     <th class="h-tSample" th:text="#{baseCount}"></th>
                     <th class="h-tSample" th:text="#{cycleCount}"></th>
                     <th class="h-tSample" th:text="#{readCount}"></th>
-                    <th class="h-sample" th:text="#{project}"></th>
-                    <th class="h-sample" th:text="#{pid}"></th>
-                    <th class="h-sample" th:text="#{sampleType}"></th>
-                    <th class="h-sample" th:text="#{xenograft}"></th>
-                    <th class="h-sample" th:if="${showSampleTypeCategory}" th:text="#{sampleTypeCategory}"></th>
-                    <th class="h-sample" th:text="#{speciesWithStrain}"></th>
-                    <th class="h-sample" th:text="#{sex}"></th>
-                    <th class="h-sample" th:text="#{phenotype}"></th>
-                    <th class="h-sample" th:text="#{libraryLayout}"></th>
-                    <th class="h-sample" th:text="#{otpSeqType}"></th>
-                    <th class="h-sample" th:if="${showLowCoverageRequested}" th:text="#{lowCoverageRequested}"></th>
-                    <th class="h-sample" th:if="${showTagmentationLib}" th:text="#{tagmentationLibrary}"></th>
-                    <th class="h-sample" th:if="${showAntibody}" th:text="#{antibodyTarget}"></th>
-                    <th class="h-sample" th:if="${showAntibody}" th:text="#{antibody}"></th>
-                    <th th:hidden="${hasSubmissionTypeSamples}" class="h-sample" th:text="#{libraryPreparationKit}"></th>
-                    <th th:hidden="${hasSubmissionTypeSamples}" class="h-sample" th:text="#{indexType}"></th>
-                    <th class="h-sample" th:if="${showSingleCellWellLabel}" th:text="#{singleCellWellLabel}"></th>
+                    <th th:replace="fragments/metadataValidator/simple/tableFragments :: readOnlyTableHeader"></th>
                     <!--<th class="table-sep h-tSample"></th>-->
                     <th class="h-tSample" th:text="#{index}"></th>
                     <th class="h-tSample" th:text="#{ilseNumber}"></th>
@@ -175,9 +113,17 @@
                             <span th:text="${sample.project}" th:style="${index.index == 1} ? 'visibility: hidden;' : ''"></span>
                         </td>
                         <td class="h-sample align-middle"
-                            th:classappend="${sampleGroup.value.size > 1} ? 'merge-col-warning' : ''">
+                            th:classappend="${sampleGroup.value.size > 1} ? 'merge-col-warning' : ''"
+                            th:with="nearlySamePid=${nearlyIdenticalPid.get(sample.pid)}">
                             <span th:text="${sample.pid}" th:style="${index.index == 1} ? 'visibility: hidden;' : ''"></span>
+                            <th:block th:if="${nearlySamePid != null && index.index < 1}">
+                                <br>
+                                <i th:classappend="|text-${nearlySamePid.first}|" class="fa-solid fa-triangle-exclamation"></i>
+                                <span class="text-secondary" th:text="#{|readonly.pidPrefix.${nearlySamePid.first}|}"></span>
+                                <span class="text-secondary" th:text="${nearlySamePid.second}"></span>
+                            </th:block>
                         </td>
+
                         <td class="h-sample align-middle"
                             th:classappend="${sampleGroup.value.size > 1} ? 'merge-col-warning' : ''">
                             <span th:text="${sample.sampleTypeReflectingXenograft}" th:style="${index.index == 1} ? 'visibility: hidden;' : ''"></span>
@@ -227,16 +173,15 @@
                         <td class="h-sample align-middle" th:if="${showAntibody}">
                             <span th:text="${sample.antibody}" th:style="${index.index == 1} ? 'visibility: hidden;' : ''"></span>
                         </td>
-                        <td class="h-sample align-middle"
-                            th:hidden="${hasSubmissionTypeSamples}">
+                        <td class="h-sample align-middle" th:unless="${hasSubmissionTypeSamples}">
                             <span th:text="${sample.libraryPreparationKit}" th:style="${index.index == 1} ? 'visibility: hidden;' : ''"></span>
                             <small class="text-muted align-text-top"
                                    th:with="adapterSequence=${libPrepKitAdapterSequence.get(sample.libraryPreparationKit)}"
                                    th:text="${adapterSequence?.second}" th:title="${adapterSequence?.first}"
                                    th:style="${index.index == 1} ? 'visibility: hidden;' : ''"></small>
+                            <i th:if="${usedRequestedValues['libraryPreparationKit']?.contains(sample.libraryPreparationKit)}" class="fas fa-hourglass-half" title="Approval pending" th:style="${style}"></i>
                         </td>
-                        <td class="h-sample align-middle"
-                            th:hidden="${hasSubmissionTypeSamples}">
+                        <td class="h-sample align-middle" th:unless="${hasSubmissionTypeSamples}">
                             <span th:text="${sample.indexType}" th:style="${index.index == 1} ? 'visibility: hidden;' : ''"></span>
                         </td>
                         <td class="h-sample align-middle" th:if="${showSingleCellWellLabel}"
@@ -302,67 +247,12 @@
         </table>
     </div>
 
-    <p></p>
+    <div th:replace="fragments/metadataValidator/readOnlyElements :: userButtons"></div>
 
-    <div class="row mb-3">
-        <div class="col-auto">
-            <form th:if="${submission.active}" action="#" th:action="@{/metadata-validator/submission/extended/user}" method="get">
-                <input type="hidden" name="uuid" th:value="${submission.uuid}">
-                <input type="hidden" name="backAndEdit" value="true">
-                <input type="submit" name="button" class="btn btn-outline-dark" th:value="#{readonly.back}"/>
-            </form>
-        </div>
-        <div class="col-auto">
-            <form th:if="${ (!hideFinalSubmitButton) && !submission.finished && !submission.locked}" id="finalSubmitForm"
-                  action="#" th:action="@{/metadata-validator/submission-actions/finally}" method="post">
-                <input type="hidden" name="uuid" th:value="${submission.uuid}">
-                <input th:if="${usedRequestedValues.isEmpty() && allFilesReadable}" type="submit" name="button" class="btn btn-outline-success" th:value="#{readonly.submitFinally}"/>
-                <input th:unless="${usedRequestedValues.isEmpty() && allFilesReadable}" type="button" class="btn btn-outline-danger"
-                       data-toggle="tooltip" data-placement="top" data-html="true"
-                       th:value="#{readonly.submitFinally}" th:title="${!allFilesReadable} ? #{readonly.info.notAllFilesReadable} : #{readonly.info.usesRequestedValues}" disabled/>
-            </form>
-        </div>
-    </div>
-
-    <div class="row mb-3" th:if="${admin}">
-        <div class="col-auto">
-            <form action="#" th:action="@{/metadata-validator/overview/admin}" method="get">
-                <input type="submit" name="button" class="btn btn-outline-dark" th:value="#{submissionOverview}"/>
-            </form>
-        </div>
-        <div class="col-auto">
-            <form th:if="${submission.writeProtected}" action="#"
-                  th:action="@{/metadata-validator/submission-actions/reopenSubmission}" method="post">
-                <input type="hidden" name="identifier" th:value="${submission.identifier}">
-                <input type="submit" name="button" class="btn btn-outline-dark"
-                       th:value="#{readonly.reopenSubmission}"/>
-            </form>
-        </div>
-        <div class="col-auto">
-            <form th:if="${submission.active}" action="#" th:action="@{/metadata-validator/submission/extended/admin}"
-                  method="get">
-                <input type="hidden" name="identifier" th:value="${submission.identifier}">
-                <input type="hidden" name="backAndEdit" value="true">
-                <input type="submit" name="button" class="btn btn-outline-dark" th:value="#{readonly.backAdmin}"/>
-            </form>
-        </div>
-    </div>
+    <div th:replace="fragments/metadataValidator/readOnlyElements :: adminButtons"></div>
 </div>
 
-<div class="container-fluid content" th:if="${isFinished && admin}">
-    <form action="#" method="post">
-        <input type="hidden" name="identifier" th:value="${submission.identifier}">
-        <input th:if="${submission.externalDataAvailableForMerging}"
-               th:formaction="@{/metadata-validator/submission-actions/retrigger-merging}"
-               type="submit" name="button" class="btn btn-outline-dark"
-               th:value="#{readonly.retriggerMerging}"/>
-
-        <input th:formaction="@{/exporter/table}"
-               type="submit" name="button" class="btn btn-outline-dark"
-               th:value="#{readonly.retriggerFile}"/>
-        <small class="text-danger">This will override an existing file!</small>
-    </form>
-</div>
+<div th:replace="fragments/metadataValidator/readOnlyElements :: fileButtons"></div>
 
 <div th:if="${showFeedback}" th:with="submission=${submission}" th:include="fragments/feedback :: feedback"></div>
 <div th:replace="fragments/footer :: footer"></div>

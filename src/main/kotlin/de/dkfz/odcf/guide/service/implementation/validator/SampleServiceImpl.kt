@@ -382,4 +382,26 @@ open class SampleServiceImpl(
         }
         return sample
     }
+
+    override fun getSimilarPids(pid: String, project: String): Set<Map<String, String>> {
+        return externalMetadataSourceService.getValuesAsSetMap(
+            "similar-pids",
+            mapOf(
+                "project" to project,
+                "pid" to pid,
+                "threshold" to "0.3",
+                "limit" to "10",
+            )
+        )
+    }
+
+    override fun checkIfSamePidIsAvailable(pid: String, project: String): Pair<String, String?>? {
+        val nearlyIdenticalPid = getSimilarPids(pid, project).filter { it["similarity_num"] == "1" }
+        if (nearlyIdenticalPid.isNotEmpty() && nearlyIdenticalPid.all { it["pid"] != pid }) {
+            val regex = pid.replace("[^A-Za-z0-9]".toRegex(), "[^A-Za-z0-9]").toRegex(RegexOption.IGNORE_CASE)
+            nearlyIdenticalPid.firstOrNull { it["pid"]?.matches(regex) == true }?.let { return "danger" to it["pid"] }
+            return "warning" to nearlyIdenticalPid.first()["pid"]
+        }
+        return null
+    }
 }

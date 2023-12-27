@@ -145,11 +145,6 @@ class SubmissionTablesPostController(
             // Validate and save
             "Next" -> {
                 submissionService.changeSubmissionState(submission, Submission.Status.VALIDATED, ldapService.getPerson().username)
-                val buttonName = bundle.getString("readonly.submitFinally")
-                redirectAttributes.addFlashAttribute("merging", collectorService.foundMergeableSamples(submission))
-                redirectAttributes.addFlashAttribute("addition", "You are not done yet - please check carefully and finalize your submission by clicking button '$buttonName'.")
-                redirectAttributes.addFlashAttribute("header", "Summary of")
-
                 return redirectReadOnly
             }
             "Apply Parser" -> {

@@ -45,7 +45,7 @@
                    th:pattern="${validation['pid']?.regex}"
                    oninput="validateMetadataTableForm(false);getSimilarPids(this)"
                    onchange="changeSampleName($(this));triggerOnchangeSpeciesByOtherField(this)"
-                   onfocusin="getSimilarPids(this)"
+                   onclick="getSimilarPids(this)"
                    th:required="${validation['pid']?.required}"
                    th:classappend="${validationErrors?.get(sample.id)?.get('pid')} ? is-invalid"/>
             <div class="invalid-feedback">
@@ -661,4 +661,24 @@
             </div>
         </div>
     </div>
+</th:block>
+
+<th:block th:fragment="readOnlyTableHeader">
+    <th class="h-sample" th:text="#{project}"></th>
+    <th class="h-sample" th:text="#{pid}"></th>
+    <th class="h-sample" th:text="#{sampleType}"></th>
+    <th class="h-sample" th:text="#{xenograft}"></th>
+    <th class="h-sample" th:if="${showSampleTypeCategory}" th:text="#{sampleTypeCategory}"></th>
+    <th class="h-sample" th:text="#{speciesWithStrain}"></th>
+    <th class="h-sample" th:text="#{sex}"></th>
+    <th class="h-sample" th:text="#{phenotype}"></th>
+    <th class="h-sample" th:text="#{libraryLayout}"></th>
+    <th class="h-sample" th:text="#{otpSeqType}"></th>
+    <th class="h-sample" th:if="${showLowCoverageRequested}" th:text="#{lowCoverageRequested}"></th>
+    <th class="h-sample" th:if="${showTagmentationLib}" th:text="#{tagmentationLibrary}"></th>
+    <th class="h-sample" th:if="${showAntibody}" th:text="#{antibodyTarget}"></th>
+    <th class="h-sample" th:if="${showAntibody}" th:text="#{antibody}"></th>
+    <th class="h-sample" th:unless="${hasSubmissionTypeSamples}" th:text="#{libraryPreparationKit}"></th>
+    <th class="h-sample" th:unless="${hasSubmissionTypeSamples}" th:text="#{indexType}"></th>
+    <th class="h-sample" th:if="${showSingleCellWellLabel}" th:text="#{singleCellWellLabel}"></th>
 </th:block>

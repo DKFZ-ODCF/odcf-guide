@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## 1.7.40
+
+
+### New Features
+
+- GUIDE-748: added pid similarity warning and error (Timo Wiese)
+
+### Changes and Improvements
+
+- GUIDE-752: refactored submission summary page (Timo Wiese)
+
 ## 1.7.39
 
 

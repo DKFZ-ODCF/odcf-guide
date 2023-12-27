@@ -31,7 +31,6 @@ import org.springframework.ui.Model
 import org.springframework.ui.set
 import org.springframework.web.bind.WebDataBinder
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.servlet.mvc.support.RedirectAttributes
 import java.util.*
 import javax.persistence.EntityManager
 
@@ -61,8 +60,6 @@ class SubmissionTablesGetController(
         binder.autoGrowCollectionLimit = 2048
     }
 
-    private var bundle = ResourceBundle.getBundle("messages", Locale.getDefault())
-
     @GetMapping("/switch-to-user-view")
     fun switchToUserView(@RequestParam identifier: String): String {
         val submission = submissionRepository.findByIdentifier(identifier)
@@ -74,10 +71,9 @@ class SubmissionTablesGetController(
         @RequestParam uuid: String,
         @RequestParam(required = false) backAndEdit: Boolean,
         @RequestHeader(value = "User-Agent", required = false) userAgent: String,
-        model: Model,
-        redirectAttributes: RedirectAttributes
+        model: Model
     ): String {
-        return getUserPage(uuid, backAndEdit, userAgent, model, redirectAttributes, false)
+        return getUserPage(uuid, backAndEdit, userAgent, model, false)
     }
 
     @GetMapping("/extended/user")
@@ -85,10 +81,9 @@ class SubmissionTablesGetController(
         @RequestParam uuid: String,
         @RequestParam(required = false) backAndEdit: Boolean,
         @RequestHeader(value = "User-Agent", required = false) userAgent: String,
-        model: Model,
-        redirectAttributes: RedirectAttributes
+        model: Model
     ): String {
-        return getUserPage(uuid, backAndEdit, userAgent, model, redirectAttributes, true)
+        return getUserPage(uuid, backAndEdit, userAgent, model, true)
     }
 
     private fun getUserPage(
@@ -96,27 +91,18 @@ class SubmissionTablesGetController(
         backAndEdit: Boolean,
         userAgent: String,
         model: Model,
-        redirectAttributes: RedirectAttributes,
         extendedPage: Boolean
     ): String {
         if (!browserService.checkIfBrowserSupported(userAgent)) {
             return "redirect:/error/412"
         }
-        val submission = submissionRepository.findByUuid(UUID.fromString(uuid))
-            ?: return "redirect:/error/404?parameter=$uuid"
+        val submission = submissionRepository.findByUuid(UUID.fromString(uuid)) ?: return "redirect:/error/404?parameter=$uuid"
 
         val timeout = env.getProperty("application.timeout", "${MetaValController.LOCKED_TIMEOUT_IN_MIN}").toInt()
         val person = ldapService.getPerson()
 
-        if (submission.isFinished) {
-            val additional = mapOf("header" to "Finally submitted.")
-            return redirectReadOnlyPage(submission, redirectAttributes, additional, extendedPage)
-        } else if (submission.isPaused) {
-            val additional = mapOf(
-                "header" to "Submission is in status " + submission.status +
-                    (" with the comment: ['${submission.onHoldComment}']".takeUnless { submission.onHoldComment.isBlank() } ?: "") + "."
-            )
-            return redirectReadOnlyPage(submission, redirectAttributes, additional, extendedPage)
+        if (submission.isFinished || submission.isPaused) {
+            return redirectReadOnlyPage(submission, extendedPage)
         } else if (backAndEdit) {
             submissionService.changeSubmissionState(submission, Submission.Status.EDITED, ldapService.getPerson().username)
         }
@@ -136,33 +122,13 @@ class SubmissionTablesGetController(
                 "If you experience any technical difficulties please switch over to Firefox."
         }
 
-        model["extended"] = extendedPage
-        if (extendedPage) {
+        model["extended"] = submission.isExtended
+        if (submission.isExtended) {
             setExtendedModelAttributes(model, submission)
         }
 
-        return if (submission.status == Submission.Status.LOCKED && submission.lockUser != person.username) {
-            val diffTime = (Date().time - submission.lockDate!!.time) / (60 * 1000)
-            val additional = mapOf(
-                "header" to "This page is currently locked for ${timeout - diffTime} minutes because another user working on this already."
-            )
-            redirectReadOnlyPage(submission, redirectAttributes, additional, extendedPage)
-        } else if (submission.isWriteProtected) {
-            val additional = emptyMap<String, Any>().toMutableMap()
-            additional["header"] = when (listOf(Submission.Status.CLOSED, Submission.Status.EXPORTED).contains(submission.status)) {
-                true -> "Finally submitted."
-                false -> {
-                    if (submission.isValidated) {
-                        val buttonName = bundle.getString("readonly.submitFinally")
-                        additional["merging"] = collectorService.foundMergeableSamples(submission)
-                        additional["addition"] = "You are not done yet - please check carefully and finalize your submission by clicking button '$buttonName'."
-                        "Summary of "
-                    } else {
-                        "${submission.status}."
-                    }
-                }
-            }
-            redirectReadOnlyPage(submission, redirectAttributes, additional, extendedPage)
+        return if ((submission.status == Submission.Status.LOCKED && submission.lockUser != person.username) || submission.isWriteProtected) {
+            return redirectReadOnlyPage(submission, extendedPage)
         } else {
             getEditablePage(submission, person, extendedPage, backAndEdit, projectPrefixMapping)
         }
@@ -172,26 +138,23 @@ class SubmissionTablesGetController(
     fun showAdminMetaDataValidator(
         @RequestParam identifier: String,
         @RequestParam(required = false) backAndEdit: Boolean,
-        model: Model,
-        redirectAttributes: RedirectAttributes
+        model: Model
     ): String {
-        return getAdminPage(identifier, model, redirectAttributes, backAndEdit)
+        return getAdminPage(identifier, model, backAndEdit)
     }
 
     @GetMapping("/extended/admin")
     fun showSimpleCsvValidator(
         @RequestParam identifier: String,
         @RequestParam(required = false) backAndEdit: Boolean,
-        model: Model,
-        redirectAttributes: RedirectAttributes
+        model: Model
     ): String {
-        return getAdminPage(identifier, model, redirectAttributes, backAndEdit)
+        return getAdminPage(identifier, model, backAndEdit)
     }
 
     private fun getAdminPage(
         identifier: String,
         model: Model,
-        redirectAttributes: RedirectAttributes,
         backAndEdit: Boolean
     ): String {
 
@@ -215,23 +178,13 @@ class SubmissionTablesGetController(
         }
 
         return if (submission.isWriteProtected && !backAndEdit) {
-            val headerString = if (submission.isFinished) "Finally submitted." else submission.status.toString()
-            val additional = mapOf("header" to headerString)
-            redirectReadOnlyPage(submission, redirectAttributes, additional, extendedPage)
+            redirectReadOnlyPage(submission, extendedPage)
         } else {
             getEditablePage(submission, person, extendedPage, backAndEdit, projectPrefixMapping)
         }
     }
 
-    private fun redirectReadOnlyPage(
-        submission: Submission,
-        redirectAttributes: RedirectAttributes,
-        additional: Map<String, Any>,
-        extendedPage: Boolean
-    ): String {
-        additional.forEach {
-            redirectAttributes.addFlashAttribute(it.key, it.value)
-        }
+    private fun redirectReadOnlyPage(submission: Submission, extendedPage: Boolean): String {
         return if (!extendedPage) "redirect:$SIMPLE_READ_ONLY?uuid=${submission.uuid}"
         else "redirect:$EXTENDED_READ_ONLY?uuid=${submission.uuid}"
     }

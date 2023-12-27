@@ -137,7 +137,6 @@ class ChangesController(
             if (submission.externalDataAvailableForMerging) {
                 submissionService.postProceedWithSubmission(submission)
             }
-            redirectAttributes.addFlashAttribute("header", "Finally submitted.")
             redirectAttributes.addFlashAttribute("showFeedback", true)
         }
         val page = if (submission.identifier.startsWith("i")) {

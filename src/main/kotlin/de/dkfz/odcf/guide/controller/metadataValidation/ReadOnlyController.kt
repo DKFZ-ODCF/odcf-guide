@@ -17,6 +17,8 @@ import de.dkfz.odcf.guide.service.interfaces.external.LSFCommandService
 import de.dkfz.odcf.guide.service.interfaces.external.RemoteCommandsService
 import de.dkfz.odcf.guide.service.interfaces.security.LdapService
 import de.dkfz.odcf.guide.service.interfaces.validator.CollectorService
+import de.dkfz.odcf.guide.service.interfaces.validator.SampleService
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.ui.set
@@ -35,11 +37,15 @@ class ReadOnlyController(
     private val collectorService: CollectorService,
     private val fileRepository: FileRepository,
     private val lsfCommandService: LSFCommandService,
+    private val sampleService: SampleService,
     private val requestedValueServiceImpl: RequestedValueServiceImpl,
     private val sampleRepository: SampleRepository,
     private val jsonApiService: JsonApiService,
     private val remoteCommandsService: RemoteCommandsService,
+    private val env: Environment
 ) {
+
+    private var bundle = ResourceBundle.getBundle("messages", Locale.getDefault())
 
     @GetMapping("/simple/read-only")
     fun getSimpleReadOnlyPage(model: Model, @RequestParam uuid: String, redirectAttributes: RedirectAttributes): String {
@@ -76,9 +82,7 @@ class ReadOnlyController(
         val samples = sampleRepository.findAllBySubmission(submission)
 
         model["admin"] = ldapService.isCurrentUserAdmin()
-        model["hideFinalSubmitButton"] = !submission.isValidated
         model["submission"] = submission
-        model["isFinished"] = submission.isFinished
         model["samples"] = samplesWithMergeCandidatesWithPaths
         model["identifier"] = formattedIdentifier
         model["merging"] = collectorService.foundMergeableSamples(submission)
@@ -102,16 +106,30 @@ class ReadOnlyController(
             val shortenedSequence = getShortAdapterSequence(adapterSequence.orEmpty())
             adapterSequence to "[$shortenedSequence...]".takeIf { shortenedSequence.isNotBlank() }.orEmpty()
         }
+        val nearlyIdenticalPid = samples.associate { it.pid to sampleService.checkIfSamePidIsAvailable(it.pid, it.project) }
+        model["nearlyIdenticalPid"] = nearlyIdenticalPid
+        model["detectedNearlyIdenticalPid"] = nearlyIdenticalPid.any { it.value?.first == "danger" }
+        model["allFilesReadable"] = true
+
+        if (submission.isLocked && submission.lockUser != ldapService.getPerson().username) {
+            val diffTime = (Date().time - submission.lockDate!!.time) / (60 * 1000)
+            val timeout = env.getProperty("application.timeout", "${MetaValController.LOCKED_TIMEOUT_IN_MIN}").toInt()
+            model["header"] = bundle.getString("readonly.header.timeout").replace("{0}", "${timeout - diffTime}")
+        } else if (submission.isValidated) {
+            model["merging"] = collectorService.foundMergeableSamples(submission)
+            model["header"] = bundle.getString("readonly.header.validate").replace("{0}", bundle.getString("readonly.submitFinally"))
+        } else if (submission.isFinished) {
+            model["header"] = bundle.getString("readonly.header.finished")
+        }
 
         return if (isExtended) {
-            var allFilesReadable = true
             val samplesMap = emptyMap<String, Map<Sample, List<File>>>().toMutableMap()
             samplesWithMergeCandidatesWithPaths.entries.forEach { (path, samples) ->
                 samplesMap[path] = samples.associateWith { sample ->
                     if (!sample.isMergeSample) {
                         fileRepository.findAllBySample(sample).map { file ->
                             val fileReadable = remoteCommandsService.getFromRemote("test -r ${file.fileName}; echo \$?").trim().toBool().not()
-                            if (!fileReadable) { allFilesReadable = false }
+                            if (!fileReadable) { model["allFilesReadable"] = false }
                             file.isReadable = fileReadable
                             file
                         }
@@ -121,10 +139,9 @@ class ReadOnlyController(
                 }
             }
             model["samples"] = samplesMap
-            model["allFilesReadable"] = allFilesReadable
-            model["additionalHeaders"] = samplesWithMergeCandidates.values.flatten()
+            model["additionalHeaders"] = samplesWithMergeCandidates.values.asSequence().flatten()
                 .mapNotNull { it.unknownValues?.keys?.toList() }.flatten()
-                .distinct().filter { it.isNotBlank() }
+                .distinct().filter { it.isNotBlank() }.toList()
             model["showAdditionalHeaders"] = runtimeOptionsRepository.findByName("unknownValuesAllowedOrganizationalUnits")?.value.orEmpty()
                 .split(",").contains(submission.submitter.organizationalUnit)
 

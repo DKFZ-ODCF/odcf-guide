@@ -501,4 +501,94 @@ class SampleServiceTests {
         verify(sampleRepository, times(1)).save(newSample)
         verify(technicalSampleRepository, times(1)).save(newSample.technicalSample!!)
     }
+
+    @Test
+    fun `test getSimilarPids`() {
+        val pid = "pidtest"
+        val project = "projecttest"
+        val map = mapOf(
+            "project" to project,
+            "pid" to pid,
+            "threshold" to "0.3",
+            "limit" to "10",
+        )
+
+        `when`(externalMetadataSourceService.getValuesAsSetMap("similar-pids", map)).thenReturn(setOf(mapOf("a" to "1", "b" to "2")))
+
+        val result = sampleServiceMock.getSimilarPids(pid, project)
+
+        assertThat(result).isEqualTo(setOf(mapOf("a" to "1", "b" to "2")))
+    }
+
+    @Test
+    fun `test getSimilarPids empty result`() {
+        val pid = "pidtest"
+        val project = "projecttest"
+        val map = mapOf(
+            "project" to project,
+            "pid" to pid,
+            "threshold" to "0.3",
+            "limit" to "10",
+        )
+
+        `when`(externalMetadataSourceService.getValuesAsSetMap("similar-pids", map)).thenReturn(emptySet())
+
+        val result = sampleServiceMock.getSimilarPids(pid, project)
+
+        assertThat(result).hasSize(0)
+    }
+
+    @Test
+    fun `test checkIfSamePidIsAvailable - similar PID is not available`() {
+        val pid = "pid1"
+        val project = "project1"
+        val map = mapOf(
+            "project" to project,
+            "pid" to pid,
+            "threshold" to "0.3",
+            "limit" to "10",
+        )
+
+        `when`(externalMetadataSourceService.getValuesAsSetMap("similar-pids", map)).thenReturn(setOf(mapOf("similarity_num" to "0.7", "pid" to "%pid1%")))
+
+        val result = sampleServiceMock.checkIfSamePidIsAvailable(pid, project)
+
+        assertThat(result).isNull()
+    }
+
+    @Test
+    fun `test checkIfSamePidIsAvailable - similar PID is available`() {
+        val pid = "pid1"
+        val project = "project1"
+        val map = mapOf(
+            "project" to project,
+            "pid" to pid,
+            "threshold" to "0.3",
+            "limit" to "10",
+        )
+
+        `when`(externalMetadataSourceService.getValuesAsSetMap("similar-pids", map)).thenReturn(setOf(mapOf("similarity_num" to "1", "pid" to "PID12")))
+
+        val result = sampleServiceMock.checkIfSamePidIsAvailable(pid, project)
+
+        assertThat(result).isEqualTo(Pair("warning", "PID12"))
+    }
+
+    @Test
+    fun `test checkIfSamePidIsAvailable - nearly same PID is available`() {
+        val pid = "pid1"
+        val project = "project1"
+        val map = mapOf(
+            "project" to project,
+            "pid" to pid,
+            "threshold" to "0.3",
+            "limit" to "10",
+        )
+
+        `when`(externalMetadataSourceService.getValuesAsSetMap("similar-pids", map)).thenReturn(setOf(mapOf("similarity_num" to "1", "pid" to "PID1")))
+
+        val result = sampleServiceMock.checkIfSamePidIsAvailable(pid, project)
+
+        assertThat(result).isEqualTo(Pair("danger", "PID1"))
+    }
 }
